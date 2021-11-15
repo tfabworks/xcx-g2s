@@ -1,0 +1,14 @@
+{
+  "en": {
+    "g2s.entry.name": "Grove",
+    "g2s.entry.description": "Description of this extension"
+  },
+  "ja": {
+    "g2s.entry.name": "Grove",
+    "g2s.entry.description": "拡張機能の説明"
+  },
+  "ja-Hira": {
+    "g2s.entry.name": "Grove",
+    "g2s.entry.description": "かくちょうきのうのせつめい"
+  }
+}

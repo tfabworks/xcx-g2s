@@ -1,0 +1,12 @@
+{
+  "name": "xcx-g2s",
+  "version": "0.0.0",
+  "scripts": {
+    "register": "npx xcratch-register --link -C --id=g2s --gui=\"../scratch-gui\"",
+    "build": "npx xcratch-build --module=g2s --gui=\"../scratch-gui\""
+  },
+  "devDependencies": {
+    "xcratch-build": "^0.2.0",
+    "xcratch-register": "^0.2.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "g2s.name": "Grove",
+    "g2s.doIt": "do it [SCRIPT]"
+  },
+  "ja": {
+    "g2s.name": "Grove",
+    "g2s.doIt": "[SCRIPT] を実行する"
+  },
+  "ja-Hira": {
+    "g2s.name": "Grove",
+    "g2s.doIt": "[SCRIPT] をじっこうする"
+  }
+}
