@@ -1,14 +1,26 @@
 {
   "en": {
     "g2s.name": "Grove",
-    "g2s.doIt": "do it [SCRIPT]"
+    "g2s.connectBoard": "connect board",
+    "g2s.disconnectBoard": "disconnect board",
+    "g2s.isConnected": "board is connected",
+    "g2s.getDigitalLevel": "level of [CONNECTOR]",
+    "g2s.setDigitalLevel": "[CONNECTOR] to [LEVEL]"
   },
   "ja": {
     "g2s.name": "Grove",
-    "g2s.doIt": "[SCRIPT] を実行する"
+    "g2s.connectBoard": "ボードを接続する",
+    "g2s.disconnectBoard": "ボードを切断する",
+    "g2s.isConnected": "ボードに接続している",
+    "g2s.getDigitalLevel": "[CONNECTOR] のレベル",
+    "g2s.setDigitalLevel": "[CONNECTOR] を [LEVEL] にする"
   },
   "ja-Hira": {
     "g2s.name": "Grove",
-    "g2s.doIt": "[SCRIPT] をじっこうする"
+    "g2s.connectBoard": "ボードをせつぞくする",
+    "g2s.disconnectBoard": "ボードをせつだんする",
+    "g2s.isConnected": "ボードにせつぞくている",
+    "g2s.getDigitalLevel": "[CONNECTOR] のレベル",
+    "g2s.setDigitalLevel": "[CONNECTOR] を [LEVEL] にする"
   }
 }
