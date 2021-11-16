@@ -23,8 +23,8 @@ const entry = {
         });
     },
     extensionId: 'g2s',
-    extensionURL: 'https://yokobond.github.io/xcx-g2s/dist/g2s.mjs',
-    collaborator: 'yokobond',
+    extensionURL: 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs',
+    collaborator: 'TFabWorks',
     iconURL: iconURL,
     insetIconURL: insetIconURL,
     get description () {
@@ -38,7 +38,7 @@ const entry = {
     disabled: false,
     bluetoothRequired: false,
     internetConnectionRequired: false,
-    helpLink: 'https://yokobond.github.io/xcx-g2s/',
+    helpLink: 'https://tfabworks.github.io/xcx-g2s/',
     setFormatMessage: formatter => {
         formatMessage = formatter;
     },

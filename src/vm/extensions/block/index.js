@@ -30,7 +30,7 @@ const EXTENSION_ID = 'g2s';
  * When it was loaded as a module, 'extensionURL' will be replaced a URL which is retrieved from.
  * @type {string}
  */
-let extensionURL = 'https://yokobond.github.io/xcx-g2s/dist/g2s.mjs';
+let extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
 
 /**
  * Scratch 3.0 blocks for example of Xcratch.

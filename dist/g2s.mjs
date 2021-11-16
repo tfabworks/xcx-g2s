@@ -43,8 +43,8 @@ var entry = {
   },
 
   extensionId: 'g2s',
-  extensionURL: 'https://yokobond.github.io/xcx-g2s/dist/g2s.mjs',
-  collaborator: 'yokobond',
+  extensionURL: 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs',
+  collaborator: 'TFabWorks',
   iconURL: img$2,
   insetIconURL: img$1,
 
@@ -60,7 +60,7 @@ var entry = {
   disabled: false,
   bluetoothRequired: false,
   internetConnectionRequired: false,
-  helpLink: 'https://yokobond.github.io/xcx-g2s/',
+  helpLink: 'https://tfabworks.github.io/xcx-g2s/',
   setFormatMessage: function setFormatMessage(formatter) {
     formatMessage$1 = formatter;
   },
@@ -11682,7 +11682,7 @@ var EXTENSION_ID = 'g2s';
  * @type {string}
  */
 
-var extensionURL = 'https://yokobond.github.io/xcx-g2s/dist/g2s.mjs';
+var extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
 /**
  * Scratch 3.0 blocks for example of Xcratch.
  */
