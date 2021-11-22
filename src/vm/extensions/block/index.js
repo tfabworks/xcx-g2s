@@ -134,20 +134,20 @@ class ExtensionBlocks {
     // }
 
     /**
-     * Get level of the connector as digital input.
+     * Whether the level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
-     * @param {number} args.CONNECTOR - connector to be set
-     * @returns {Promise} - a Promise which resolves when the response was returned
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} - a Promise which resolves boolean when the response was returned
      */
-    getDigitalLevel (args) {
-        if (!this.board.isConnected()) return Promise.resolve(0);
+    isDigitalHight (args) {
+        if (!this.board.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.INPUT);
         return new Promise(resolve => {
             this.board.digitalRead(pin, value => {
                 // `board.digitalRead()` starts reporting automatically, so it should be stopped.
                 this.board.reportDigitalPin(pin, 0);
-                resolve(value);
+                resolve(value !== 0);
             });
         });
     }
@@ -155,7 +155,7 @@ class ExtensionBlocks {
     /**
      * Set the connector to the level as digital output.
      * @param {object} args - the block's arguments.
-     * @param {number} args.CONNECTOR - connector to be set
+     * @param {number} args.CONNECTOR - pin number of the connector
      * @param {boolean | string | number} args.LEVEL - level to be set
      */
     setDigitalLevel (args) {
@@ -219,20 +219,19 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'getDigitalLevel',
-                    blockType: BlockType.REPORTER,
+                    opcode: 'isDigitalHight',
+                    blockType: BlockType.BOOLEAN,
                     blockAllThreads: false,
                     text: formatMessage({
-                        id: 'g2s.getDigitalLevel',
-                        default: 'level of [CONNECTOR]',
-                        description: 'report digital level of the connector'
+                        id: 'g2s.isDigitalHight',
+                        default: '[CONNECTOR] is HIGH',
+                        description: 'whether the digital level of the connector is high or not'
                     }),
-                    func: 'getDigitalLevel',
+                    func: 'isDigitalHight',
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu',
-                            defaultValue: 2
+                            menu: 'digitalConnectorMenu'
                         }
                     }
                 },
@@ -275,13 +274,24 @@ class ExtensionBlocks {
     }
 
     getDigitalConnectorMenu () {
-        return this.getDigitalConnectors().map(
-            pinIndex =>
-                Object.create({
-                    text: `D${pinIndex.toString()}`,
-                    value: pinIndex.toString()
-                })
-        );
+        const prefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        return [
+            {
+                text: `${prefix}1`,
+                value: '2'
+            },
+            {
+                text: `${prefix}2`,
+                value: '3'
+            },
+            {
+                text: `${prefix}3`,
+                value: '4'
+            }
+        ];
     }
 
     getDigitalLevelMenu () {
