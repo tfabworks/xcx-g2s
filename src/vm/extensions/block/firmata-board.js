@@ -51,10 +51,10 @@ class FirmataBoard {
             console.log(
                 `${this.board.firmware.name}-${this.board.firmware.version.major}.${this.board.firmware.version.minor}`
             );
-            this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-                name: this.name,
-                path: this.portPath
-            });
+            // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+            //     name: this.name,
+            //     path: this.portPath
+            // });
         });
         this.onDisconnect = this.onDisconnect.bind(this);
         this.board.addListener('disconnect', this.onDisconnect);
@@ -82,10 +82,10 @@ class FirmataBoard {
 
     disconnect () {
         this.release();
-        this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-            name: this.name,
-            path: this.portPath
-        });
+        // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+        //     name: this.name,
+        //     path: this.portPath
+        // });
     }
 
     onDisconnect (error) {
