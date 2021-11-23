@@ -112,12 +112,6 @@ class ExtensionBlocks {
     }
 
 
-    getDigitalConnectors () {
-        return [2, 3, 4, 5, 6, 7, 8,
-            13 // for test
-        ];
-    }
-
     isConnected () {
         return this.board.isConnected();
     }
@@ -181,13 +175,11 @@ class ExtensionBlocks {
                 {
                     opcode: 'connectBoard',
                     blockType: BlockType.COMMAND,
-                    blockAllThreads: false,
                     text: formatMessage({
                         id: 'g2s.connectBoard',
                         default: 'connect board',
                         description: 'open serial port and connect a board'
                     }),
-                    func: 'connectBoard',
                     arguments: {
                     }
                 },
@@ -200,20 +192,17 @@ class ExtensionBlocks {
                         default: 'disconnect board',
                         description: 'disconnect the board'
                     }),
-                    func: 'disconnectBoard',
                     arguments: {
                     }
                 },
                 {
                     opcode: 'isConnected',
                     blockType: BlockType.BOOLEAN,
-                    blockAllThreads: false,
                     text: formatMessage({
                         id: 'g2s.isConnected',
                         default: 'board is connected',
                         description: 'firmata board is connected'
                     }),
-                    func: 'isConnected',
                     arguments: {
                     }
                 },
@@ -221,13 +210,11 @@ class ExtensionBlocks {
                 {
                     opcode: 'isDigitalHight',
                     blockType: BlockType.BOOLEAN,
-                    blockAllThreads: false,
                     text: formatMessage({
                         id: 'g2s.isDigitalHight',
                         default: '[CONNECTOR] is HIGH',
                         description: 'whether the digital level of the connector is high or not'
                     }),
-                    func: 'isDigitalHight',
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
@@ -238,23 +225,19 @@ class ExtensionBlocks {
                 {
                     opcode: 'setDigitalLevel',
                     blockType: BlockType.COMMAND,
-                    blockAllThreads: false,
                     text: formatMessage({
                         id: 'g2s.setDigitalLevel',
                         default: '[CONNECTOR] to [LEVEL]',
                         description: 'set digital level of the connector'
                     }),
-                    func: 'setDigitalLevel',
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu',
-                            defaultValue: 2
+                            menu: 'digitalConnectorMenu'
                         },
                         LEVEL: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalLevelMenu',
-                            defaultValue: 'false'
+                            menu: 'digitalLevelMenu'
                         }
                     }
                 }
