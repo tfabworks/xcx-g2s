@@ -227,7 +227,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.setDigitalLevel',
-                        default: '[CONNECTOR] to [LEVEL]',
+                        default: '[CONNECTOR] to digital [LEVEL]',
                         description: 'set digital level of the connector'
                     }),
                     arguments: {
@@ -281,7 +281,7 @@ class ExtensionBlocks {
         return [
             {
                 text: formatMessage({
-                    id: 'g2s.digitalLevelMenu.Low',
+                    id: 'g2s.digitalLevelMenu.low',
                     default: 'Low',
                     description: 'label for low value in digital output menu for g2s'
                 }),
@@ -289,7 +289,7 @@ class ExtensionBlocks {
             },
             {
                 text: formatMessage({
-                    id: 'g2s.digitalLevelMenu.High',
+                    id: 'g2s.digitalLevelMenu.high',
                     default: 'High',
                     description: 'label for high value in digital output menu for g2s'
                 }),

@@ -5,8 +5,10 @@
     "g2s.disconnectBoard": "disconnect board",
     "g2s.isConnected": "board is connected",
     "g2s.digitalConnector.prefix": "Digital",
+    "g2s.digitalLevelMenu.low": "Low",
+    "g2s.digitalLevelMenu.high": "High",
     "g2s.isDigitalHight": "[CONNECTOR] is HIGH",
-    "g2s.setDigitalLevel": "[CONNECTOR] to digital [LEVEL]",
+    "g2s.setDigitalLevel": "[CONNECTOR] to [LEVEL]",
   },
   "ja": {
     "g2s.name": "Grove",
@@ -14,8 +16,10 @@
     "g2s.disconnectBoard": "ボードを切断する",
     "g2s.isConnected": "ボードに接続している",
     "g2s.digitalConnector.prefix": "デジタル",
+    "g2s.digitalLevelMenu.low": "ロー",
+    "g2s.digitalLevelMenu.high": "ハイ",
     "g2s.isDigitalHight": "[CONNECTOR]がハイである",
-    "g2s.setDigitalLevel": "[CONNECTOR]をデジタル[LEVEL]にする",
+    "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
   },
   "ja-Hira": {
     "g2s.name": "Grove",
@@ -23,7 +27,9 @@
     "g2s.disconnectBoard": "ボードをせつだんする",
     "g2s.isConnected": "ボードにせつぞくている",
     "g2s.digitalConnector.prefix": "デジタル",
+    "g2s.digitalLevelMenu.low": "ロー",
+    "g2s.digitalLevelMenu.high": "ハイ",
     "g2s.isDigitalHight": "[CONNECTOR]がハイである",
-    "g2s.setDigitalLevel": "[CONNECTOR]をデジタル[LEVEL]にする",
+    "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
   }
 }
