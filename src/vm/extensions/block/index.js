@@ -340,15 +340,15 @@ class ExtensionBlocks {
         return [
             {
                 text: `${prefix}1`,
-                value: '2'
+                value: '9'
             },
             {
                 text: `${prefix}2`,
-                value: '3'
+                value: '10'
             },
             {
                 text: `${prefix}3`,
-                value: '4'
+                value: '11'
             }
         ];
     }
