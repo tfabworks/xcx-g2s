@@ -9,6 +9,9 @@
     "g2s.digitalLevelMenu.high": "High",
     "g2s.isDigitalHight": "[CONNECTOR] is HIGH",
     "g2s.setDigitalLevel": "[CONNECTOR] to [LEVEL]",
+    "g2s.setAnalogLevel": "[CONNECTOR] to PWM [LEVEL]",
+    "g2s.analogConnector.prefix": "Analog",
+    "g2s.getAnalogLevel": "level of [CONNECTOR]"
   },
   "ja": {
     "g2s.name": "Grove",
@@ -20,6 +23,9 @@
     "g2s.digitalLevelMenu.high": "ハイ",
     "g2s.isDigitalHight": "[CONNECTOR]がハイである",
     "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
+    "g2s.setAnalogLevel": "[CONNECTOR]をPWM[LEVEL]にする",
+    "g2s.analogConnector.prefix": "アナログ",
+    "g2s.getAnalogLevel": "[CONNECTOR]のレベル"
   },
   "ja-Hira": {
     "g2s.name": "Grove",
@@ -31,5 +37,8 @@
     "g2s.digitalLevelMenu.high": "ハイ",
     "g2s.isDigitalHight": "[CONNECTOR]がハイである",
     "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
+    "g2s.setAnalogLevel": "[CONNECTOR]をPWM[LEVEL]にする",
+    "g2s.analogConnector.prefix": "アナログ",
+    "g2s.getAnalogLevel": "[CONNECTOR]のレベル"
   }
 }

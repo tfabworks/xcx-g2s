@@ -69,6 +69,12 @@ class FirmataBoard {
         return (!!this.port && this.port.isOpen);
     }
 
+    isReady () {
+        let ready = this.isConnected();
+        ready = ready && (this.board.analogPins.length > 0); // Is analog pin map received?
+        return ready;
+    }
+
     release () {
         if (this.port && this.port.isOpen) {
             this.port.close();
@@ -130,6 +136,18 @@ class FirmataBoard {
         return this.board.digitalWrite(pin, value, enqueue);
     }
 
+    pwmWrite (pin, value) {
+        return this.board.pwmWrite(pin, value);
+    }
+
+    analogRead (pin, callback) {
+        return this.board.analogRead(pin, callback);
+    }
+
+    reportAnalogPin (pin, value) {
+        return this.board.reportAnalogPin(pin, value);
+    }
+
     get MODES () {
         return this.board.MODES;
     }
@@ -140,6 +158,10 @@ class FirmataBoard {
 
     get LOW () {
         return this.board.LOW;
+    }
+
+    get RESOLUTION () {
+        return this.board.RESOLUTION;
     }
 }
 

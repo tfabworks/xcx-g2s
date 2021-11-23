@@ -161,6 +161,40 @@ class ExtensionBlocks {
     }
 
     /**
+     * The level of the connector as analog input.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+    getAnalogLevel (args) {
+        if (!this.board.isConnected()) return Promise.resolve(0);
+        const pin = parseInt(args.CONNECTOR, 10);
+        this.board.pinMode(pin, this.board.MODES.ANALOG);
+        return new Promise(resolve => {
+            this.board.analogRead(pin, value => {
+                // `board.analogRead()` starts reporting automatically, so it should be stopped.
+                this.board.reportAnalogPin(pin, 0);
+                resolve(value);
+            });
+        });
+    }
+
+    /**
+     * Set the connector to power (%) as PWM.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {string | number} args.LEVEL - power (%) of PWM
+     */
+    setAnalogLevel (args) {
+        if (!this.board.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
+        const value = Math.round((this.board.RESOLUTION.PWM - 0) * (percent / 100));
+        this.board.pinMode(pin, this.board.MODES.PWM);
+        this.board.pwmWrite(pin, value);
+    }
+
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
@@ -240,8 +274,42 @@ class ExtensionBlocks {
                             menu: 'digitalLevelMenu'
                         }
                     }
+                },
+                {
+                    opcode: 'getAnalogLevel',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getAnalogLevel',
+                        default: 'level of analog [CONNECTOR]',
+                        description: 'report analog level of the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'analogConnectorMenu'
+                        }
+                    }
+                },
+                {
+                    opcode: 'setAnalogLevel',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.setAnalogLevel',
+                        default: '[CONNECTOR] to analog [LEVEL]',
+                        description: 'set analog level of the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'pwmConnectorMenu'
+                        },
+                        LEVEL: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
                 }
-
             ],
             menus: {
                 digitalConnectorMenu: {
@@ -251,6 +319,14 @@ class ExtensionBlocks {
                 digitalLevelMenu: {
                     acceptReporters: true,
                     items: this.getDigitalLevelMenu()
+                },
+                analogConnectorMenu: {
+                    acceptReporters: false,
+                    items: this.getAnalogConnectorMenu()
+                },
+                pwmConnectorMenu: {
+                    acceptReporters: false,
+                    items: this.getDigitalConnectorMenu()
                 }
             }
         };
@@ -294,6 +370,27 @@ class ExtensionBlocks {
                     description: 'label for high value in digital output menu for g2s'
                 }),
                 value: 'true'
+            }
+        ];
+    }
+
+    getAnalogConnectorMenu () {
+        const prefix = formatMessage({
+            id: 'g2s.analogConnector.prefix',
+            default: 'Analog'
+        });
+        return [
+            {
+                text: `${prefix}1`,
+                value: '0'
+            },
+            {
+                text: `${prefix}2`,
+                value: '1'
+            },
+            {
+                text: `${prefix}3`,
+                value: '2'
             }
         ];
     }
