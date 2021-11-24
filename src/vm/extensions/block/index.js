@@ -287,6 +287,22 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'analogLevelGet',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.analogLevelGet',
+                        default: 'level of analog [CONNECTOR]',
+                        description: 'report analog level of the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'analogConnectorMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'digitalIsHigh',
                     blockType: BlockType.BOOLEAN,
                     text: formatMessage({
@@ -317,22 +333,6 @@ class ExtensionBlocks {
                         LEVEL: {
                             type: ArgumentType.STRING,
                             menu: 'digitalLevelMenu'
-                        }
-                    }
-                },
-                {
-                    opcode: 'analogLevelGet',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: true,
-                    text: formatMessage({
-                        id: 'g2s.analogLevelGet',
-                        default: 'level of analog [CONNECTOR]',
-                        description: 'report analog level of the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'analogConnectorMenu'
                         }
                     }
                 },
