@@ -155,6 +155,11 @@ class ExtensionBlocks {
         });
     }
 
+    digitalStateChanged (args) {
+        console.log(args);
+        return false; // not implemented yet
+    }
+
     /**
      * Set the connector to the level as digital output.
      * @param {object} args - the block's arguments.
@@ -338,6 +343,25 @@ class ExtensionBlocks {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
+                        }
+                    }
+                },
+                {
+                    opcode: 'digitalStateChanged',
+                    blockType: BlockType.HAT,
+                    text: formatMessage({
+                        id: 'g2s.digitalStateChanged',
+                        default: 'When [CONNECTOR] is [STATE]',
+                        description: 'catch event when the connector state was changed'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        STATE: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalStateMenu'
                         }
                     }
                 },
@@ -548,6 +572,10 @@ class ExtensionBlocks {
                     items: this.getDigitalConnectorMenu()
                 },
                 digitalLevelMenu: {
+                    acceptReporters: true,
+                    items: this.getDigitalLevelMenu()
+                },
+                digitalStateMenu: {
                     acceptReporters: true,
                     items: this.getDigitalLevelMenu()
                 },
