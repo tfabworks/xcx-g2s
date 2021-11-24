@@ -133,7 +133,7 @@ class ExtensionBlocks {
      * @param {number} args.CONNECTOR - pin number of the connector
      * @returns {Promise} - a Promise which resolves boolean when the response was returned
      */
-    isDigitalHight (args) {
+    digitalIsHigh (args) {
         if (!this.board.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.INPUT);
@@ -152,7 +152,7 @@ class ExtensionBlocks {
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {boolean | string | number} args.LEVEL - level to be set
      */
-    setDigitalLevel (args) {
+    digitalLevelSet (args) {
         if (!this.board.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
@@ -166,7 +166,7 @@ class ExtensionBlocks {
      * @param {number} args.CONNECTOR - pin number of the connector
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
      */
-    getAnalogLevel (args) {
+    analogLevelGet (args) {
         if (!this.board.isConnected()) return Promise.resolve(0);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.ANALOG);
@@ -185,7 +185,7 @@ class ExtensionBlocks {
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
      */
-    setAnalogLevel (args) {
+    analogLevelSet (args) {
         if (!this.board.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
@@ -287,10 +287,10 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'isDigitalHight',
+                    opcode: 'digitalIsHigh',
                     blockType: BlockType.BOOLEAN,
                     text: formatMessage({
-                        id: 'g2s.isDigitalHight',
+                        id: 'g2s.digitalIsHigh',
                         default: '[CONNECTOR] is HIGH',
                         description: 'whether the digital level of the connector is high or not'
                     }),
@@ -302,10 +302,10 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'setDigitalLevel',
+                    opcode: 'digitalLevelSet',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'g2s.setDigitalLevel',
+                        id: 'g2s.digitalLevelSet',
                         default: '[CONNECTOR] to digital [LEVEL]',
                         description: 'set digital level of the connector'
                     }),
@@ -321,11 +321,11 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'getAnalogLevel',
+                    opcode: 'analogLevelGet',
                     blockType: BlockType.REPORTER,
                     disableMonitor: true,
                     text: formatMessage({
-                        id: 'g2s.getAnalogLevel',
+                        id: 'g2s.analogLevelGet',
                         default: 'level of analog [CONNECTOR]',
                         description: 'report analog level of the connector'
                     }),
@@ -337,10 +337,10 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'setAnalogLevel',
+                    opcode: 'analogLevelSet',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'g2s.setAnalogLevel',
+                        id: 'g2s.analogLevelSet',
                         default: '[CONNECTOR] to analog [LEVEL]',
                         description: 'set analog level of the connector'
                     }),
