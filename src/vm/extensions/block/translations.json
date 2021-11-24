@@ -15,8 +15,6 @@
     "g2s.servoTurn": "Servo [CONNECTOR] turn [DEGREE]",
     "g2s.i2cWrite": "I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]",
     "g2s.i2cRead": "I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]",
-    "g2s.i2cReadContinuousMenu.continue": "continue",
-    "g2s.i2cReadContinuousMenu.stop": "stop",
     "g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
     "g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
     "g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] color [COLOR]",
