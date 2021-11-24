@@ -380,13 +380,17 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.i2cWrite',
-                        default: 'I2C [CONNECTOR] write register [REG] with [DATA]',
+                        default: 'I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]',
                         description: 'write I2C data to the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
+                        },
+                        ADDRESS: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00'
                         },
                         REG: {
                             type: ArgumentType.STRING,
@@ -400,16 +404,20 @@ class ExtensionBlocks {
                 },
                 {
                     opcode: 'i2cRead',
-                    blockType: BlockType.COMMAND,
+                    blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.i2cRead',
-                        default: 'I2C [CONNECTOR] read [LENGTH] bytes from register [REG]',
+                        default: 'I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]',
                         description: 'read I2C data from the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
+                        },
+                        ADDRESS: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00'
                         },
                         REG: {
                             type: ArgumentType.STRING,
