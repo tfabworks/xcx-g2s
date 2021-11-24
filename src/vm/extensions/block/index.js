@@ -194,6 +194,46 @@ class ExtensionBlocks {
         this.board.pwmWrite(pin, value);
     }
 
+    i2cWrite (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    i2cRead (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    oneWireUpdate (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    oneWireWrite (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    oneWireRead (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    oneWireConfigure (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    neoPixelSetColor (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
+    neoPixelClear (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -309,6 +349,175 @@ class ExtensionBlocks {
                             defaultValue: 0
                         }
                     }
+                },
+                '---',
+                {
+                    opcode: 'i2cWrite',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.i2cWrite',
+                        default: 'I2C [CONNECTOR] write register [REG] with [DATA]',
+                        description: 'write I2C data to the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        REG: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00'
+                        },
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00, 0x00'
+                        }
+                    }
+                },
+                {
+                    opcode: 'i2cRead',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.i2cRead',
+                        default: 'I2C [CONNECTOR] read [LENGTH] bytes from register [REG]',
+                        description: 'read I2C data from the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        REG: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00'
+                        },
+                        LENGTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'oneWireUpdate',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.oneWireUpdate',
+                        default: 'OneWire update devices on [CONNECTOR]',
+                        description: 'update list of OneWire devices on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
+                    }
+                },
+                {
+                    opcode: 'oneWireWrite',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.oneWireWrite',
+                        default: 'OneWire [CONNECTOR] write device [DEVICE] with [DATA]',
+                        description: 'write OneWire data to the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        DEVICE: {
+                            type: ArgumentType.STRING,
+                            menu: 'oneWireDeviceMenu'
+                        },
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00, 0x00'
+                        }
+                    }
+                },
+                {
+                    opcode: 'oneWireRead',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.oneWireRead',
+                        default: 'OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]',
+                        description: 'read OneWire data from the device on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        DEVICE: {
+                            type: ArgumentType.STRING,
+                            menu: 'oneWireDeviceMenu'
+                        },
+                        LENGTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    }
+                },
+                {
+                    opcode: 'oneWireConfigure',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.oneWireConfigure',
+                        default: 'OneWire set [PARASITIC] on [CONNECTOR]',
+                        description: 'configure OneWire on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        PARASITIC: {
+                            type: ArgumentType.STRING,
+                            menu: 'oneWireParasiticMenu'
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'neoPixelSetColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelSetColor',
+                        default: 'NeoPixel [CONNECTOR] set [POSITION] color [COLOR]',
+                        description: 'set NeoPixel color on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        POSITION: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        },
+                        COLOR: {
+                            type: ArgumentType.COLOR
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelClear',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelClear',
+                        default: 'NeoPixel clear on [CONNECTOR]',
+                        description: 'clear NeoPixel on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        COLOR: {
+                            type: ArgumentType.COLOR
+                        }
+                    }
                 }
             ],
             menus: {
@@ -327,6 +536,10 @@ class ExtensionBlocks {
                 pwmConnectorMenu: {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
+                },
+                oneWireDeviceMenu: {
+                    acceptReporters: false,
+                    items: this.getOneWireDeviceMenu()
                 }
             }
         };
@@ -391,6 +604,31 @@ class ExtensionBlocks {
             {
                 text: `${prefix}3`,
                 value: '2'
+            }
+        ];
+    }
+
+    getOneWireDeviceMenu () {
+        const prefix = formatMessage({
+            id: 'g2s.oneWireDevice.prefix',
+            default: 'Device'
+        });
+        return [
+            {
+                text: `${prefix}1`,
+                value: '1'
+            },
+            {
+                text: `${prefix}2`,
+                value: '2'
+            },
+            {
+                text: `${prefix}3`,
+                value: '3'
+            },
+            {
+                text: `${prefix}4`,
+                value: '4'
             }
         ];
     }

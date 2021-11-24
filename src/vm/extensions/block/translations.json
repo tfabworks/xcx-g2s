@@ -11,7 +11,18 @@
     "g2s.setDigitalLevel": "[CONNECTOR] to [LEVEL]",
     "g2s.setAnalogLevel": "[CONNECTOR] to PWM [LEVEL]",
     "g2s.analogConnector.prefix": "Analog",
-    "g2s.getAnalogLevel": "level of [CONNECTOR]"
+    "g2s.getAnalogLevel": "level of [CONNECTOR]",
+    "g2s.i2cWrite": "I2C [CONNECTOR] write register [REG] with [DATA]",
+    "g2s.i2cRead": "I2C [CONNECTOR] read [LENGTH] bytes from register [REG]",
+    "g2s.i2cReadContinuousMenu.continue": "continue",
+    "g2s.i2cReadContinuousMenu.stop": "stop",
+    "g2s.oneWireUpdate": "OneWire update devices on [CONNECTOR]",
+    "g2s.oneWireWrite": "OneWire [CONNECTOR] write device [DEVICE] with [DATA]",
+    "g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]",
+    "g2s.oneWireConfigure": "OneWire set [PARASITIC] on [CONNECTOR]",
+    "g2s.oneWireDevice.prefix": "Device",
+    "g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] color [COLOR]",
+    "g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]"
   },
   "ja": {
     "g2s.name": "Grove",
@@ -25,7 +36,16 @@
     "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
     "g2s.setAnalogLevel": "[CONNECTOR]をPWM[LEVEL]にする",
     "g2s.analogConnector.prefix": "アナログ",
-    "g2s.getAnalogLevel": "[CONNECTOR]のレベル"
+    "g2s.getAnalogLevel": "[CONNECTOR]のレベル",
+    "g2s.i2cWrite": "[CONNECTOR]へI2Cでレジスタ[REG]に[DATA]を書き込む",
+    "g2s.i2cRead": "[CONNECTOR]からI2Cでレジスタ[REG]を[LENGTH]バイト読み出す",
+    "g2s.oneWireUpdate": "[CONNECTOR]のOneWireデバイスを更新する",
+    "g2s.oneWireWrite": "[CONNECTOR]のOneWire[DEVICE]に[DATA]を書き込む",
+    "g2s.oneWireRead": "[CONNECTOR]のOneWire[DEVICE]から [LENGTH]bytes読み出す",
+    "g2s.oneWireConfigure": "[CONNECTOR]をOneWire[PARASITIC]にする",
+    "g2s.oneWireDevice.prefix": "デバイス",
+    "g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
+    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す"
   },
   "ja-Hira": {
     "g2s.name": "Grove",
@@ -39,6 +59,15 @@
     "g2s.setDigitalLevel": "[CONNECTOR]を[LEVEL]にする",
     "g2s.setAnalogLevel": "[CONNECTOR]をPWM[LEVEL]にする",
     "g2s.analogConnector.prefix": "アナログ",
-    "g2s.getAnalogLevel": "[CONNECTOR]のレベル"
+    "g2s.getAnalogLevel": "[CONNECTOR]のレベル",
+    "g2s.i2cWrite": "[CONNECTOR]にI2Cでレジスタ[REG]に[DATA]をかきこむ",
+    "g2s.i2cRead": "[CONNECTOR]にI2Cでレジスタ[REG]を[LENGTH]バイトよみだす",
+    "g2s.oneWireUpdate": "[CONNECTOR]のOneWireデバイスをこうしんする",
+    "g2s.oneWireWrite": "[CONNECTOR]のOneWire[DEVICE]に[DATA]をかきこむ",
+    "g2s.oneWireRead": "[CONNECTOR]のOneWire[DEVICE]から [LENGTH]bytesよみだす",
+    "g2s.oneWireConfigure": "[CONNECTOR]をOneWire[PARASITIC]にする",
+    "g2s.oneWireDevice.prefix": "デバイス",
+    "g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
+    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす"
   }
 }
