@@ -194,6 +194,11 @@ class ExtensionBlocks {
         this.board.pwmWrite(pin, value);
     }
 
+    servoTurn (args) {
+        console.log(args);
+        return 'not implemented yet';
+    }
+
     i2cWrite (args) {
         console.log(args);
         return 'not implemented yet';
@@ -347,6 +352,25 @@ class ExtensionBlocks {
                         LEVEL: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'servoTurn',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.servoTurn',
+                        default: 'Servo [CONNECTOR] turn [DEGREE]',
+                        description: 'turn servo motor'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        DEGREE: {
+                            type: ArgumentType.ANGLE
                         }
                     }
                 },
