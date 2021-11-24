@@ -739,16 +739,50 @@ var en = {
 	"g2s.connectBoard": "connect board",
 	"g2s.disconnectBoard": "disconnect board",
 	"g2s.isConnected": "board is connected",
-	"g2s.getDigitalLevel": "level of [CONNECTOR]",
-	"g2s.setDigitalLevel": "[CONNECTOR] to [LEVEL]"
+	"g2s.boardState.connected": "connected",
+	"g2s.boardState.disconnected": "disconnected",
+	"g2s.boardStateChanged": "When board is [STATE]",
+	"g2s.analogConnector.prefix": "Analog",
+	"g2s.analogLevelGet": "level of [CONNECTOR]",
+	"g2s.digitalConnector.prefix": "Digital",
+	"g2s.digitalLevelMenu.low": "Low",
+	"g2s.digitalLevelMenu.high": "High",
+	"g2s.digitalIsHigh": "[CONNECTOR] is HIGH",
+	"g2s.digitalStateChanged": "When [CONNECTOR] is [STATE]",
+	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
+	"g2s.analogLevelSet": "[CONNECTOR] to PWM [LEVEL]",
+	"g2s.servoTurn": "Servo [CONNECTOR] turn [DEGREE]",
+	"g2s.i2cWrite": "I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]",
+	"g2s.i2cRead": "I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]",
+	"g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
+	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
+	"g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] color [COLOR]",
+	"g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]"
 };
 var ja = {
 	"g2s.name": "Grove",
 	"g2s.connectBoard": "ボードを接続する",
 	"g2s.disconnectBoard": "ボードを切断する",
 	"g2s.isConnected": "ボードに接続している",
-	"g2s.getDigitalLevel": "[CONNECTOR] のレベル",
-	"g2s.setDigitalLevel": "[CONNECTOR] を [LEVEL] にする"
+	"g2s.boardState.connected": "つながった",
+	"g2s.boardState.disconnected": "切れた",
+	"g2s.boardStateChanged": "ボードが[STATE]とき",
+	"g2s.analogConnector.prefix": "アナログ",
+	"g2s.analogLevelGet": "[CONNECTOR]のレベル",
+	"g2s.digitalConnector.prefix": "デジタル",
+	"g2s.digitalLevelMenu.low": "ロー",
+	"g2s.digitalLevelMenu.high": "ハイ",
+	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
+	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
+	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
+	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
+	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]度回す",
+	"g2s.i2cWrite": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]に[DATA]を書き込む",
+	"g2s.i2cRead": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]を[LENGTH]バイト読み出す",
+	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
+	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytes読み出す",
+	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
+	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す"
 };
 var translations = {
 	en: en,
@@ -758,8 +792,25 @@ var translations = {
 	"g2s.connectBoard": "ボードをせつぞくする",
 	"g2s.disconnectBoard": "ボードをせつだんする",
 	"g2s.isConnected": "ボードにせつぞくている",
-	"g2s.getDigitalLevel": "[CONNECTOR] のレベル",
-	"g2s.setDigitalLevel": "[CONNECTOR] を [LEVEL] にする"
+	"g2s.boardState.connected": "つながった",
+	"g2s.boardState.disconnected": "きれた",
+	"g2s.boardStateChanged": "ボードが[STATE]とき",
+	"g2s.analogConnector.prefix": "アナログ",
+	"g2s.getAnalogLevel": "[CONNECTOR]のレベル",
+	"g2s.digitalConnector.prefix": "デジタル",
+	"g2s.digitalLevelMenu.low": "ロー",
+	"g2s.digitalLevelMenu.high": "ハイ",
+	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
+	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
+	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
+	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
+	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]どまわす",
+	"g2s.i2cWrite": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]に[DATA]をかきこむ",
+	"g2s.i2cRead": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]を[LENGTH]バイトよみだす",
+	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
+	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytesよみだす",
+	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
+	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす"
 }
 };
 
@@ -11542,12 +11593,10 @@ var FirmataBoard = /*#__PURE__*/function () {
       this.board = new FirmataClass(this.port);
       this.board.once('ready', function () {
         console.log('READY!');
-        console.log("".concat(_this.board.firmware.name, "-").concat(_this.board.firmware.version.major, ".").concat(_this.board.firmware.version.minor));
-
-        _this.runtime.emit(_this.runtime.constructor.PERIPHERAL_CONNECTED, {
-          name: _this.name,
-          path: _this.portPath
-        });
+        console.log("".concat(_this.board.firmware.name, "-").concat(_this.board.firmware.version.major, ".").concat(_this.board.firmware.version.minor)); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+        //     name: this.name,
+        //     path: this.portPath
+        // });
       });
       this.onDisconnect = this.onDisconnect.bind(this);
       this.board.addListener('disconnect', this.onDisconnect); // for DEBUG
@@ -11561,6 +11610,14 @@ var FirmataBoard = /*#__PURE__*/function () {
     key: "isConnected",
     value: function isConnected() {
       return !!this.port && this.port.isOpen;
+    }
+  }, {
+    key: "isReady",
+    value: function isReady() {
+      var ready = this.isConnected();
+      ready = ready && this.board.analogPins.length > 0; // Is analog pin map received?
+
+      return ready;
     }
   }, {
     key: "release",
@@ -11579,11 +11636,10 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "disconnect",
     value: function disconnect() {
-      this.release();
-      this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-        name: this.name,
-        path: this.portPath
-      });
+      this.release(); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+      //     name: this.name,
+      //     path: this.portPath
+      // });
     }
   }, {
     key: "onDisconnect",
@@ -11635,6 +11691,21 @@ var FirmataBoard = /*#__PURE__*/function () {
       return this.board.digitalWrite(pin, value, enqueue);
     }
   }, {
+    key: "pwmWrite",
+    value: function pwmWrite(pin, value) {
+      return this.board.pwmWrite(pin, value);
+    }
+  }, {
+    key: "analogRead",
+    value: function analogRead(pin, callback) {
+      return this.board.analogRead(pin, callback);
+    }
+  }, {
+    key: "reportAnalogPin",
+    value: function reportAnalogPin(pin, value) {
+      return this.board.reportAnalogPin(pin, value);
+    }
+  }, {
     key: "MODES",
     get: function get() {
       return this.board.MODES;
@@ -11648,6 +11719,11 @@ var FirmataBoard = /*#__PURE__*/function () {
     key: "LOW",
     get: function get() {
       return this.board.LOW;
+    }
+  }, {
+    key: "RESOLUTION",
+    get: function get() {
+      return this.board.RESOLUTION;
     }
   }]);
 
@@ -11670,9 +11746,11 @@ var formatMessage = function formatMessage(messageData) {
 
 
 var setupTranslations = function setupTranslations() {
-  formatMessage.setup({
-    translations: translations
-  });
+  var localeSetup = formatMessage.setup();
+
+  if (localeSetup && localeSetup.translations[localeSetup.locale]) {
+    Object.assign(localeSetup.translations[localeSetup.locale], translations[localeSetup.locale]);
+  }
 };
 
 var EXTENSION_ID = 'g2s';
@@ -11723,12 +11801,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }
 
   _createClass(ExtensionBlocks, [{
-    key: "getDigitalConnectors",
-    value: function getDigitalConnectors() {
-      return [2, 3, 4, 5, 6, 7, 8, 13 // for test
-      ];
-    }
-  }, {
     key: "isConnected",
     value: function isConnected() {
       return this.board.isConnected();
@@ -11745,19 +11817,30 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     } // startBoardReporting () {
     // }
 
+  }, {
+    key: "boardStateChanged",
+    value: function boardStateChanged(args) {
+      if (args.STATE === 'connected') {
+        return this.isConnected();
+      }
+
+      if (args.STATE === 'disconnected') {
+        return !this.isConnected();
+      }
+    }
     /**
-     * Get level of the connector as digital input.
+     * Whether the level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
-     * @param {number} args.CONNECTOR - connector to be set
-     * @returns {Promise} - a Promise which resolves when the response was returned
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} - a Promise which resolves boolean when the response was returned
      */
 
   }, {
-    key: "getDigitalLevel",
-    value: function getDigitalLevel(args) {
+    key: "digitalIsHigh",
+    value: function digitalIsHigh(args) {
       var _this2 = this;
 
-      if (!this.board.isConnected()) return Promise.resolve(0);
+      if (!this.board.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.INPUT);
       return new Promise(function (resolve) {
@@ -11765,25 +11848,126 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           // `board.digitalRead()` starts reporting automatically, so it should be stopped.
           _this2.board.reportDigitalPin(pin, 0);
 
-          resolve(value);
+          resolve(value !== 0);
         });
       });
+    }
+  }, {
+    key: "digitalStateChanged",
+    value: function digitalStateChanged(args) {
+      console.log(args);
+      return false; // not implemented yet
     }
     /**
      * Set the connector to the level as digital output.
      * @param {object} args - the block's arguments.
-     * @param {number} args.CONNECTOR - connector to be set
+     * @param {number} args.CONNECTOR - pin number of the connector
      * @param {boolean | string | number} args.LEVEL - level to be set
      */
 
   }, {
-    key: "setDigitalLevel",
-    value: function setDigitalLevel(args) {
+    key: "digitalLevelSet",
+    value: function digitalLevelSet(args) {
       if (!this.board.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var value = cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
       this.board.pinMode(pin, this.board.MODES.OUTPUT);
       this.board.digitalWrite(pin, value);
+    }
+    /**
+     * The level of the connector as analog input.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+
+  }, {
+    key: "analogLevelGet",
+    value: function analogLevelGet(args) {
+      var _this3 = this;
+
+      if (!this.board.isConnected()) return Promise.resolve(0);
+      var pin = parseInt(args.CONNECTOR, 10);
+      this.board.pinMode(pin, this.board.MODES.ANALOG);
+      return new Promise(function (resolve) {
+        _this3.board.analogRead(pin, function (value) {
+          // `board.analogRead()` starts reporting automatically, so it should be stopped.
+          _this3.board.reportAnalogPin(pin, 0);
+
+          resolve(value);
+        });
+      });
+    }
+    /**
+     * Set the connector to power (%) as PWM.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {string | number} args.LEVEL - power (%) of PWM
+     */
+
+  }, {
+    key: "analogLevelSet",
+    value: function analogLevelSet(args) {
+      if (!this.board.isConnected()) return;
+      var pin = parseInt(args.CONNECTOR, 10);
+      var percent = Math.min(Math.max(cast.toNumber(args.LEVEL), 0), 100);
+      var value = Math.round((this.board.RESOLUTION.PWM - 0) * (percent / 100));
+      this.board.pinMode(pin, this.board.MODES.PWM);
+      this.board.pwmWrite(pin, value);
+    }
+  }, {
+    key: "servoTurn",
+    value: function servoTurn(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "i2cWrite",
+    value: function i2cWrite(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "i2cRead",
+    value: function i2cRead(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "oneWireUpdate",
+    value: function oneWireUpdate(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "oneWireWrite",
+    value: function oneWireWrite(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "oneWireRead",
+    value: function oneWireRead(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "oneWireConfigure",
+    value: function oneWireConfigure(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "neoPixelSetColor",
+    value: function neoPixelSetColor(args) {
+      console.log(args);
+      return 'not implemented yet';
+    }
+  }, {
+    key: "neoPixelClear",
+    value: function neoPixelClear(args) {
+      console.log(args);
+      return 'not implemented yet';
     }
     /**
      * @returns {object} metadata for this extension and its blocks.
@@ -11802,13 +11986,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         blocks: [{
           opcode: 'connectBoard',
           blockType: blockType.COMMAND,
-          blockAllThreads: false,
           text: formatMessage({
             id: 'g2s.connectBoard',
             default: 'connect board',
             description: 'open serial port and connect a board'
           }),
-          func: 'connectBoard',
           arguments: {}
         }, {
           opcode: 'disconnectBoard',
@@ -11819,60 +12001,266 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             default: 'disconnect board',
             description: 'disconnect the board'
           }),
-          func: 'disconnectBoard',
           arguments: {}
         }, {
           opcode: 'isConnected',
           blockType: blockType.BOOLEAN,
-          blockAllThreads: false,
           text: formatMessage({
             id: 'g2s.isConnected',
             default: 'board is connected',
             description: 'firmata board is connected'
           }),
-          func: 'isConnected',
           arguments: {}
-        }, '---', {
-          opcode: 'getDigitalLevel',
-          blockType: blockType.REPORTER,
-          blockAllThreads: false,
+        }, {
+          opcode: 'boardStateChanged',
+          blockType: blockType.HAT,
           text: formatMessage({
-            id: 'g2s.getDigitalLevel',
-            default: 'level of [CONNECTOR]',
-            description: 'report digital level of the connector'
+            id: 'g2s.boardStateChanged',
+            default: 'When board is [STATE]',
+            description: 'catch event when the board state was changed'
           }),
-          func: 'getDigitalLevel',
+          arguments: {
+            STATE: {
+              type: argumentType.STRING,
+              menu: 'boardStateMenu'
+            }
+          }
+        }, '---', {
+          opcode: 'analogLevelGet',
+          blockType: blockType.REPORTER,
+          disableMonitor: true,
+          text: formatMessage({
+            id: 'g2s.analogLevelGet',
+            default: 'level of analog [CONNECTOR]',
+            description: 'report analog level of the connector'
+          }),
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu',
-              defaultValue: 2
+              menu: 'analogConnectorMenu'
             }
           }
         }, {
-          opcode: 'setDigitalLevel',
-          blockType: blockType.COMMAND,
-          blockAllThreads: false,
+          opcode: 'digitalIsHigh',
+          blockType: blockType.BOOLEAN,
           text: formatMessage({
-            id: 'g2s.setDigitalLevel',
-            default: '[CONNECTOR] to [LEVEL]',
-            description: 'set digital level of the connector'
+            id: 'g2s.digitalIsHigh',
+            default: '[CONNECTOR] is HIGH',
+            description: 'whether the digital level of the connector is high or not'
           }),
-          func: 'setDigitalLevel',
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu',
-              defaultValue: 2
+              menu: 'digitalConnectorMenu'
+            }
+          }
+        }, {
+          opcode: 'digitalStateChanged',
+          blockType: blockType.HAT,
+          text: formatMessage({
+            id: 'g2s.digitalStateChanged',
+            default: 'When [CONNECTOR] is [STATE]',
+            description: 'catch event when the connector state was changed'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            STATE: {
+              type: argumentType.STRING,
+              menu: 'digitalStateMenu'
+            }
+          }
+        }, {
+          opcode: 'digitalLevelSet',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.digitalLevelSet',
+            default: '[CONNECTOR] to digital [LEVEL]',
+            description: 'set digital level of the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
             },
             LEVEL: {
               type: argumentType.STRING,
-              menu: 'digitalLevelMenu',
-              defaultValue: 'false'
+              menu: 'digitalLevelMenu'
+            }
+          }
+        }, {
+          opcode: 'analogLevelSet',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.analogLevelSet',
+            default: '[CONNECTOR] to analog [LEVEL]',
+            description: 'set analog level of the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'pwmConnectorMenu'
+            },
+            LEVEL: {
+              type: argumentType.NUMBER,
+              defaultValue: 0
+            }
+          }
+        }, '---', {
+          opcode: 'servoTurn',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.servoTurn',
+            default: 'Servo [CONNECTOR] turn [DEGREE]',
+            description: 'turn servo motor'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            DEGREE: {
+              type: argumentType.ANGLE
+            }
+          }
+        }, '---', {
+          opcode: 'i2cWrite',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.i2cWrite',
+            default: 'I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]',
+            description: 'write I2C data to the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            ADDRESS: {
+              type: argumentType.STRING,
+              defaultValue: '0x00'
+            },
+            REG: {
+              type: argumentType.STRING,
+              defaultValue: '0x00'
+            },
+            DATA: {
+              type: argumentType.STRING,
+              defaultValue: '0x00, 0x00'
+            }
+          }
+        }, {
+          opcode: 'i2cRead',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.i2cRead',
+            default: 'I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]',
+            description: 'read I2C data from the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            ADDRESS: {
+              type: argumentType.STRING,
+              defaultValue: '0x00'
+            },
+            REG: {
+              type: argumentType.STRING,
+              defaultValue: '0x00'
+            },
+            LENGTH: {
+              type: argumentType.NUMBER,
+              defaultValue: 1
+            }
+          }
+        }, '---', {
+          opcode: 'oneWireWrite',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.oneWireWrite',
+            default: 'OneWire [CONNECTOR] write [DATA]',
+            description: 'write OneWire data to the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            DATA: {
+              type: argumentType.STRING,
+              defaultValue: '0x00, 0x00'
+            }
+          }
+        }, {
+          opcode: 'oneWireRead',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.oneWireRead',
+            default: 'OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]',
+            description: 'read OneWire data from the device on the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            DEVICE: {
+              type: argumentType.STRING,
+              menu: 'oneWireDeviceMenu'
+            },
+            LENGTH: {
+              type: argumentType.NUMBER,
+              defaultValue: 1
+            }
+          }
+        }, '---', {
+          opcode: 'neoPixelSetColor',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.neoPixelSetColor',
+            default: 'NeoPixel [CONNECTOR] set [POSITION] color [COLOR]',
+            description: 'set NeoPixel color on the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            POSITION: {
+              type: argumentType.NUMBER,
+              defaultValue: '1'
+            },
+            COLOR: {
+              type: argumentType.COLOR
+            }
+          }
+        }, {
+          opcode: 'neoPixelClear',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.neoPixelClear',
+            default: 'NeoPixel clear on [CONNECTOR]',
+            description: 'clear NeoPixel on the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            },
+            COLOR: {
+              type: argumentType.COLOR
             }
           }
         }],
         menus: {
+          boardStateMenu: {
+            acceptReporters: false,
+            items: this.getBoardStateMenu()
+          },
           digitalConnectorMenu: {
             acceptReporters: false,
             items: this.getDigitalConnectorMenu()
@@ -11880,37 +12268,117 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           digitalLevelMenu: {
             acceptReporters: true,
             items: this.getDigitalLevelMenu()
+          },
+          digitalStateMenu: {
+            acceptReporters: true,
+            items: this.getDigitalLevelMenu()
+          },
+          analogConnectorMenu: {
+            acceptReporters: false,
+            items: this.getAnalogConnectorMenu()
+          },
+          pwmConnectorMenu: {
+            acceptReporters: false,
+            items: this.getDigitalConnectorMenu()
+          },
+          oneWireDeviceMenu: {
+            acceptReporters: false,
+            items: this.getOneWireDeviceMenu()
           }
         }
       };
     }
   }, {
+    key: "getBoardStateMenu",
+    value: function getBoardStateMenu() {
+      return [{
+        text: formatMessage({
+          id: 'g2s.boardState.connected',
+          default: 'connected'
+        }),
+        value: 'connected'
+      }, {
+        text: formatMessage({
+          id: 'g2s.boardState.disconnected',
+          default: 'disconnected'
+        }),
+        value: 'disconnected'
+      }];
+    }
+  }, {
     key: "getDigitalConnectorMenu",
     value: function getDigitalConnectorMenu() {
-      return this.getDigitalConnectors().map(function (pinIndex) {
-        return Object.create({
-          text: "D".concat(pinIndex.toString()),
-          value: pinIndex.toString()
-        });
+      var prefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
       });
+      return [{
+        text: "".concat(prefix, "1"),
+        value: '9'
+      }, {
+        text: "".concat(prefix, "2"),
+        value: '10'
+      }, {
+        text: "".concat(prefix, "3"),
+        value: '11'
+      }];
     }
   }, {
     key: "getDigitalLevelMenu",
     value: function getDigitalLevelMenu() {
       return [{
         text: formatMessage({
-          id: 'g2s.digitalLevelMenu.Low',
+          id: 'g2s.digitalLevelMenu.low',
           default: 'Low',
           description: 'label for low value in digital output menu for g2s'
         }),
         value: 'false'
       }, {
         text: formatMessage({
-          id: 'g2s.digitalLevelMenu.High',
+          id: 'g2s.digitalLevelMenu.high',
           default: 'High',
           description: 'label for high value in digital output menu for g2s'
         }),
         value: 'true'
+      }];
+    }
+  }, {
+    key: "getAnalogConnectorMenu",
+    value: function getAnalogConnectorMenu() {
+      var prefix = formatMessage({
+        id: 'g2s.analogConnector.prefix',
+        default: 'Analog'
+      });
+      return [{
+        text: "".concat(prefix, "1"),
+        value: '0'
+      }, {
+        text: "".concat(prefix, "2"),
+        value: '1'
+      }, {
+        text: "".concat(prefix, "3"),
+        value: '2'
+      }];
+    }
+  }, {
+    key: "getOneWireDeviceMenu",
+    value: function getOneWireDeviceMenu() {
+      var prefix = formatMessage({
+        id: 'g2s.oneWireDevice.prefix',
+        default: 'Device'
+      });
+      return [{
+        text: "".concat(prefix, "1"),
+        value: '1'
+      }, {
+        text: "".concat(prefix, "2"),
+        value: '2'
+      }, {
+        text: "".concat(prefix, "3"),
+        value: '3'
+      }, {
+        text: "".concat(prefix, "4"),
+        value: '4'
       }];
     }
   }], [{
