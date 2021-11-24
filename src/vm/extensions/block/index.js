@@ -431,36 +431,17 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'oneWireUpdate',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.oneWireUpdate',
-                        default: 'OneWire update devices on [CONNECTOR]',
-                        description: 'update list of OneWire devices on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
-                    }
-                },
-                {
                     opcode: 'oneWireWrite',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.oneWireWrite',
-                        default: 'OneWire [CONNECTOR] write device [DEVICE] with [DATA]',
+                        default: 'OneWire [CONNECTOR] write [DATA]',
                         description: 'write OneWire data to the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
-                        },
-                        DEVICE: {
-                            type: ArgumentType.STRING,
-                            menu: 'oneWireDeviceMenu'
                         },
                         DATA: {
                             type: ArgumentType.STRING,
@@ -470,7 +451,7 @@ class ExtensionBlocks {
                 },
                 {
                     opcode: 'oneWireRead',
-                    blockType: BlockType.COMMAND,
+                    blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.oneWireRead',
                         default: 'OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]',
@@ -488,25 +469,6 @@ class ExtensionBlocks {
                         LENGTH: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 1
-                        }
-                    }
-                },
-                {
-                    opcode: 'oneWireConfigure',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.oneWireConfigure',
-                        default: 'OneWire set [PARASITIC] on [CONNECTOR]',
-                        description: 'configure OneWire on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        PARASITIC: {
-                            type: ArgumentType.STRING,
-                            menu: 'oneWireParasiticMenu'
                         }
                     }
                 },
