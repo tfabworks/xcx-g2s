@@ -127,6 +127,15 @@ class ExtensionBlocks {
     // startBoardReporting () {
     // }
 
+    boardStateChanged (args) {
+        if (args.STATE === 'connected') {
+            return this.isConnected();
+        }
+        if (args.STATE === 'disconnected') {
+            return !this.isConnected();
+        }
+    }
+
     /**
      * Whether the level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
@@ -283,6 +292,21 @@ class ExtensionBlocks {
                         description: 'firmata board is connected'
                     }),
                     arguments: {
+                    }
+                },
+                {
+                    opcode: 'boardStateChanged',
+                    blockType: BlockType.HAT,
+                    text: formatMessage({
+                        id: 'g2s.boardStateChanged',
+                        default: 'When board is [STATE]',
+                        description: 'catch event when the board state was changed'
+                    }),
+                    arguments: {
+                        STATE: {
+                            type: ArgumentType.STRING,
+                            menu: 'boardStateMenu'
+                        }
                     }
                 },
                 '---',
@@ -515,6 +539,10 @@ class ExtensionBlocks {
                 }
             ],
             menus: {
+                boardStateMenu: {
+                    acceptReporters: false,
+                    items: this.getBoardStateMenu()
+                },
                 digitalConnectorMenu: {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
@@ -537,6 +565,25 @@ class ExtensionBlocks {
                 }
             }
         };
+    }
+
+    getBoardStateMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.boardState.connected',
+                    default: 'connected'
+                }),
+                value: 'connected'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.boardState.disconnected',
+                    default: 'disconnected'
+                }),
+                value: 'disconnected'
+            }
+        ];
     }
 
     getDigitalConnectorMenu () {
