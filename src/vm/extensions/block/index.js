@@ -526,7 +526,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'NeoPixel [CONNECTOR] set [POSITION] color [COLOR]',
+                        default: 'NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]',
                         description: 'set NeoPixel color on the connector'
                     }),
                     arguments: {
@@ -538,8 +538,17 @@ class ExtensionBlocks {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
                         },
-                        COLOR: {
-                            type: ArgumentType.COLOR
+                        RED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '255'
+                        },
+                        GREEN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '255'
+                        },
+                        BLUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '255'
                         }
                     }
                 },
@@ -555,9 +564,6 @@ class ExtensionBlocks {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
-                        },
-                        COLOR: {
-                            type: ArgumentType.COLOR
                         }
                     }
                 }
