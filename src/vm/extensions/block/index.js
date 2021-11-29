@@ -128,12 +128,7 @@ class ExtensionBlocks {
     // }
 
     boardStateChanged (args) {
-        if (args.STATE === 'connected') {
-            return this.isConnected();
-        }
-        if (args.STATE === 'disconnected') {
-            return !this.isConnected();
-        }
+        return (args.STATE === 'connected') === this.isConnected();
     }
 
     /**
