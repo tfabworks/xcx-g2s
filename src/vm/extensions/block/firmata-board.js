@@ -39,67 +39,79 @@ class FirmataBoard {
     }
 
     requestPort () {
-        if (this.isConnected()) return;
+        if (this.port) return;
+        this.state = 'portRequesting';
         this.port = new SerialPort('wsa://default', {
             baudRate: 57600, // firmata: 57600
             autoOpen: false
         });
         this.portPath = this.port.path;
         this.board = new FirmataClass(this.port);
-        this.board.once('ready', () => {
-            console.log('READY!');
-            console.log(
-                `${this.board.firmware.name}-${this.board.firmware.version.major}.${this.board.firmware.version.minor}`
-            );
-            // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-            //     name: this.name,
-            //     path: this.portPath
-            // });
+        this.board.once('connect', () => {
+            this.state = 'connect';
         });
-        this.onDisconnect = this.onDisconnect.bind(this);
-        this.board.addListener('disconnect', this.onDisconnect);
+        this.board.once('disconnect', error => {
+            if (this.state === 'disconnect') return;
+            if (error) {
+                this.handleDisconnectError(error);
+            } else {
+                this.releaseBoard();
+            }
+        });
         // for DEBUG
-        this.port.on('data', data => {
+        this.port.addListener('data', data => {
             console.log(data);
         });
-        return this.port.open();
+        return new Promise(resolve => {
+            this.port.open(error => {
+                if (error) {
+                    this.releaseBoard();
+                    resolve(`${error}`);
+                    return;
+                }
+                this.board.once('ready', () => {
+                    this.onBoarReady();
+                    resolve(`connected to ${this.port.path}`);
+                });
+            });
+        });
+    }
+
+    onBoarReady () {
+        const firmInfo = this.board.firmware;
+        console.log(
+            `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor}`
+        );
+        this.state = 'ready';
+        // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+        //     name: this.name,
+        //     path: this.portPath
+        // });
     }
 
     isConnected () {
-        return (!!this.port && this.port.isOpen);
+        return (this.state === 'connect' || this.state === 'ready');
     }
 
     isReady () {
-        let ready = this.isConnected();
-        ready = ready && (this.board.analogPins.length > 0); // Is analog pin map received?
-        return ready;
+        return this.state === 'ready';
     }
 
-    release () {
+    releaseBoard () {
+        this.state = 'disconnect';
         if (this.port && this.port.isOpen) {
             this.port.close();
-        }
-        if (this.board) {
-            this.board.removeListener('disconnect', this.onDisconnect);
         }
         this.port = null;
         this.board = null;
     }
 
     disconnect () {
-        this.release();
+        this.releaseBoard();
         // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
         //     name: this.name,
         //     path: this.portPath
         // });
-    }
-
-    onDisconnect (error) {
-        if (error) {
-            this.handleDisconnectError(error);
-        } else {
-            this.release();
-        }
     }
 
     /**
@@ -116,7 +128,7 @@ class FirmataBoard {
      */
     handleDisconnectError (error) {
         console.err(error);
-        if (!this.isConnected()) return;
+        if (this.state === 'disconnect') return;
         this.disconnect();
     }
 
