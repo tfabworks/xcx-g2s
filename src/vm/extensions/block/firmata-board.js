@@ -1,6 +1,6 @@
 import bindTransport from './firmata-io';
 import SerialPort from '@serialport/stream';
-import WSABinding from 'serialport-binding-webserialapi';
+import WSABinding from 'web-serial-binding';
 
 // Setup transport of Firmata.
 SerialPort.Binding = WSABinding;
@@ -35,22 +35,23 @@ class FirmataBoard {
          */
         this.port = null;
 
-        this.portPath = null;
+        this.portInfo = null;
     }
 
-    requestPort () {
+    async requestPort () {
         if (this.port) return;
         this.state = 'portRequesting';
-        this.port = new SerialPort('wsa://default', {
+        const nativePort = await navigator.serial.requestPort();
+        this.port = new SerialPort(nativePort, {
             baudRate: 57600, // firmata: 57600
             autoOpen: false
         });
-        this.portPath = this.port.path;
+        this.portInfo = this.port.path.getInfo();
         this.board = new FirmataClass(this.port);
         this.board.once('connect', () => {
             this.state = 'connect';
         });
-        this.board.once('disconnect', error => {
+        this.board.once('close', error => {
             if (this.state === 'disconnect') return;
             if (error) {
                 this.handleDisconnectError(error);
@@ -71,7 +72,7 @@ class FirmataBoard {
                 }
                 this.board.once('ready', () => {
                     this.onBoarReady();
-                    resolve(`connected to ${this.port.path}`);
+                    resolve(`connected to ${JSON.stringify(this.portInfo)}`);
                 });
             });
         });
@@ -82,10 +83,11 @@ class FirmataBoard {
         console.log(
             `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor}`
         );
+        this.board.i2cConfig();
         this.state = 'ready';
         // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
         //     name: this.name,
-        //     path: this.portPath
+        //     path: this.portInfo
         // });
     }
 
@@ -110,7 +112,7 @@ class FirmataBoard {
         this.releaseBoard();
         // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
         //     name: this.name,
-        //     path: this.portPath
+        //     path: this.portInfo
         // });
     }
 

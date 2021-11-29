@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "@serialport/stream": "^9.2.4",
-    "serialport-binding-webserialapi": "^1.0.3"
+    "web-serial-binding": "github:jaz303/web-serial-binding"
   }
 }
