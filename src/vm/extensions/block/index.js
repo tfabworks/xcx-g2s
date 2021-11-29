@@ -113,7 +113,7 @@ class ExtensionBlocks {
 
 
     isConnected () {
-        return this.board.isConnected();
+        return this.board.isReady();
     }
 
     connectBoard () {
@@ -138,7 +138,7 @@ class ExtensionBlocks {
      * @returns {Promise} - a Promise which resolves boolean when the response was returned
      */
     digitalIsHigh (args) {
-        if (!this.board.isConnected()) return Promise.resolve(false);
+        if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.INPUT);
         return new Promise(resolve => {
@@ -162,7 +162,7 @@ class ExtensionBlocks {
      * @param {boolean | string | number} args.LEVEL - level to be set
      */
     digitalLevelSet (args) {
-        if (!this.board.isConnected()) return;
+        if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
         this.board.pinMode(pin, this.board.MODES.OUTPUT);
@@ -176,7 +176,7 @@ class ExtensionBlocks {
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
      */
     analogLevelGet (args) {
-        if (!this.board.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return Promise.resolve(0);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.ANALOG);
         return new Promise(resolve => {
@@ -195,7 +195,7 @@ class ExtensionBlocks {
      * @param {string | number} args.LEVEL - power (%) of PWM
      */
     analogLevelSet (args) {
-        if (!this.board.isConnected()) return;
+        if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
         const value = Math.round((this.board.RESOLUTION.PWM - 0) * (percent / 100));
