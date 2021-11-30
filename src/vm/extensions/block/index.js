@@ -292,6 +292,46 @@ class ExtensionBlocks {
         return 'not implemented yet';
     }
 
+    numberAtIndex (args) {
+        const array = stringToNumericArray(args.ARRAY);
+        return array[stringToNumber(args.INDEX) - 1] || NaN;
+    }
+
+    lengthOfNumbers (args) {
+        const array = stringToNumericArray(args.ARRAY);
+        return array.length;
+    }
+
+    readBytesAs (args) {
+        if (DEBUG) console.log(args);
+        try {
+            const array = stringToNumericArray(args.ARRAY);
+            const buffer = new Uint8Array(array).buffer;
+            const dataView = new DataView(buffer);
+            const little = (args.ENDIAN === 'little');
+            const result = [];
+            if (args.TYPE === 'Int16') {
+                if (array.length < 2) return '';
+                for (let index = 0; index < (array.length / 2); index++) {
+                    const element = dataView.getInt16(index * 2, little);
+                    result[index] = element;
+                }
+                return numericArrayToString(result);
+            }
+            if (args.TYPE === 'Uint16') {
+                if (array.length < 2) return '';
+                for (let index = 0; index < (array.length / 2); index++) {
+                    const element = dataView.getUint16(index * 2, little);
+                    result[index] = element;
+                }
+                return numericArrayToString(result);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        return '';
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -597,6 +637,64 @@ class ExtensionBlocks {
                             menu: 'digitalConnectorMenu'
                         }
                     }
+                },
+                '---',
+                {
+                    opcode: 'numberAtIndex',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.numberAtIndex',
+                        default: 'number of [ARRAY] at [INDEX]',
+                        description: 'get a number at the index of the array'
+                    }),
+                    arguments: {
+                        ARRAY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '1.0, 1E1, 0xFF'
+                        },
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        }
+                    }
+                },
+                {
+                    opcode: 'lengthOfNumbers',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.lengthOfNumbers',
+                        default: 'length of numbers [ARRAY]',
+                        description: 'get length of an Array in string'
+                    }),
+                    arguments: {
+                        ARRAY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '1.0, 1E1, 0xFF'
+                        }
+                    }
+                },
+                {
+                    opcode: 'readBytesAs',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.readBytesAs',
+                        default: 'read bytes [ARRAY] as [TYPE] [ENDIAN]',
+                        description: 'read typed value from bytes'
+                    }),
+                    arguments: {
+                        ARRAY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00, 0xFF, 0xFF, 0x00'
+                        },
+                        TYPE: {
+                            type: ArgumentType.STRING,
+                            menu: 'bytesTypeMenu'
+                        },
+                        ENDIAN: {
+                            type: ArgumentType.STRING,
+                            menu: 'endianMenu'
+                        }
+                    }
                 }
             ],
             menus: {
@@ -627,6 +725,14 @@ class ExtensionBlocks {
                 oneWireDeviceMenu: {
                     acceptReporters: false,
                     items: this.getOneWireDeviceMenu()
+                },
+                bytesTypeMenu: {
+                    acceptReporters: false,
+                    items: ['Int16', 'Uint16']
+                },
+                endianMenu: {
+                    acceptReporters: false,
+                    items: ['little', 'big']
                 }
             }
         };

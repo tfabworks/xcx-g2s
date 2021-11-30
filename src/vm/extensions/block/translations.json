@@ -22,7 +22,10 @@
     "g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
     "g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
     "g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]",
-    "g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]"
+    "g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]",
+    "g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
+    "g2s.lengthOfNumbers": "length of numbers [ARRAY]",
+    "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]"
   },
   "ja": {
     "g2s.name": "Grove",
@@ -47,7 +50,10 @@
     "g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
     "g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytes読み出す",
     "g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
-    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す"
+    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す",
+    "g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
+    "g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
+    "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む"
   },
   "ja-Hira": {
     "g2s.name": "Grove",
@@ -72,6 +78,9 @@
     "g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
     "g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytesよみだす",
     "g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
-    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす"
+    "g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす",
+    "g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
+    "g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
+    "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ"
   }
 }
