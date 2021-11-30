@@ -6,6 +6,8 @@ import WSABinding from 'web-serial-binding';
 SerialPort.Binding = WSABinding;
 const FirmataClass = bindTransport(SerialPort);
 
+// eslint-disable-next-line prefer-const
+export let DEBUG = true;
 
 class FirmataBoard {
 
@@ -59,10 +61,11 @@ class FirmataBoard {
                 this.releaseBoard();
             }
         });
-        // for DEBUG
-        this.port.addListener('data', data => {
-            console.log(data);
-        });
+        if (DEBUG) {
+            this.port.addListener('data', data => {
+                console.log(data);
+            });
+        }
         return new Promise(resolve => {
             this.port.open(error => {
                 if (error) {

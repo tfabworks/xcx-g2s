@@ -6,6 +6,8 @@ import blockIcon from './block-icon.png';
 
 import FirmataBoard from './firmata-board';
 
+export const DEBUG = true;
+
 /**
  * Formatter which is used for translation.
  * This will be replaced which is used in the runtime.
@@ -151,7 +153,7 @@ class ExtensionBlocks {
     }
 
     digitalStateChanged (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return false; // not implemented yet
     }
 
@@ -204,7 +206,7 @@ class ExtensionBlocks {
     }
 
     servoTurn (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
@@ -219,32 +221,32 @@ class ExtensionBlocks {
     }
 
     oneWireUpdate (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
     oneWireWrite (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
     oneWireRead (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
     oneWireConfigure (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
     neoPixelSetColor (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
     neoPixelClear (args) {
-        console.log(args);
+        if (DEBUG) console.log(args);
         return 'not implemented yet';
     }
 
