@@ -89,12 +89,6 @@ function _createClass(Constructor, protoProps, staticProps) {
   return Constructor;
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
 function getAugmentedNamespace(n) {
 	if (n.__esModule) return n;
 	var a = Object.defineProperty({}, '__esModule', {value: true});
@@ -752,12 +746,15 @@ var en = {
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
 	"g2s.analogLevelSet": "[CONNECTOR] to PWM [LEVEL]",
 	"g2s.servoTurn": "Servo [CONNECTOR] turn [DEGREE]",
-	"g2s.i2cWrite": "I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]",
-	"g2s.i2cRead": "I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]",
+	"g2s.i2cWrite": "I2C write on [ADDRESS] register [REGISTER] with [DATA]",
+	"g2s.i2cReadOnce": "I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]",
 	"g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
-	"g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] color [COLOR]",
-	"g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]"
+	"g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]",
+	"g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]",
+	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
+	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
+	"g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]"
 };
 var ja = {
 	"g2s.name": "Grove",
@@ -777,12 +774,15 @@ var ja = {
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
 	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]度回す",
-	"g2s.i2cWrite": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]に[DATA]を書き込む",
-	"g2s.i2cRead": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]を[LENGTH]バイト読み出す",
+	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
+	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytes読み出す",
-	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
-	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す"
+	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
+	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す",
+	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
+	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
+	"g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む"
 };
 var translations = {
 	en: en,
@@ -805,50 +805,54 @@ var translations = {
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
 	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]どまわす",
-	"g2s.i2cWrite": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]に[DATA]をかきこむ",
-	"g2s.i2cRead": "[CONNECTOR]でI2C[ADDRESS]のレジスタ[REG]を[LENGTH]バイトよみだす",
+	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
+	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytesよみだす",
-	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のカラーを[COLOR]にする",
-	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす"
+	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
+	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす",
+	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
+	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
+	"g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ"
 }
 };
 
 var img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAABgWlDQ1BzUkdCIElFQzYxOTY2LTIuMQAAKJF1kctLQkEUh7+0MHpgUESLFhLWSsMKpDZBRlggEWbQa6PXV6B2ufdGRNugrVAQtem1qL+gtkHrICiKINoFrYvalNzOVUGJPMOZ881v5hxmzoAtklGyer0PsjlDCwcDrvmFRZfjFTsObHTiiSq6OjYzE6KmfT1QZ8U7r1Wr9rl/rTme0BWoaxQeVVTNEJ4UDq0bqsW7wh1KOhoXPhf2aHJB4XtLj5X4zeJUiX8s1iLhcbC1CbtSVRyrYiWtZYXl5bizmTWlfB/rJS2J3NysxB7xbnTCBAngYooJxvEzwIjMfrwM0i8rauT7ivnTrEquIrPKBhorpEhj4BF1TaonJCZFT8jIsGH1/29f9eTQYKl6SwAaXkzzoxccO1DIm+b3sWkWTsD+DFe5Sv7qEQx/ip6vaO5DcG7BxXVFi+3B5TZ0PalRLVqU7OK2ZBLez6B1AdpvoWmp1LPyPqePENmUr7qB/QPok/PO5V8gz2fGkateTgAAAAlwSFlzAAALEwAACxMBAJqcGAAACQxJREFUWIXtmGt0VdURx39zzrkX8oLwSIhY3iAokYURsBBsQCO2aitraavL1mWF2pZVUFFpfdtWHtaqYMUlaGm11epCq/XRWqmIAUHDS40QgzwUECQYSCCQ1z3nTD/sc869NwkBvrD6obPW+bBnz+z579lnZs9s+B8nOdUGVfV04GLgwoB1APgAeFFEEqcaTyowR1XvVVVX26fdqnpta72T8qCq5gNXAP0AF9gHLBWR/cfRiwNvAhdEvMYD4DUh8RyId0kVv0lE/nAyuFDVXFV9UVW9dnaeUNXnVTX3GLqWqj4QCvs1mzWxYoY2vzDOfEtLNLF2rvoNX6eu+d1Q/7geVNUzgDeAIRHTbQSxwO6UKloJXCIiO1N0beAR4BeArXXbSLx9A3gtbexI7mBiFy4CJwNgPTBGRLRDgKrqAOuAkQD+npV4lc+gtZ8BguQOxi78CVbvcaHKF8AoETmgqt2B54FJAHpoB+67N6FNBw2gnD5ITl/8mk3QcggAe+hV2CNvDNcqFpE1VkcAgZ+H4Lyq53DfuwM9WAXqg3po7RbcVbPwPv1rKN8fWKqqhUB5BK5uG+7KWyNwVsFoYhctwTn/QWITH41Owv+qPNX2EIDjAZwKoA3VeBWLI6ZkFSA5faKxV7EIf+eycHgBsBEYDODvfofE2z9DG0wcSe5gnOJ5EMsKxkOQWDYAeuRLs3lDvQGcYyFT1U5AIYC//TVQz+x+0GScUbNAfbzKp/E2LQHAXTePWE5fpPswgBjq4236I17lM8mN5Q7BOf/B8D8zdup3oy2HzXzXQebfNlQNHXuwT7SBRH3EtAdcElizsIdPwer/bTP2WkiU3YIe2g5uI+7qu9LAWX1LiZUuRjLzkxZa6nFXzQLf5GfrtLGp9ldABx4EdgM+YKXu2K9ej91jeDR2Rt9Oon4XeqASWg6ReGc60ikXrd+V3MjZP8U+s1UOVh93zV1o/W4j1qUf9pk/Cmc/FJHPoQMPikgzsB3AGnBZ5HoTxVuSglaMWMl8pNvQwCuHk+CcTJzieW3BtRzGLZuJX73BjONdUo9eMcFJhwADWgwmJVgDLjMcrxn3vTuguS4pFcsmNmEBkjs4ucGs04iVLsI6fXzaglq3jcSyKfjV66MNOsVzkexvhCL3iMjaaJ2O0AWBUgX0x2smsXxa5D3pcRaxCY+Ck5lUaD5EYsV0iOcQK54Hnbqmred/+S5u+f3gNhlGvCtO8Rys/HNCkeeAa0VETwhgALIEWA7Y2rAf9z9T0KZao9xzBLGSR9KiErfB5DWx09bxNv8Zb/OfojQiuUNwxs9Dsk4LRZYBl4tIU6reCRULqjodeAxAa7eQWHEjJI6YBfJGEit5GOzO7St7LbhrZ+PvWh6xrD4X4Jx3V6rOs8ANrcGdDEDBeHEigNZUkFgxA3zXGOxVhFOyoI3XtLnO3CAHqyKePXwKduGU0LQCvwQeTj3WVDpekIQ0LQSH12TyWwAOywmi3G6jJLHsZHQH5Fevj668AOU1wMBjGT6Rf/AmYAEAiSMkVs5CayrMpB3HGXt/m0htTf72V3E3zo8SsmT0xBl3P9JzRChyGLheRF4+KYCqeiXwIoA21eKWzUTrtppJJxNn/ANYvc5NB7N/I5LTH8nonr7WgU24q+80hSqYBD5iGvbQq1OvtwXAr0QkqseOCVBVv4m5bjqTOGJSzKEdZjLehVjJw0j3s9LBff4G7rrfIZ274xTPQXoUpq/ZeAB3zd3JEwCs3sU4592dWlWXA5eJSM0xAarqQEwjk4efwF15a5T1JaMHTskCpGv6b+NteQHvo4WY/x6TgItmYg26vNXiPl7FE3hVz0eyktkLZ9xspEe04feAUhFpbgNQVbsBa4BhoLhrH8D//I2k50oXIzl908F98lRQGLQNRGvQZJyimWClX/v+3tW45bMhqGSwHJzRt2P1/04o8riITE8DGDQ3bwETALzKv+B9sjjySGzCAiRvZDq4jfPxtr4Uje1hP0QTR/G3/yPiSc+zTVBk5KU74+g+3DX3oAcrkzYufALpfiZAA1AQ5YYg1y0BJgP4u97G2/BQaAJnzJ2tolVxy+fg73gtCW7ENOzCqVi9i5HMPPx95ebmaNiP/8W/TXGafXoSeDwbe8AlaFONaSPUR+t3Yg+4FCAGbEnNg3cD14FJxG757KTh4dcn677Qcx89hv/Fm8kNjJqVWi5hDfwesYkLkYyehhEkbe+Tp1KrZnO0594Wede0FF44O9AKvHcR8FswZXdi1e3JIrLfxdiFU9PA+dtextuyNMBm4Yy9D2vQ5HB6B7ABgqOd9DRWwejA6aYKd8tuTk3WYMXAjgeLJ8BrjpxsB63hS0ABLfW4K2ZAY9A/5I0kVjw3NU/hf/V+4F3jBbvoZuyBURtbgfl/Hwd6AqPFycDqNwnERvd/aHAe/QrduQzpnAvxrvifLcX/sszY7HYG9pArw/VeEVWdDLwCpvkJOzTJ6Uus9EmI50TgtG4bieXTTMUC2Gd8H/ucm8Ppj4GJIlIbyateAzwJZIG55rwPfh1VQ+2RM+aOsPZUoI8FFAHgNuJt/buRsjvhfOuhdHCNNaZ/CMBZvYtTe9g9wKWp4ABE5G/AKGAzgNVrFM6kZ7AKxrQLzh56dbIwhrdEZI8DDANMZxUazz8nLdpwG3FXzUq2jt2G4oz9TXj0RwJwe9ozKiJVqjoGc+w/Nol+Pv7+jfg7XjfFazwbe/AVYUcYbngqmKYpaNmSKVGP7DGRJLZpbt6/L3hNAMnMT+0ffOAqEfm4XZckQTYA16tqGTAfyLXyi7Dyi9oT34spXPeCKbdMxGXmRXer1u/GLZuJ9+mzJN66Dn/vaqPqZOKc//tk6oAZIvKvjsC1Avo0pqFfCBxtNV0LzAGGisiGSCd4HKoEbH9fOe7K29LzVEh23FQvBeeFnPkicsuJgmtNqmphnvH6A1uBPe0VrRIIPwLMBPCr1+GuuTd5RxJc5uPnpRafrwJXiIjHqSBVzVHVj6PXOa9F/a8r1Nv+uvoHq1S9ROrb3T9VNeuUAGsFMktVXzjG82xIi4MnuVNGrasZAcYCPwBKA3YLpmFaIiJV/J/S6b82VDQYGIn3DAAAAABJRU5ErkJggg==";
 
-function _arrayLikeToArray$3(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) {
-    arr2[i] = arr[i];
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
   }
 
-  return arr2;
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
 }
 
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray$3(arr);
-}
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
 
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-}
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
 
-function _unsupportedIterableToArray$3(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray$3(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$3(o, minLen);
-}
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
 
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray$3(arr) || _nonIterableSpread();
+      _next(undefined);
+    });
+  };
 }
 
 function _typeof$1(obj) {
@@ -865,6 +869,763 @@ function _typeof$1(obj) {
   }
 
   return _typeof$1(obj);
+}
+
+var runtime = {exports: {}};
+
+(function (module) {
+  var runtime = function (exports) {
+
+    var Op = Object.prototype;
+    var hasOwn = Op.hasOwnProperty;
+    var undefined$1; // More compressible than void 0.
+
+    var $Symbol = typeof Symbol === "function" ? Symbol : {};
+    var iteratorSymbol = $Symbol.iterator || "@@iterator";
+    var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+    var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+    function define(obj, key, value) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+      return obj[key];
+    }
+
+    try {
+      // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+      define({}, "");
+    } catch (err) {
+      define = function define(obj, key, value) {
+        return obj[key] = value;
+      };
+    }
+
+    function wrap(innerFn, outerFn, self, tryLocsList) {
+      // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+      var generator = Object.create(protoGenerator.prototype);
+      var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
+      // .throw, and .return methods.
+
+      generator._invoke = makeInvokeMethod(innerFn, self, context);
+      return generator;
+    }
+
+    exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
+    // record like context.tryEntries[i].completion. This interface could
+    // have been (and was previously) designed to take a closure to be
+    // invoked without arguments, but in all the cases we care about we
+    // already have an existing method we want to call, so there's no need
+    // to create a new function object. We can even get away with assuming
+    // the method takes exactly one argument, since that happens to be true
+    // in every case, so we don't have to touch the arguments object. The
+    // only additional allocation required is the completion record, which
+    // has a stable shape and so hopefully should be cheap to allocate.
+
+    function tryCatch(fn, obj, arg) {
+      try {
+        return {
+          type: "normal",
+          arg: fn.call(obj, arg)
+        };
+      } catch (err) {
+        return {
+          type: "throw",
+          arg: err
+        };
+      }
+    }
+
+    var GenStateSuspendedStart = "suspendedStart";
+    var GenStateSuspendedYield = "suspendedYield";
+    var GenStateExecuting = "executing";
+    var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
+    // breaking out of the dispatch switch statement.
+
+    var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
+    // .constructor.prototype properties for functions that return Generator
+    // objects. For full spec compliance, you may wish to configure your
+    // minifier not to mangle the names of these two functions.
+
+    function Generator() {}
+
+    function GeneratorFunction() {}
+
+    function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
+    // don't natively support it.
+
+
+    var IteratorPrototype = {};
+
+    IteratorPrototype[iteratorSymbol] = function () {
+      return this;
+    };
+
+    var getProto = Object.getPrototypeOf;
+    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+
+    if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+      // This environment has a native %IteratorPrototype%; use it instead
+      // of the polyfill.
+      IteratorPrototype = NativeIteratorPrototype;
+    }
+
+    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+    GeneratorFunctionPrototype.constructor = GeneratorFunction;
+    GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
+    // Iterator interface in terms of a single ._invoke method.
+
+    function defineIteratorMethods(prototype) {
+      ["next", "throw", "return"].forEach(function (method) {
+        define(prototype, method, function (arg) {
+          return this._invoke(method, arg);
+        });
+      });
+    }
+
+    exports.isGeneratorFunction = function (genFun) {
+      var ctor = typeof genFun === "function" && genFun.constructor;
+      return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
+      // do is to check its .name property.
+      (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
+    };
+
+    exports.mark = function (genFun) {
+      if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+      } else {
+        genFun.__proto__ = GeneratorFunctionPrototype;
+        define(genFun, toStringTagSymbol, "GeneratorFunction");
+      }
+
+      genFun.prototype = Object.create(Gp);
+      return genFun;
+    }; // Within the body of any async function, `await x` is transformed to
+    // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+    // `hasOwn.call(value, "__await")` to determine if the yielded value is
+    // meant to be awaited.
+
+
+    exports.awrap = function (arg) {
+      return {
+        __await: arg
+      };
+    };
+
+    function AsyncIterator(generator, PromiseImpl) {
+      function invoke(method, arg, resolve, reject) {
+        var record = tryCatch(generator[method], generator, arg);
+
+        if (record.type === "throw") {
+          reject(record.arg);
+        } else {
+          var result = record.arg;
+          var value = result.value;
+
+          if (value && _typeof$1(value) === "object" && hasOwn.call(value, "__await")) {
+            return PromiseImpl.resolve(value.__await).then(function (value) {
+              invoke("next", value, resolve, reject);
+            }, function (err) {
+              invoke("throw", err, resolve, reject);
+            });
+          }
+
+          return PromiseImpl.resolve(value).then(function (unwrapped) {
+            // When a yielded Promise is resolved, its final value becomes
+            // the .value of the Promise<{value,done}> result for the
+            // current iteration.
+            result.value = unwrapped;
+            resolve(result);
+          }, function (error) {
+            // If a rejected Promise was yielded, throw the rejection back
+            // into the async generator function so it can be handled there.
+            return invoke("throw", error, resolve, reject);
+          });
+        }
+      }
+
+      var previousPromise;
+
+      function enqueue(method, arg) {
+        function callInvokeWithMethodAndArg() {
+          return new PromiseImpl(function (resolve, reject) {
+            invoke(method, arg, resolve, reject);
+          });
+        }
+
+        return previousPromise = // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
+        // invocations of the iterator.
+        callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+      } // Define the unified helper method that is used to implement .next,
+      // .throw, and .return (see defineIteratorMethods).
+
+
+      this._invoke = enqueue;
+    }
+
+    defineIteratorMethods(AsyncIterator.prototype);
+
+    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+      return this;
+    };
+
+    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
+    // AsyncIterator objects; they just return a Promise for the value of
+    // the final result produced by the iterator.
+
+    exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+      if (PromiseImpl === void 0) PromiseImpl = Promise;
+      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+      return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function (result) {
+        return result.done ? result.value : iter.next();
+      });
+    };
+
+    function makeInvokeMethod(innerFn, self, context) {
+      var state = GenStateSuspendedStart;
+      return function invoke(method, arg) {
+        if (state === GenStateExecuting) {
+          throw new Error("Generator is already running");
+        }
+
+        if (state === GenStateCompleted) {
+          if (method === "throw") {
+            throw arg;
+          } // Be forgiving, per 25.3.3.3.3 of the spec:
+          // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+
+
+          return doneResult();
+        }
+
+        context.method = method;
+        context.arg = arg;
+
+        while (true) {
+          var delegate = context.delegate;
+
+          if (delegate) {
+            var delegateResult = maybeInvokeDelegate(delegate, context);
+
+            if (delegateResult) {
+              if (delegateResult === ContinueSentinel) continue;
+              return delegateResult;
+            }
+          }
+
+          if (context.method === "next") {
+            // Setting context._sent for legacy support of Babel's
+            // function.sent implementation.
+            context.sent = context._sent = context.arg;
+          } else if (context.method === "throw") {
+            if (state === GenStateSuspendedStart) {
+              state = GenStateCompleted;
+              throw context.arg;
+            }
+
+            context.dispatchException(context.arg);
+          } else if (context.method === "return") {
+            context.abrupt("return", context.arg);
+          }
+
+          state = GenStateExecuting;
+          var record = tryCatch(innerFn, self, context);
+
+          if (record.type === "normal") {
+            // If an exception is thrown from innerFn, we leave state ===
+            // GenStateExecuting and loop back for another invocation.
+            state = context.done ? GenStateCompleted : GenStateSuspendedYield;
+
+            if (record.arg === ContinueSentinel) {
+              continue;
+            }
+
+            return {
+              value: record.arg,
+              done: context.done
+            };
+          } else if (record.type === "throw") {
+            state = GenStateCompleted; // Dispatch the exception by looping back around to the
+            // context.dispatchException(context.arg) call above.
+
+            context.method = "throw";
+            context.arg = record.arg;
+          }
+        }
+      };
+    } // Call delegate.iterator[context.method](context.arg) and handle the
+    // result, either by returning a { value, done } result from the
+    // delegate iterator, or by modifying context.method and context.arg,
+    // setting context.delegate to null, and returning the ContinueSentinel.
+
+
+    function maybeInvokeDelegate(delegate, context) {
+      var method = delegate.iterator[context.method];
+
+      if (method === undefined$1) {
+        // A .throw or .return when the delegate iterator has no .throw
+        // method always terminates the yield* loop.
+        context.delegate = null;
+
+        if (context.method === "throw") {
+          // Note: ["return"] must be used for ES3 parsing compatibility.
+          if (delegate.iterator["return"]) {
+            // If the delegate iterator has a return method, give it a
+            // chance to clean up.
+            context.method = "return";
+            context.arg = undefined$1;
+            maybeInvokeDelegate(delegate, context);
+
+            if (context.method === "throw") {
+              // If maybeInvokeDelegate(context) changed context.method from
+              // "return" to "throw", let that override the TypeError below.
+              return ContinueSentinel;
+            }
+          }
+
+          context.method = "throw";
+          context.arg = new TypeError("The iterator does not provide a 'throw' method");
+        }
+
+        return ContinueSentinel;
+      }
+
+      var record = tryCatch(method, delegate.iterator, context.arg);
+
+      if (record.type === "throw") {
+        context.method = "throw";
+        context.arg = record.arg;
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      var info = record.arg;
+
+      if (!info) {
+        context.method = "throw";
+        context.arg = new TypeError("iterator result is not an object");
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      if (info.done) {
+        // Assign the result of the finished delegate to the temporary
+        // variable specified by delegate.resultName (see delegateYield).
+        context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
+
+        context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
+        // exception, let the outer generator proceed normally. If
+        // context.method was "next", forget context.arg since it has been
+        // "consumed" by the delegate iterator. If context.method was
+        // "return", allow the original .return call to continue in the
+        // outer generator.
+
+        if (context.method !== "return") {
+          context.method = "next";
+          context.arg = undefined$1;
+        }
+      } else {
+        // Re-yield the result returned by the delegate method.
+        return info;
+      } // The delegate iterator is finished, so forget it and continue with
+      // the outer generator.
+
+
+      context.delegate = null;
+      return ContinueSentinel;
+    } // Define Generator.prototype.{next,throw,return} in terms of the
+    // unified ._invoke helper method.
+
+
+    defineIteratorMethods(Gp);
+    define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
+    // @@iterator function is called on it. Some browsers' implementations of the
+    // iterator prototype chain incorrectly implement this, causing the Generator
+    // object to not be returned from this call. This ensures that doesn't happen.
+    // See https://github.com/facebook/regenerator/issues/274 for more details.
+
+    Gp[iteratorSymbol] = function () {
+      return this;
+    };
+
+    Gp.toString = function () {
+      return "[object Generator]";
+    };
+
+    function pushTryEntry(locs) {
+      var entry = {
+        tryLoc: locs[0]
+      };
+
+      if (1 in locs) {
+        entry.catchLoc = locs[1];
+      }
+
+      if (2 in locs) {
+        entry.finallyLoc = locs[2];
+        entry.afterLoc = locs[3];
+      }
+
+      this.tryEntries.push(entry);
+    }
+
+    function resetTryEntry(entry) {
+      var record = entry.completion || {};
+      record.type = "normal";
+      delete record.arg;
+      entry.completion = record;
+    }
+
+    function Context(tryLocsList) {
+      // The root entry object (effectively a try statement without a catch
+      // or a finally block) gives us a place to store values thrown from
+      // locations where there is no enclosing try statement.
+      this.tryEntries = [{
+        tryLoc: "root"
+      }];
+      tryLocsList.forEach(pushTryEntry, this);
+      this.reset(true);
+    }
+
+    exports.keys = function (object) {
+      var keys = [];
+
+      for (var key in object) {
+        keys.push(key);
+      }
+
+      keys.reverse(); // Rather than returning an object with a next method, we keep
+      // things simple and return the next function itself.
+
+      return function next() {
+        while (keys.length) {
+          var key = keys.pop();
+
+          if (key in object) {
+            next.value = key;
+            next.done = false;
+            return next;
+          }
+        } // To avoid creating an additional object, we just hang the .value
+        // and .done properties off the next function object itself. This
+        // also ensures that the minifier will not anonymize the function.
+
+
+        next.done = true;
+        return next;
+      };
+    };
+
+    function values(iterable) {
+      if (iterable) {
+        var iteratorMethod = iterable[iteratorSymbol];
+
+        if (iteratorMethod) {
+          return iteratorMethod.call(iterable);
+        }
+
+        if (typeof iterable.next === "function") {
+          return iterable;
+        }
+
+        if (!isNaN(iterable.length)) {
+          var i = -1,
+              next = function next() {
+            while (++i < iterable.length) {
+              if (hasOwn.call(iterable, i)) {
+                next.value = iterable[i];
+                next.done = false;
+                return next;
+              }
+            }
+
+            next.value = undefined$1;
+            next.done = true;
+            return next;
+          };
+
+          return next.next = next;
+        }
+      } // Return an iterator with no values.
+
+
+      return {
+        next: doneResult
+      };
+    }
+
+    exports.values = values;
+
+    function doneResult() {
+      return {
+        value: undefined$1,
+        done: true
+      };
+    }
+
+    Context.prototype = {
+      constructor: Context,
+      reset: function reset(skipTempReset) {
+        this.prev = 0;
+        this.next = 0; // Resetting context._sent for legacy support of Babel's
+        // function.sent implementation.
+
+        this.sent = this._sent = undefined$1;
+        this.done = false;
+        this.delegate = null;
+        this.method = "next";
+        this.arg = undefined$1;
+        this.tryEntries.forEach(resetTryEntry);
+
+        if (!skipTempReset) {
+          for (var name in this) {
+            // Not sure about the optimal order of these conditions:
+            if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
+              this[name] = undefined$1;
+            }
+          }
+        }
+      },
+      stop: function stop() {
+        this.done = true;
+        var rootEntry = this.tryEntries[0];
+        var rootRecord = rootEntry.completion;
+
+        if (rootRecord.type === "throw") {
+          throw rootRecord.arg;
+        }
+
+        return this.rval;
+      },
+      dispatchException: function dispatchException(exception) {
+        if (this.done) {
+          throw exception;
+        }
+
+        var context = this;
+
+        function handle(loc, caught) {
+          record.type = "throw";
+          record.arg = exception;
+          context.next = loc;
+
+          if (caught) {
+            // If the dispatched exception was caught by a catch block,
+            // then let that catch block handle the exception normally.
+            context.method = "next";
+            context.arg = undefined$1;
+          }
+
+          return !!caught;
+        }
+
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          var record = entry.completion;
+
+          if (entry.tryLoc === "root") {
+            // Exception thrown outside of any try block that could handle
+            // it, so set the completion value of the entire function to
+            // throw the exception.
+            return handle("end");
+          }
+
+          if (entry.tryLoc <= this.prev) {
+            var hasCatch = hasOwn.call(entry, "catchLoc");
+            var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+            if (hasCatch && hasFinally) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              } else if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else if (hasCatch) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              }
+            } else if (hasFinally) {
+              if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else {
+              throw new Error("try statement without catch or finally");
+            }
+          }
+        }
+      },
+      abrupt: function abrupt(type, arg) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+            var finallyEntry = entry;
+            break;
+          }
+        }
+
+        if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
+          // Ignore the finally entry if control is not jumping to a
+          // location outside the try/catch block.
+          finallyEntry = null;
+        }
+
+        var record = finallyEntry ? finallyEntry.completion : {};
+        record.type = type;
+        record.arg = arg;
+
+        if (finallyEntry) {
+          this.method = "next";
+          this.next = finallyEntry.finallyLoc;
+          return ContinueSentinel;
+        }
+
+        return this.complete(record);
+      },
+      complete: function complete(record, afterLoc) {
+        if (record.type === "throw") {
+          throw record.arg;
+        }
+
+        if (record.type === "break" || record.type === "continue") {
+          this.next = record.arg;
+        } else if (record.type === "return") {
+          this.rval = this.arg = record.arg;
+          this.method = "return";
+          this.next = "end";
+        } else if (record.type === "normal" && afterLoc) {
+          this.next = afterLoc;
+        }
+
+        return ContinueSentinel;
+      },
+      finish: function finish(finallyLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.finallyLoc === finallyLoc) {
+            this.complete(entry.completion, entry.afterLoc);
+            resetTryEntry(entry);
+            return ContinueSentinel;
+          }
+        }
+      },
+      "catch": function _catch(tryLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc === tryLoc) {
+            var record = entry.completion;
+
+            if (record.type === "throw") {
+              var thrown = record.arg;
+              resetTryEntry(entry);
+            }
+
+            return thrown;
+          }
+        } // The context.catch method must only be called with a location
+        // argument that corresponds to a known catch block.
+
+
+        throw new Error("illegal catch attempt");
+      },
+      delegateYield: function delegateYield(iterable, resultName, nextLoc) {
+        this.delegate = {
+          iterator: values(iterable),
+          resultName: resultName,
+          nextLoc: nextLoc
+        };
+
+        if (this.method === "next") {
+          // Deliberately forget the last sent value so that we don't
+          // accidentally pass it on to the delegate.
+          this.arg = undefined$1;
+        }
+
+        return ContinueSentinel;
+      }
+    }; // Regardless of whether this script is executing as a CommonJS module
+    // or not, return the runtime object so that we can declare the variable
+    // regeneratorRuntime in the outer scope, which allows this module to be
+    // injected easily by `bin/regenerator --include-runtime script.js`.
+
+    return exports;
+  }( // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+  module.exports );
+
+  try {
+    regeneratorRuntime = runtime;
+  } catch (accidentalStrictMode) {
+    // This module should not be running in strict mode, so the above
+    // assignment should always work unless something is misconfigured. Just
+    // in case runtime.js accidentally runs in strict mode, we can escape
+    // strict mode using a global Function call. This could conceivably fail
+    // if a Content Security Policy forbids using Function, but in that case
+    // the proper solution is to fix the accidental strict mode problem. If
+    // you've misconfigured your bundler to force strict mode and applied a
+    // CSP to forbid Function, and you're not willing to fix either of those
+    // problems, please detail your unique predicament in a GitHub issue.
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+})(runtime);
+
+var regenerator = runtime.exports;
+
+function _arrayLikeToArray$2(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
+  }
+
+  return arr2;
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return _arrayLikeToArray$2(arr);
+}
+
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+
+function _unsupportedIterableToArray$2(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray$2(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$2(o, minLen);
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray$2(arr) || _nonIterableSpread();
 }
 
 function _assertThisInitialized(self) {
@@ -3102,7 +3863,7 @@ Item.prototype.run = function () {
 
 var title = 'browser';
 var platform = 'browser';
-var browser$1 = true;
+var browser$2 = true;
 var env = {};
 var argv = [];
 var version = ''; // empty string to avoid regexp issues
@@ -3167,7 +3928,7 @@ function uptime() {
 var process = {
   nextTick: nextTick,
   title: title,
-  browser: browser$1,
+  browser: browser$2,
   env: env,
   argv: argv,
   version: version,
@@ -3640,11 +4401,11 @@ var events = /*#__PURE__*/Object.freeze({
 
 var require$$0$1 = /*@__PURE__*/getAugmentedNamespace(events);
 
-function _createForOfIteratorHelper$2(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray$2(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper$1(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray$1(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
-function _unsupportedIterableToArray$2(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray$2(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$2(o, minLen); }
+function _unsupportedIterableToArray$1(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray$1(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$1(o, minLen); }
 
-function _arrayLikeToArray$2(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _arrayLikeToArray$1(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 /**
  * "Inspired" by Encoder7Bit.h/Encoder7Bit.cpp in the
  * Firmata source code.
@@ -3657,7 +4418,7 @@ var encoder7bit = {
     var previous = 0;
     var output = [];
 
-    var _iterator = _createForOfIteratorHelper$2(data),
+    var _iterator = _createForOfIteratorHelper$1(data),
         _step;
 
     try {
@@ -3709,18 +4470,18 @@ var encoder7bit = {
   }
 };
 
-function _createForOfIteratorHelper$1(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray$1(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
-function _unsupportedIterableToArray$1(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray$1(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$1(o, minLen); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
-function _arrayLikeToArray$1(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 var Encoder7Bit$1 = encoder7bit;
 var OneWireUtils = {
   crc8: function crc8(data) {
     var crc = 0;
 
-    var _iterator = _createForOfIteratorHelper$1(data),
+    var _iterator = _createForOfIteratorHelper(data),
         _step;
 
     try {
@@ -5954,764 +6715,6 @@ var bindTransport = function bindTransport(transport) {
 bindTransport.Firmata = Firmata;
 var firmata = bindTransport;
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-        args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-
-      _next(undefined);
-    });
-  };
-}
-
-var runtime = {exports: {}};
-
-(function (module) {
-  var runtime = function (exports) {
-
-    var Op = Object.prototype;
-    var hasOwn = Op.hasOwnProperty;
-    var undefined$1; // More compressible than void 0.
-
-    var $Symbol = typeof Symbol === "function" ? Symbol : {};
-    var iteratorSymbol = $Symbol.iterator || "@@iterator";
-    var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-    var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-    function define(obj, key, value) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-      return obj[key];
-    }
-
-    try {
-      // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-      define({}, "");
-    } catch (err) {
-      define = function define(obj, key, value) {
-        return obj[key] = value;
-      };
-    }
-
-    function wrap(innerFn, outerFn, self, tryLocsList) {
-      // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-      var generator = Object.create(protoGenerator.prototype);
-      var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
-      // .throw, and .return methods.
-
-      generator._invoke = makeInvokeMethod(innerFn, self, context);
-      return generator;
-    }
-
-    exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
-    // record like context.tryEntries[i].completion. This interface could
-    // have been (and was previously) designed to take a closure to be
-    // invoked without arguments, but in all the cases we care about we
-    // already have an existing method we want to call, so there's no need
-    // to create a new function object. We can even get away with assuming
-    // the method takes exactly one argument, since that happens to be true
-    // in every case, so we don't have to touch the arguments object. The
-    // only additional allocation required is the completion record, which
-    // has a stable shape and so hopefully should be cheap to allocate.
-
-    function tryCatch(fn, obj, arg) {
-      try {
-        return {
-          type: "normal",
-          arg: fn.call(obj, arg)
-        };
-      } catch (err) {
-        return {
-          type: "throw",
-          arg: err
-        };
-      }
-    }
-
-    var GenStateSuspendedStart = "suspendedStart";
-    var GenStateSuspendedYield = "suspendedYield";
-    var GenStateExecuting = "executing";
-    var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
-    // breaking out of the dispatch switch statement.
-
-    var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
-    // .constructor.prototype properties for functions that return Generator
-    // objects. For full spec compliance, you may wish to configure your
-    // minifier not to mangle the names of these two functions.
-
-    function Generator() {}
-
-    function GeneratorFunction() {}
-
-    function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
-    // don't natively support it.
-
-
-    var IteratorPrototype = {};
-
-    IteratorPrototype[iteratorSymbol] = function () {
-      return this;
-    };
-
-    var getProto = Object.getPrototypeOf;
-    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-
-    if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-      // This environment has a native %IteratorPrototype%; use it instead
-      // of the polyfill.
-      IteratorPrototype = NativeIteratorPrototype;
-    }
-
-    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
-    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-    GeneratorFunctionPrototype.constructor = GeneratorFunction;
-    GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
-    // Iterator interface in terms of a single ._invoke method.
-
-    function defineIteratorMethods(prototype) {
-      ["next", "throw", "return"].forEach(function (method) {
-        define(prototype, method, function (arg) {
-          return this._invoke(method, arg);
-        });
-      });
-    }
-
-    exports.isGeneratorFunction = function (genFun) {
-      var ctor = typeof genFun === "function" && genFun.constructor;
-      return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
-      // do is to check its .name property.
-      (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
-    };
-
-    exports.mark = function (genFun) {
-      if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-      } else {
-        genFun.__proto__ = GeneratorFunctionPrototype;
-        define(genFun, toStringTagSymbol, "GeneratorFunction");
-      }
-
-      genFun.prototype = Object.create(Gp);
-      return genFun;
-    }; // Within the body of any async function, `await x` is transformed to
-    // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-    // `hasOwn.call(value, "__await")` to determine if the yielded value is
-    // meant to be awaited.
-
-
-    exports.awrap = function (arg) {
-      return {
-        __await: arg
-      };
-    };
-
-    function AsyncIterator(generator, PromiseImpl) {
-      function invoke(method, arg, resolve, reject) {
-        var record = tryCatch(generator[method], generator, arg);
-
-        if (record.type === "throw") {
-          reject(record.arg);
-        } else {
-          var result = record.arg;
-          var value = result.value;
-
-          if (value && _typeof$1(value) === "object" && hasOwn.call(value, "__await")) {
-            return PromiseImpl.resolve(value.__await).then(function (value) {
-              invoke("next", value, resolve, reject);
-            }, function (err) {
-              invoke("throw", err, resolve, reject);
-            });
-          }
-
-          return PromiseImpl.resolve(value).then(function (unwrapped) {
-            // When a yielded Promise is resolved, its final value becomes
-            // the .value of the Promise<{value,done}> result for the
-            // current iteration.
-            result.value = unwrapped;
-            resolve(result);
-          }, function (error) {
-            // If a rejected Promise was yielded, throw the rejection back
-            // into the async generator function so it can be handled there.
-            return invoke("throw", error, resolve, reject);
-          });
-        }
-      }
-
-      var previousPromise;
-
-      function enqueue(method, arg) {
-        function callInvokeWithMethodAndArg() {
-          return new PromiseImpl(function (resolve, reject) {
-            invoke(method, arg, resolve, reject);
-          });
-        }
-
-        return previousPromise = // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
-        // invocations of the iterator.
-        callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
-      } // Define the unified helper method that is used to implement .next,
-      // .throw, and .return (see defineIteratorMethods).
-
-
-      this._invoke = enqueue;
-    }
-
-    defineIteratorMethods(AsyncIterator.prototype);
-
-    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-      return this;
-    };
-
-    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
-    // AsyncIterator objects; they just return a Promise for the value of
-    // the final result produced by the iterator.
-
-    exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-      if (PromiseImpl === void 0) PromiseImpl = Promise;
-      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
-      return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function (result) {
-        return result.done ? result.value : iter.next();
-      });
-    };
-
-    function makeInvokeMethod(innerFn, self, context) {
-      var state = GenStateSuspendedStart;
-      return function invoke(method, arg) {
-        if (state === GenStateExecuting) {
-          throw new Error("Generator is already running");
-        }
-
-        if (state === GenStateCompleted) {
-          if (method === "throw") {
-            throw arg;
-          } // Be forgiving, per 25.3.3.3.3 of the spec:
-          // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-
-
-          return doneResult();
-        }
-
-        context.method = method;
-        context.arg = arg;
-
-        while (true) {
-          var delegate = context.delegate;
-
-          if (delegate) {
-            var delegateResult = maybeInvokeDelegate(delegate, context);
-
-            if (delegateResult) {
-              if (delegateResult === ContinueSentinel) continue;
-              return delegateResult;
-            }
-          }
-
-          if (context.method === "next") {
-            // Setting context._sent for legacy support of Babel's
-            // function.sent implementation.
-            context.sent = context._sent = context.arg;
-          } else if (context.method === "throw") {
-            if (state === GenStateSuspendedStart) {
-              state = GenStateCompleted;
-              throw context.arg;
-            }
-
-            context.dispatchException(context.arg);
-          } else if (context.method === "return") {
-            context.abrupt("return", context.arg);
-          }
-
-          state = GenStateExecuting;
-          var record = tryCatch(innerFn, self, context);
-
-          if (record.type === "normal") {
-            // If an exception is thrown from innerFn, we leave state ===
-            // GenStateExecuting and loop back for another invocation.
-            state = context.done ? GenStateCompleted : GenStateSuspendedYield;
-
-            if (record.arg === ContinueSentinel) {
-              continue;
-            }
-
-            return {
-              value: record.arg,
-              done: context.done
-            };
-          } else if (record.type === "throw") {
-            state = GenStateCompleted; // Dispatch the exception by looping back around to the
-            // context.dispatchException(context.arg) call above.
-
-            context.method = "throw";
-            context.arg = record.arg;
-          }
-        }
-      };
-    } // Call delegate.iterator[context.method](context.arg) and handle the
-    // result, either by returning a { value, done } result from the
-    // delegate iterator, or by modifying context.method and context.arg,
-    // setting context.delegate to null, and returning the ContinueSentinel.
-
-
-    function maybeInvokeDelegate(delegate, context) {
-      var method = delegate.iterator[context.method];
-
-      if (method === undefined$1) {
-        // A .throw or .return when the delegate iterator has no .throw
-        // method always terminates the yield* loop.
-        context.delegate = null;
-
-        if (context.method === "throw") {
-          // Note: ["return"] must be used for ES3 parsing compatibility.
-          if (delegate.iterator["return"]) {
-            // If the delegate iterator has a return method, give it a
-            // chance to clean up.
-            context.method = "return";
-            context.arg = undefined$1;
-            maybeInvokeDelegate(delegate, context);
-
-            if (context.method === "throw") {
-              // If maybeInvokeDelegate(context) changed context.method from
-              // "return" to "throw", let that override the TypeError below.
-              return ContinueSentinel;
-            }
-          }
-
-          context.method = "throw";
-          context.arg = new TypeError("The iterator does not provide a 'throw' method");
-        }
-
-        return ContinueSentinel;
-      }
-
-      var record = tryCatch(method, delegate.iterator, context.arg);
-
-      if (record.type === "throw") {
-        context.method = "throw";
-        context.arg = record.arg;
-        context.delegate = null;
-        return ContinueSentinel;
-      }
-
-      var info = record.arg;
-
-      if (!info) {
-        context.method = "throw";
-        context.arg = new TypeError("iterator result is not an object");
-        context.delegate = null;
-        return ContinueSentinel;
-      }
-
-      if (info.done) {
-        // Assign the result of the finished delegate to the temporary
-        // variable specified by delegate.resultName (see delegateYield).
-        context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
-
-        context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
-        // exception, let the outer generator proceed normally. If
-        // context.method was "next", forget context.arg since it has been
-        // "consumed" by the delegate iterator. If context.method was
-        // "return", allow the original .return call to continue in the
-        // outer generator.
-
-        if (context.method !== "return") {
-          context.method = "next";
-          context.arg = undefined$1;
-        }
-      } else {
-        // Re-yield the result returned by the delegate method.
-        return info;
-      } // The delegate iterator is finished, so forget it and continue with
-      // the outer generator.
-
-
-      context.delegate = null;
-      return ContinueSentinel;
-    } // Define Generator.prototype.{next,throw,return} in terms of the
-    // unified ._invoke helper method.
-
-
-    defineIteratorMethods(Gp);
-    define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
-    // @@iterator function is called on it. Some browsers' implementations of the
-    // iterator prototype chain incorrectly implement this, causing the Generator
-    // object to not be returned from this call. This ensures that doesn't happen.
-    // See https://github.com/facebook/regenerator/issues/274 for more details.
-
-    Gp[iteratorSymbol] = function () {
-      return this;
-    };
-
-    Gp.toString = function () {
-      return "[object Generator]";
-    };
-
-    function pushTryEntry(locs) {
-      var entry = {
-        tryLoc: locs[0]
-      };
-
-      if (1 in locs) {
-        entry.catchLoc = locs[1];
-      }
-
-      if (2 in locs) {
-        entry.finallyLoc = locs[2];
-        entry.afterLoc = locs[3];
-      }
-
-      this.tryEntries.push(entry);
-    }
-
-    function resetTryEntry(entry) {
-      var record = entry.completion || {};
-      record.type = "normal";
-      delete record.arg;
-      entry.completion = record;
-    }
-
-    function Context(tryLocsList) {
-      // The root entry object (effectively a try statement without a catch
-      // or a finally block) gives us a place to store values thrown from
-      // locations where there is no enclosing try statement.
-      this.tryEntries = [{
-        tryLoc: "root"
-      }];
-      tryLocsList.forEach(pushTryEntry, this);
-      this.reset(true);
-    }
-
-    exports.keys = function (object) {
-      var keys = [];
-
-      for (var key in object) {
-        keys.push(key);
-      }
-
-      keys.reverse(); // Rather than returning an object with a next method, we keep
-      // things simple and return the next function itself.
-
-      return function next() {
-        while (keys.length) {
-          var key = keys.pop();
-
-          if (key in object) {
-            next.value = key;
-            next.done = false;
-            return next;
-          }
-        } // To avoid creating an additional object, we just hang the .value
-        // and .done properties off the next function object itself. This
-        // also ensures that the minifier will not anonymize the function.
-
-
-        next.done = true;
-        return next;
-      };
-    };
-
-    function values(iterable) {
-      if (iterable) {
-        var iteratorMethod = iterable[iteratorSymbol];
-
-        if (iteratorMethod) {
-          return iteratorMethod.call(iterable);
-        }
-
-        if (typeof iterable.next === "function") {
-          return iterable;
-        }
-
-        if (!isNaN(iterable.length)) {
-          var i = -1,
-              next = function next() {
-            while (++i < iterable.length) {
-              if (hasOwn.call(iterable, i)) {
-                next.value = iterable[i];
-                next.done = false;
-                return next;
-              }
-            }
-
-            next.value = undefined$1;
-            next.done = true;
-            return next;
-          };
-
-          return next.next = next;
-        }
-      } // Return an iterator with no values.
-
-
-      return {
-        next: doneResult
-      };
-    }
-
-    exports.values = values;
-
-    function doneResult() {
-      return {
-        value: undefined$1,
-        done: true
-      };
-    }
-
-    Context.prototype = {
-      constructor: Context,
-      reset: function reset(skipTempReset) {
-        this.prev = 0;
-        this.next = 0; // Resetting context._sent for legacy support of Babel's
-        // function.sent implementation.
-
-        this.sent = this._sent = undefined$1;
-        this.done = false;
-        this.delegate = null;
-        this.method = "next";
-        this.arg = undefined$1;
-        this.tryEntries.forEach(resetTryEntry);
-
-        if (!skipTempReset) {
-          for (var name in this) {
-            // Not sure about the optimal order of these conditions:
-            if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
-              this[name] = undefined$1;
-            }
-          }
-        }
-      },
-      stop: function stop() {
-        this.done = true;
-        var rootEntry = this.tryEntries[0];
-        var rootRecord = rootEntry.completion;
-
-        if (rootRecord.type === "throw") {
-          throw rootRecord.arg;
-        }
-
-        return this.rval;
-      },
-      dispatchException: function dispatchException(exception) {
-        if (this.done) {
-          throw exception;
-        }
-
-        var context = this;
-
-        function handle(loc, caught) {
-          record.type = "throw";
-          record.arg = exception;
-          context.next = loc;
-
-          if (caught) {
-            // If the dispatched exception was caught by a catch block,
-            // then let that catch block handle the exception normally.
-            context.method = "next";
-            context.arg = undefined$1;
-          }
-
-          return !!caught;
-        }
-
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-          var record = entry.completion;
-
-          if (entry.tryLoc === "root") {
-            // Exception thrown outside of any try block that could handle
-            // it, so set the completion value of the entire function to
-            // throw the exception.
-            return handle("end");
-          }
-
-          if (entry.tryLoc <= this.prev) {
-            var hasCatch = hasOwn.call(entry, "catchLoc");
-            var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-            if (hasCatch && hasFinally) {
-              if (this.prev < entry.catchLoc) {
-                return handle(entry.catchLoc, true);
-              } else if (this.prev < entry.finallyLoc) {
-                return handle(entry.finallyLoc);
-              }
-            } else if (hasCatch) {
-              if (this.prev < entry.catchLoc) {
-                return handle(entry.catchLoc, true);
-              }
-            } else if (hasFinally) {
-              if (this.prev < entry.finallyLoc) {
-                return handle(entry.finallyLoc);
-              }
-            } else {
-              throw new Error("try statement without catch or finally");
-            }
-          }
-        }
-      },
-      abrupt: function abrupt(type, arg) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
-            var finallyEntry = entry;
-            break;
-          }
-        }
-
-        if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
-          // Ignore the finally entry if control is not jumping to a
-          // location outside the try/catch block.
-          finallyEntry = null;
-        }
-
-        var record = finallyEntry ? finallyEntry.completion : {};
-        record.type = type;
-        record.arg = arg;
-
-        if (finallyEntry) {
-          this.method = "next";
-          this.next = finallyEntry.finallyLoc;
-          return ContinueSentinel;
-        }
-
-        return this.complete(record);
-      },
-      complete: function complete(record, afterLoc) {
-        if (record.type === "throw") {
-          throw record.arg;
-        }
-
-        if (record.type === "break" || record.type === "continue") {
-          this.next = record.arg;
-        } else if (record.type === "return") {
-          this.rval = this.arg = record.arg;
-          this.method = "return";
-          this.next = "end";
-        } else if (record.type === "normal" && afterLoc) {
-          this.next = afterLoc;
-        }
-
-        return ContinueSentinel;
-      },
-      finish: function finish(finallyLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.finallyLoc === finallyLoc) {
-            this.complete(entry.completion, entry.afterLoc);
-            resetTryEntry(entry);
-            return ContinueSentinel;
-          }
-        }
-      },
-      "catch": function _catch(tryLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc === tryLoc) {
-            var record = entry.completion;
-
-            if (record.type === "throw") {
-              var thrown = record.arg;
-              resetTryEntry(entry);
-            }
-
-            return thrown;
-          }
-        } // The context.catch method must only be called with a location
-        // argument that corresponds to a known catch block.
-
-
-        throw new Error("illegal catch attempt");
-      },
-      delegateYield: function delegateYield(iterable, resultName, nextLoc) {
-        this.delegate = {
-          iterator: values(iterable),
-          resultName: resultName,
-          nextLoc: nextLoc
-        };
-
-        if (this.method === "next") {
-          // Deliberately forget the last sent value so that we don't
-          // accidentally pass it on to the delegate.
-          this.arg = undefined$1;
-        }
-
-        return ContinueSentinel;
-      }
-    }; // Regardless of whether this script is executing as a CommonJS module
-    // or not, return the runtime object so that we can declare the variable
-    // regeneratorRuntime in the outer scope, which allows this module to be
-    // injected easily by `bin/regenerator --include-runtime script.js`.
-
-    return exports;
-  }( // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-  module.exports );
-
-  try {
-    regeneratorRuntime = runtime;
-  } catch (accidentalStrictMode) {
-    // This module should not be running in strict mode, so the above
-    // assignment should always work unless something is misconfigured. Just
-    // in case runtime.js accidentally runs in strict mode, we can escape
-    // strict mode using a global Function call. This could conceivably fail
-    // if a Content Security Policy forbids using Function, but in that case
-    // the proper solution is to fix the accidental strict mode problem. If
-    // you've misconfigured your bundler to force strict mode and applied a
-    // CSP to forbid Function, and you're not willing to fix either of those
-    // problems, please detail your unique predicament in a GitHub issue.
-    Function("r", "regeneratorRuntime = r")(runtime);
-  }
-})(runtime);
-
-var regenerator = runtime.exports;
-
 function _typeof(obj) {
   "@babel/helpers - typeof";
 
@@ -7581,7 +7584,7 @@ function base64DetectIncompleteChar(buffer) {
 }
 
 Readable.ReadableState = ReadableState;
-var debug$1 = debuglog('stream');
+var debug$2 = debuglog('stream');
 inherits$1(Readable, EventEmitter$1);
 
 function prependListener(emitter, event, fn) {
@@ -7806,7 +7809,7 @@ function howMuchToRead(n, state) {
 
 
 Readable.prototype.read = function (n) {
-  debug$1('read', n);
+  debug$2('read', n);
   n = parseInt(n, 10);
   var state = this._readableState;
   var nOrig = n;
@@ -7815,7 +7818,7 @@ Readable.prototype.read = function (n) {
   // the 'readable' event and move on.
 
   if (n === 0 && state.needReadable && (state.length >= state.highWaterMark || state.ended)) {
-    debug$1('read: emitReadable', state.length, state.ended);
+    debug$2('read: emitReadable', state.length, state.ended);
     if (state.length === 0 && state.ended) endReadable(this);else emitReadable(this);
     return null;
   }
@@ -7850,20 +7853,20 @@ Readable.prototype.read = function (n) {
 
 
   var doRead = state.needReadable;
-  debug$1('need readable', doRead); // if we currently have less than the highWaterMark, then also read some
+  debug$2('need readable', doRead); // if we currently have less than the highWaterMark, then also read some
 
   if (state.length === 0 || state.length - n < state.highWaterMark) {
     doRead = true;
-    debug$1('length less than watermark', doRead);
+    debug$2('length less than watermark', doRead);
   } // however, if we've ended, then there's no point, and if we're already
   // reading, then it's unnecessary.
 
 
   if (state.ended || state.reading) {
     doRead = false;
-    debug$1('reading or ended', doRead);
+    debug$2('reading or ended', doRead);
   } else if (doRead) {
-    debug$1('do read');
+    debug$2('do read');
     state.reading = true;
     state.sync = true; // if the length is currently zero, then we *need* a readable event.
 
@@ -7934,14 +7937,14 @@ function emitReadable(stream) {
   state.needReadable = false;
 
   if (!state.emittedReadable) {
-    debug$1('emitReadable', state.flowing);
+    debug$2('emitReadable', state.flowing);
     state.emittedReadable = true;
     if (state.sync) nextTick(emitReadable_, stream);else emitReadable_(stream);
   }
 }
 
 function emitReadable_(stream) {
-  debug$1('emit readable');
+  debug$2('emit readable');
   stream.emit('readable');
   flow(stream);
 } // at this point, the user has presumably seen the 'readable' event,
@@ -7963,7 +7966,7 @@ function maybeReadMore_(stream, state) {
   var len = state.length;
 
   while (!state.reading && !state.flowing && !state.ended && state.length < state.highWaterMark) {
-    debug$1('maybeReadMore read 0');
+    debug$2('maybeReadMore read 0');
     stream.read(0);
     if (len === state.length) // didn't get any data, stop spinning.
       break;else len = state.length;
@@ -7999,14 +8002,14 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   }
 
   state.pipesCount += 1;
-  debug$1('pipe count=%d opts=%j', state.pipesCount, pipeOpts);
+  debug$2('pipe count=%d opts=%j', state.pipesCount, pipeOpts);
   var doEnd = !pipeOpts || pipeOpts.end !== false;
   var endFn = doEnd ? onend : cleanup;
   if (state.endEmitted) nextTick(endFn);else src.once('end', endFn);
   dest.on('unpipe', onunpipe);
 
   function onunpipe(readable) {
-    debug$1('onunpipe');
+    debug$2('onunpipe');
 
     if (readable === src) {
       cleanup();
@@ -8014,7 +8017,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   }
 
   function onend() {
-    debug$1('onend');
+    debug$2('onend');
     dest.end();
   } // when the dest drains, it reduces the awaitDrain counter
   // on the source.  This would be more elegant with a .once()
@@ -8027,7 +8030,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   var cleanedUp = false;
 
   function cleanup() {
-    debug$1('cleanup'); // cleanup event handlers once the pipe is broken
+    debug$2('cleanup'); // cleanup event handlers once the pipe is broken
 
     dest.removeListener('close', onclose);
     dest.removeListener('finish', onfinish);
@@ -8054,7 +8057,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   src.on('data', ondata);
 
   function ondata(chunk) {
-    debug$1('ondata');
+    debug$2('ondata');
     increasedAwaitDrain = false;
     var ret = dest.write(chunk);
 
@@ -8064,7 +8067,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
       // also returned false.
       // => Check whether `dest` is still a piping destination.
       if ((state.pipesCount === 1 && state.pipes === dest || state.pipesCount > 1 && indexOf(state.pipes, dest) !== -1) && !cleanedUp) {
-        debug$1('false write response, pause', src._readableState.awaitDrain);
+        debug$2('false write response, pause', src._readableState.awaitDrain);
         src._readableState.awaitDrain++;
         increasedAwaitDrain = true;
       }
@@ -8076,7 +8079,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
 
 
   function onerror(er) {
-    debug$1('onerror', er);
+    debug$2('onerror', er);
     unpipe();
     dest.removeListener('error', onerror);
     if (listenerCount(dest, 'error') === 0) dest.emit('error', er);
@@ -8093,7 +8096,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   dest.once('close', onclose);
 
   function onfinish() {
-    debug$1('onfinish');
+    debug$2('onfinish');
     dest.removeListener('close', onclose);
     unpipe();
   }
@@ -8101,7 +8104,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   dest.once('finish', onfinish);
 
   function unpipe() {
-    debug$1('unpipe');
+    debug$2('unpipe');
     src.unpipe(dest);
   } // tell the dest that it's being piped to
 
@@ -8109,7 +8112,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   dest.emit('pipe', src); // start the flow if it hasn't been started already.
 
   if (!state.flowing) {
-    debug$1('pipe resume');
+    debug$2('pipe resume');
     src.resume();
   }
 
@@ -8119,7 +8122,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
 function pipeOnDrain(src) {
   return function () {
     var state = src._readableState;
-    debug$1('pipeOnDrain', state.awaitDrain);
+    debug$2('pipeOnDrain', state.awaitDrain);
     if (state.awaitDrain) state.awaitDrain--;
 
     if (state.awaitDrain === 0 && src.listeners('data').length) {
@@ -8201,7 +8204,7 @@ Readable.prototype.on = function (ev, fn) {
 Readable.prototype.addListener = Readable.prototype.on;
 
 function nReadingNextTick(self) {
-  debug$1('readable nexttick read 0');
+  debug$2('readable nexttick read 0');
   self.read(0);
 } // pause() and resume() are remnants of the legacy readable stream API
 // If the user uses them, then switch into old mode.
@@ -8211,7 +8214,7 @@ Readable.prototype.resume = function () {
   var state = this._readableState;
 
   if (!state.flowing) {
-    debug$1('resume');
+    debug$2('resume');
     state.flowing = true;
     resume(this, state);
   }
@@ -8228,7 +8231,7 @@ function resume(stream, state) {
 
 function resume_(stream, state) {
   if (!state.reading) {
-    debug$1('resume read 0');
+    debug$2('resume read 0');
     stream.read(0);
   }
 
@@ -8240,10 +8243,10 @@ function resume_(stream, state) {
 }
 
 Readable.prototype.pause = function () {
-  debug$1('call pause flowing=%j', this._readableState.flowing);
+  debug$2('call pause flowing=%j', this._readableState.flowing);
 
   if (false !== this._readableState.flowing) {
-    debug$1('pause');
+    debug$2('pause');
     this._readableState.flowing = false;
     this.emit('pause');
   }
@@ -8253,7 +8256,7 @@ Readable.prototype.pause = function () {
 
 function flow(stream) {
   var state = stream._readableState;
-  debug$1('flow', state.flowing);
+  debug$2('flow', state.flowing);
 
   while (state.flowing && stream.read() !== null) {}
 } // wrap an old-style stream as the async data source.
@@ -8266,7 +8269,7 @@ Readable.prototype.wrap = function (stream) {
   var paused = false;
   var self = this;
   stream.on('end', function () {
-    debug$1('wrapped end');
+    debug$2('wrapped end');
 
     if (state.decoder && !state.ended) {
       var chunk = state.decoder.end();
@@ -8276,7 +8279,7 @@ Readable.prototype.wrap = function (stream) {
     self.push(null);
   });
   stream.on('data', function (chunk) {
-    debug$1('wrapped data');
+    debug$2('wrapped data');
     if (state.decoder) chunk = state.decoder.write(chunk); // don't skip over falsy values in objectMode
 
     if (state.objectMode && (chunk === null || chunk === undefined)) return;else if (!state.objectMode && (!chunk || !chunk.length)) return;
@@ -8307,7 +8310,7 @@ Readable.prototype.wrap = function (stream) {
   // underlying stream.
 
   self._read = function (n) {
-    debug$1('wrapped _read', n);
+    debug$2('wrapped _read', n);
 
     if (paused) {
       paused = false;
@@ -9171,6 +9174,1392 @@ var require$$0 = /*@__PURE__*/getAugmentedNamespace(stream$1);
 
 var require$$1 = /*@__PURE__*/getAugmentedNamespace(util$2);
 
+var browser$1 = {exports: {}};
+
+var s$1 = 1000;
+var m$1 = s$1 * 60;
+var h$1 = m$1 * 60;
+var d$1 = h$1 * 24;
+var w$1 = d$1 * 7;
+var y$1 = d$1 * 365.25;
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+var ms$1 = function ms(val, options) {
+  options = options || {};
+
+  var type = _typeof$1(val);
+
+  if (type === 'string' && val.length > 0) {
+    return parse$1(val);
+  } else if (type === 'number' && isFinite(val)) {
+    return options.long ? fmtLong$1(val) : fmtShort$1(val);
+  }
+
+  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val));
+};
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+
+function parse$1(str) {
+  str = String(str);
+
+  if (str.length > 100) {
+    return;
+  }
+
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(str);
+
+  if (!match) {
+    return;
+  }
+
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y$1;
+
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w$1;
+
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d$1;
+
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h$1;
+
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m$1;
+
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s$1;
+
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+
+    default:
+      return undefined;
+  }
+}
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+
+function fmtShort$1(ms) {
+  var msAbs = Math.abs(ms);
+
+  if (msAbs >= d$1) {
+    return Math.round(ms / d$1) + 'd';
+  }
+
+  if (msAbs >= h$1) {
+    return Math.round(ms / h$1) + 'h';
+  }
+
+  if (msAbs >= m$1) {
+    return Math.round(ms / m$1) + 'm';
+  }
+
+  if (msAbs >= s$1) {
+    return Math.round(ms / s$1) + 's';
+  }
+
+  return ms + 'ms';
+}
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+
+function fmtLong$1(ms) {
+  var msAbs = Math.abs(ms);
+
+  if (msAbs >= d$1) {
+    return plural$1(ms, msAbs, d$1, 'day');
+  }
+
+  if (msAbs >= h$1) {
+    return plural$1(ms, msAbs, h$1, 'hour');
+  }
+
+  if (msAbs >= m$1) {
+    return plural$1(ms, msAbs, m$1, 'minute');
+  }
+
+  if (msAbs >= s$1) {
+    return plural$1(ms, msAbs, s$1, 'second');
+  }
+
+  return ms + ' ms';
+}
+/**
+ * Pluralization helper.
+ */
+
+
+function plural$1(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
+}
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ */
+
+function setup$1(env) {
+  createDebug.debug = createDebug;
+  createDebug.default = createDebug;
+  createDebug.coerce = coerce;
+  createDebug.disable = disable;
+  createDebug.enable = enable;
+  createDebug.enabled = enabled;
+  createDebug.humanize = ms$1;
+  createDebug.destroy = destroy;
+  Object.keys(env).forEach(function (key) {
+    createDebug[key] = env[key];
+  });
+  /**
+  * The currently active debug mode names, and names to skip.
+  */
+
+  createDebug.names = [];
+  createDebug.skips = [];
+  /**
+  * Map of special "%n" handling functions, for the debug "format" argument.
+  *
+  * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+  */
+
+  createDebug.formatters = {};
+  /**
+  * Selects a color for a debug namespace
+  * @param {String} namespace The namespace string for the for the debug instance to be colored
+  * @return {Number|String} An ANSI color code for the given namespace
+  * @api private
+  */
+
+  function selectColor(namespace) {
+    var hash = 0;
+
+    for (var i = 0; i < namespace.length; i++) {
+      hash = (hash << 5) - hash + namespace.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+
+    return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
+  }
+
+  createDebug.selectColor = selectColor;
+  /**
+  * Create a debugger with the given `namespace`.
+  *
+  * @param {String} namespace
+  * @return {Function}
+  * @api public
+  */
+
+  function createDebug(namespace) {
+    var prevTime;
+    var enableOverride = null;
+    var namespacesCache;
+    var enabledCache;
+
+    function debug() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      // Disabled?
+      if (!debug.enabled) {
+        return;
+      }
+
+      var self = debug; // Set `diff` timestamp
+
+      var curr = Number(new Date());
+      var ms = curr - (prevTime || curr);
+      self.diff = ms;
+      self.prev = prevTime;
+      self.curr = curr;
+      prevTime = curr;
+      args[0] = createDebug.coerce(args[0]);
+
+      if (typeof args[0] !== 'string') {
+        // Anything else let's inspect with %O
+        args.unshift('%O');
+      } // Apply any `formatters` transformations
+
+
+      var index = 0;
+      args[0] = args[0].replace(/%([a-zA-Z%])/g, function (match, format) {
+        // If we encounter an escaped % then don't increase the array index
+        if (match === '%%') {
+          return '%';
+        }
+
+        index++;
+        var formatter = createDebug.formatters[format];
+
+        if (typeof formatter === 'function') {
+          var val = args[index];
+          match = formatter.call(self, val); // Now we need to remove `args[index]` since it's inlined in the `format`
+
+          args.splice(index, 1);
+          index--;
+        }
+
+        return match;
+      }); // Apply env-specific formatting (colors, etc.)
+
+      createDebug.formatArgs.call(self, args);
+      var logFn = self.log || createDebug.log;
+      logFn.apply(self, args);
+    }
+
+    debug.namespace = namespace;
+    debug.useColors = createDebug.useColors();
+    debug.color = createDebug.selectColor(namespace);
+    debug.extend = extend;
+    debug.destroy = createDebug.destroy; // XXX Temporary. Will be removed in the next major release.
+
+    Object.defineProperty(debug, 'enabled', {
+      enumerable: true,
+      configurable: false,
+      get: function get() {
+        if (enableOverride !== null) {
+          return enableOverride;
+        }
+
+        if (namespacesCache !== createDebug.namespaces) {
+          namespacesCache = createDebug.namespaces;
+          enabledCache = createDebug.enabled(namespace);
+        }
+
+        return enabledCache;
+      },
+      set: function set(v) {
+        enableOverride = v;
+      }
+    }); // Env-specific initialization logic for debug instances
+
+    if (typeof createDebug.init === 'function') {
+      createDebug.init(debug);
+    }
+
+    return debug;
+  }
+
+  function extend(namespace, delimiter) {
+    var newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+    newDebug.log = this.log;
+    return newDebug;
+  }
+  /**
+  * Enables a debug mode by namespaces. This can include modes
+  * separated by a colon and wildcards.
+  *
+  * @param {String} namespaces
+  * @api public
+  */
+
+
+  function enable(namespaces) {
+    createDebug.save(namespaces);
+    createDebug.namespaces = namespaces;
+    createDebug.names = [];
+    createDebug.skips = [];
+    var i;
+    var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+    var len = split.length;
+
+    for (i = 0; i < len; i++) {
+      if (!split[i]) {
+        // ignore empty strings
+        continue;
+      }
+
+      namespaces = split[i].replace(/\*/g, '.*?');
+
+      if (namespaces[0] === '-') {
+        createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+      } else {
+        createDebug.names.push(new RegExp('^' + namespaces + '$'));
+      }
+    }
+  }
+  /**
+  * Disable debug output.
+  *
+  * @return {String} namespaces
+  * @api public
+  */
+
+
+  function disable() {
+    var namespaces = [].concat(_toConsumableArray(createDebug.names.map(toNamespace)), _toConsumableArray(createDebug.skips.map(toNamespace).map(function (namespace) {
+      return '-' + namespace;
+    }))).join(',');
+    createDebug.enable('');
+    return namespaces;
+  }
+  /**
+  * Returns true if the given mode name is enabled, false otherwise.
+  *
+  * @param {String} name
+  * @return {Boolean}
+  * @api public
+  */
+
+
+  function enabled(name) {
+    if (name[name.length - 1] === '*') {
+      return true;
+    }
+
+    var i;
+    var len;
+
+    for (i = 0, len = createDebug.skips.length; i < len; i++) {
+      if (createDebug.skips[i].test(name)) {
+        return false;
+      }
+    }
+
+    for (i = 0, len = createDebug.names.length; i < len; i++) {
+      if (createDebug.names[i].test(name)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+  /**
+  * Convert regexp to namespace
+  *
+  * @param {RegExp} regxep
+  * @return {String} namespace
+  * @api private
+  */
+
+
+  function toNamespace(regexp) {
+    return regexp.toString().substring(2, regexp.toString().length - 2).replace(/\.\*\?$/, '*');
+  }
+  /**
+  * Coerce `val`.
+  *
+  * @param {Mixed} val
+  * @return {Mixed}
+  * @api private
+  */
+
+
+  function coerce(val) {
+    if (val instanceof Error) {
+      return val.stack || val.message;
+    }
+
+    return val;
+  }
+  /**
+  * XXX DO NOT USE. This is a temporary stub function.
+  * XXX It WILL be removed in the next major release.
+  */
+
+
+  function destroy() {
+    console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+  }
+
+  createDebug.enable(createDebug.load());
+  return createDebug;
+}
+
+var common$1 = setup$1;
+
+(function (module, exports) {
+  /**
+   * This is the web browser implementation of `debug()`.
+   */
+  exports.formatArgs = formatArgs;
+  exports.save = save;
+  exports.load = load;
+  exports.useColors = useColors;
+  exports.storage = localstorage();
+
+  exports.destroy = function () {
+    var warned = false;
+    return function () {
+      if (!warned) {
+        warned = true;
+        console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+      }
+    };
+  }();
+  /**
+   * Colors.
+   */
+
+
+  exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC', '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF', '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC', '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF', '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC', '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033', '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366', '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933', '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC', '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF', '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'];
+  /**
+   * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+   * and the Firebug extension (any Firefox version) are known
+   * to support "%c" CSS customizations.
+   *
+   * TODO: add a `localStorage` variable to explicitly enable/disable colors
+   */
+  // eslint-disable-next-line complexity
+
+  function useColors() {
+    // NB: In an Electron preload script, document will be defined but not fully
+    // initialized. Since we know we're in Chrome, we'll just detect this case
+    // explicitly
+    if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
+      return true;
+    } // Internet Explorer and Edge do not support colors.
+
+
+    if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+      return false;
+    } // Is webkit? http://stackoverflow.com/a/16459606/376773
+    // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+
+
+    return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+    typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+    typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+    typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+  }
+  /**
+   * Colorize log arguments if enabled.
+   *
+   * @api public
+   */
+
+
+  function formatArgs(args) {
+    args[0] = (this.useColors ? '%c' : '') + this.namespace + (this.useColors ? ' %c' : ' ') + args[0] + (this.useColors ? '%c ' : ' ') + '+' + module.exports.humanize(this.diff);
+
+    if (!this.useColors) {
+      return;
+    }
+
+    var c = 'color: ' + this.color;
+    args.splice(1, 0, c, 'color: inherit'); // The final "%c" is somewhat tricky, because there could be other
+    // arguments passed either before or after the %c, so we need to
+    // figure out the correct index to insert the CSS into
+
+    var index = 0;
+    var lastC = 0;
+    args[0].replace(/%[a-zA-Z%]/g, function (match) {
+      if (match === '%%') {
+        return;
+      }
+
+      index++;
+
+      if (match === '%c') {
+        // We only are interested in the *last* %c
+        // (the user may have provided their own)
+        lastC = index;
+      }
+    });
+    args.splice(lastC, 0, c);
+  }
+  /**
+   * Invokes `console.debug()` when available.
+   * No-op when `console.debug` is not a "function".
+   * If `console.debug` is not available, falls back
+   * to `console.log`.
+   *
+   * @api public
+   */
+
+
+  exports.log = console.debug || console.log || function () {};
+  /**
+   * Save `namespaces`.
+   *
+   * @param {String} namespaces
+   * @api private
+   */
+
+
+  function save(namespaces) {
+    try {
+      if (namespaces) {
+        exports.storage.setItem('debug', namespaces);
+      } else {
+        exports.storage.removeItem('debug');
+      }
+    } catch (error) {// Swallow
+      // XXX (@Qix-) should we be logging these?
+    }
+  }
+  /**
+   * Load `namespaces`.
+   *
+   * @return {String} returns the previously persisted debug modes
+   * @api private
+   */
+
+
+  function load() {
+    var r;
+
+    try {
+      r = exports.storage.getItem('debug');
+    } catch (error) {// Swallow
+      // XXX (@Qix-) should we be logging these?
+    } // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+
+
+    if (!r && typeof process !== 'undefined' && 'env' in process) {
+      r = process.env.DEBUG;
+    }
+
+    return r;
+  }
+  /**
+   * Localstorage attempts to return the localstorage.
+   *
+   * This is necessary because safari throws
+   * when a user disables cookies/localstorage
+   * and you attempt to access it.
+   *
+   * @return {LocalStorage}
+   * @api private
+   */
+
+
+  function localstorage() {
+    try {
+      // TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+      // The Browser also has localStorage in the global context.
+      return localStorage;
+    } catch (error) {// Swallow
+      // XXX (@Qix-) should we be logging these?
+    }
+  }
+
+  module.exports = common$1(exports);
+  var formatters = module.exports.formatters;
+  /**
+   * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+   */
+
+  formatters.j = function (v) {
+    try {
+      return JSON.stringify(v);
+    } catch (error) {
+      return '[UnexpectedJSONParseError]: ' + error.message;
+    }
+  };
+})(browser$1, browser$1.exports);
+
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+var stream = require$$0;
+var util = require$$1;
+var debug$1 = browser$1.exports('serialport/stream'); //  VALIDATION
+
+var DATABITS = Object.freeze([5, 6, 7, 8]);
+var STOPBITS = Object.freeze([1, 1.5, 2]);
+var PARITY = Object.freeze(['none', 'even', 'mark', 'odd', 'space']);
+var FLOWCONTROLS = Object.freeze(['xon', 'xoff', 'xany', 'rtscts']);
+var defaultSettings = Object.freeze({
+  autoOpen: true,
+  endOnClose: false,
+  baudRate: 9600,
+  dataBits: 8,
+  hupcl: true,
+  lock: true,
+  parity: 'none',
+  rtscts: false,
+  stopBits: 1,
+  xany: false,
+  xoff: false,
+  xon: false,
+  highWaterMark: 64 * 1024
+});
+var defaultSetFlags = Object.freeze({
+  brk: false,
+  cts: false,
+  dtr: true,
+  dts: false,
+  rts: true
+});
+
+function allocNewReadPool(poolSize) {
+  var pool = Buffer.allocUnsafe(poolSize);
+  pool.used = 0;
+  return pool;
+}
+/**
+ * A callback called with an error or null.
+ * @typedef {function} errorCallback
+ * @param {?error} error
+ */
+
+/**
+ * A callback called with an error or an object with the modem line values (cts, dsr, dcd).
+ * @typedef {function} modemBitsCallback
+ * @param {?error} error
+ * @param {?object} status
+ * @param {boolean} [status.cts=false]
+ * @param {boolean} [status.dsr=false]
+ * @param {boolean} [status.dcd=false]
+ */
+
+/**
+ * @typedef {Object} openOptions
+ * @property {boolean} [autoOpen=true] Automatically opens the port on `nextTick`.
+ * @property {number=} [baudRate=9600] The baud rate of the port to be opened. This should match one of the commonly available baud rates, such as 110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, or 115200. Custom rates are supported best effort per platform. The device connected to the serial port is not guaranteed to support the requested baud rate, even if the port itself supports that baud rate.
+ * @property {number} [dataBits=8] Must be one of these: 8, 7, 6, or 5.
+ * @property {number} [highWaterMark=65536] The size of the read and write buffers defaults to 64k.
+ * @property {boolean} [lock=true] Prevent other processes from opening the port. Windows does not currently support `false`.
+ * @property {number} [stopBits=1] Must be one of these: 1 or 2.
+ * @property {string} [parity=none] Must be one of these: 'none', 'even', 'mark', 'odd', 'space'.
+ * @property {boolean} [rtscts=false] flow control setting
+ * @property {boolean} [xon=false] flow control setting
+ * @property {boolean} [xoff=false] flow control setting
+ * @property {boolean} [xany=false] flow control setting
+ * @property {object=} bindingOptions sets binding-specific options
+ * @property {Binding=} binding The hardware access binding. `Bindings` are how Node-Serialport talks to the underlying system. By default we auto detect Windows (`WindowsBinding`), Linux (`LinuxBinding`) and OS X (`DarwinBinding`) and load the appropriate module for your system.
+ * @property {number} [bindingOptions.vmin=1] see [`man termios`](http://linux.die.net/man/3/termios) LinuxBinding and DarwinBinding
+ * @property {number} [bindingOptions.vtime=0] see [`man termios`](http://linux.die.net/man/3/termios) LinuxBinding and DarwinBinding
+ */
+
+/**
+ * Create a new serial port object for the `path`. In the case of invalid arguments or invalid options, when constructing a new SerialPort it will throw an error. The port will open automatically by default, which is the equivalent of calling `port.open(openCallback)` in the next tick. You can disable this by setting the option `autoOpen` to `false`.
+ * @class SerialPort
+ * @param {string} path - The system path of the serial port you want to open. For example, `/dev/tty.XXX` on Mac/Linux, or `COM1` on Windows.
+ * @param {openOptions=} options - Port configuration options
+ * @param {errorCallback=} openCallback - Called after a connection is opened. If this is not provided and an error occurs, it will be emitted on the port's `error` event. The callback will NOT be called if `autoOpen` is set to `false` in the `openOptions` as the open will not be performed.
+ * @property {number} baudRate The port's baudRate. Use `.update` to change it. Read-only.
+ * @property {object} binding The binding object backing the port. Read-only.
+ * @property {boolean} isOpen `true` if the port is open, `false` otherwise. Read-only. (`since 5.0.0`)
+ * @property {string} path The system path or name of the serial port. Read-only.
+ * @throws {TypeError} When given invalid arguments, a `TypeError` will be thrown.
+ * @emits open
+ * @emits data
+ * @emits close
+ * @emits error
+ * @alias module:serialport
+ */
+
+
+function SerialPort(path, options, openCallback) {
+  if (!(this instanceof SerialPort)) {
+    return new SerialPort(path, options, openCallback);
+  }
+
+  if (options instanceof Function) {
+    openCallback = options;
+    options = {};
+  }
+
+  var settings = _objectSpread$1(_objectSpread$1({}, defaultSettings), options);
+
+  stream.Duplex.call(this, {
+    highWaterMark: settings.highWaterMark
+  });
+  var Binding = settings.binding || SerialPort.Binding;
+
+  if (!Binding) {
+    throw new TypeError('"Bindings" is invalid pass it as `options.binding` or set it on `SerialPort.Binding`');
+  }
+
+  if (!path) {
+    throw new TypeError("\"path\" is not defined: ".concat(path));
+  }
+
+  if (settings.baudrate) {
+    throw new TypeError("\"baudrate\" is an unknown option, did you mean \"baudRate\"?");
+  }
+
+  if (typeof settings.baudRate !== 'number') {
+    throw new TypeError("\"baudRate\" must be a number: ".concat(settings.baudRate));
+  }
+
+  if (DATABITS.indexOf(settings.dataBits) === -1) {
+    throw new TypeError("\"databits\" is invalid: ".concat(settings.dataBits));
+  }
+
+  if (STOPBITS.indexOf(settings.stopBits) === -1) {
+    throw new TypeError("\"stopbits\" is invalid: ".concat(settings.stopbits));
+  }
+
+  if (PARITY.indexOf(settings.parity) === -1) {
+    throw new TypeError("\"parity\" is invalid: ".concat(settings.parity));
+  }
+
+  FLOWCONTROLS.forEach(function (control) {
+    if (typeof settings[control] !== 'boolean') {
+      throw new TypeError("\"".concat(control, "\" is not boolean: ").concat(settings[control]));
+    }
+  });
+  var binding = new Binding({
+    bindingOptions: settings.bindingOptions
+  });
+  Object.defineProperties(this, {
+    binding: {
+      enumerable: true,
+      value: binding
+    },
+    path: {
+      enumerable: true,
+      value: path
+    },
+    settings: {
+      enumerable: true,
+      value: settings
+    }
+  });
+  this.opening = false;
+  this.closing = false;
+  this._pool = allocNewReadPool(this.settings.highWaterMark);
+  this._kMinPoolSpace = 128;
+
+  if (this.settings.autoOpen) {
+    this.open(openCallback);
+  }
+}
+
+util.inherits(SerialPort, stream.Duplex);
+Object.defineProperties(SerialPort.prototype, {
+  isOpen: {
+    enumerable: true,
+    get: function get() {
+      return this.binding.isOpen && !this.closing;
+    }
+  },
+  baudRate: {
+    enumerable: true,
+    get: function get() {
+      return this.settings.baudRate;
+    }
+  }
+});
+/**
+ * The `error` event's callback is called with an error object whenever there is an error.
+ * @event error
+ */
+
+SerialPort.prototype._error = function (error, callback) {
+  if (callback) {
+    callback.call(this, error);
+  } else {
+    this.emit('error', error);
+  }
+};
+
+SerialPort.prototype._asyncError = function (error, callback) {
+  var _this = this;
+
+  nextTick(function () {
+    return _this._error(error, callback);
+  });
+};
+/**
+ * The `open` event's callback is called with no arguments when the port is opened and ready for writing. This happens if you have the constructor open immediately (which opens in the next tick) or if you open the port manually with `open()`. See [Useage/Opening a Port](#opening-a-port) for more information.
+ * @event open
+ */
+
+/**
+ * Opens a connection to the given serial port.
+ * @param {errorCallback=} openCallback - Called after a connection is opened. If this is not provided and an error occurs, it will be emitted on the port's `error` event.
+ * @emits open
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.open = function (openCallback) {
+  var _this2 = this;
+
+  if (this.isOpen) {
+    return this._asyncError(new Error('Port is already open'), openCallback);
+  }
+
+  if (this.opening) {
+    return this._asyncError(new Error('Port is opening'), openCallback);
+  }
+
+  this.opening = true;
+  debug$1('opening', "path: ".concat(this.path));
+  this.binding.open(this.path, this.settings).then(function () {
+    debug$1('opened', "path: ".concat(_this2.path));
+    _this2.opening = false;
+
+    _this2.emit('open');
+
+    if (openCallback) {
+      openCallback.call(_this2, null);
+    }
+  }, function (err) {
+    _this2.opening = false;
+    debug$1('Binding #open had an error', err);
+
+    _this2._error(err, openCallback);
+  });
+};
+/**
+ * Changes the baud rate for an open port. Throws if you provide a bad argument. Emits an error or calls the callback if the baud rate isn't supported.
+ * @param {object=} options Only supports `baudRate`.
+ * @param {number=} [options.baudRate] The baud rate of the port to be opened. This should match one of the commonly available baud rates, such as 110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, or 115200. Custom rates are supported best effort per platform. The device connected to the serial port is not guaranteed to support the requested baud rate, even if the port itself supports that baud rate.
+ * @param {errorCallback=} [callback] Called once the port's baud rate changes. If `.update` is called without a callback, and there is an error, an error event is emitted.
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.update = function (options, callback) {
+  var _this3 = this;
+
+  if (_typeof$1(options) !== 'object') {
+    throw TypeError('"options" is not an object');
+  }
+
+  if (!this.isOpen) {
+    debug$1('update attempted, but port is not open');
+    return this._asyncError(new Error('Port is not open'), callback);
+  }
+
+  var settings = _objectSpread$1(_objectSpread$1({}, defaultSettings), options);
+
+  this.settings.baudRate = settings.baudRate;
+  debug$1('update', "baudRate: ".concat(settings.baudRate));
+  this.binding.update(this.settings).then(function () {
+    debug$1('binding.update', 'finished');
+
+    if (callback) {
+      callback.call(_this3, null);
+    }
+  }, function (err) {
+    debug$1('binding.update', 'error', err);
+    return _this3._error(err, callback);
+  });
+};
+/**
+ * Writes data to the given serial port. Buffers written data if the port is not open.
+
+The write operation is non-blocking. When it returns, data might still not have been written to the serial port. See `drain()`.
+
+Some devices, like the Arduino, reset when you open a connection to them. In such cases, immediately writing to the device will cause lost data as they wont be ready to receive the data. This is often worked around by having the Arduino send a "ready" byte that your Node program waits for before writing. You can also often get away with waiting around 400ms.
+
+If a port is disconnected during a write, the write will error in addition to the `close` event.
+
+From the [stream docs](https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback) write errors don't always provide the error in the callback, sometimes they use the error event.
+> If an error occurs, the callback may or may not be called with the error as its first argument. To reliably detect write errors, add a listener for the 'error' event.
+
+In addition to the usual `stream.write` arguments (`String` and `Buffer`), `write()` can accept arrays of bytes (positive numbers under 256) which is passed to `Buffer.from([])` for conversion. This extra functionality is pretty sweet.
+ * @method SerialPort.prototype.write
+ * @param  {(string|array|buffer)} data Accepts a [`Buffer`](http://nodejs.org/api/buffer.html) object, or a type that is accepted by the `Buffer` constructor (e.g. an array of bytes or a string).
+ * @param  {string=} encoding The encoding, if chunk is a string. Defaults to `'utf8'`. Also accepts `'ascii'`, `'base64'`, `'binary'`, and `'hex'` See [Buffers and Character Encodings](https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings) for all available options.
+ * @param  {function=} callback Called once the write operation finishes. Data may not yet be flushed to the underlying port. No arguments.
+ * @returns {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.
+ * @since 5.0.0
+ */
+
+
+var superWrite = SerialPort.prototype.write;
+
+SerialPort.prototype.write = function (data, encoding, callback) {
+  if (Array.isArray(data)) {
+    data = Buffer.from(data);
+  }
+
+  return superWrite.call(this, data, encoding, callback);
+};
+
+SerialPort.prototype._write = function (data, encoding, callback) {
+  var _this4 = this;
+
+  if (!this.isOpen) {
+    return this.once('open', function afterOpenWrite() {
+      this._write(data, encoding, callback);
+    });
+  }
+
+  debug$1('_write', "".concat(data.length, " bytes of data"));
+  this.binding.write(data).then(function () {
+    debug$1('binding.write', 'write finished');
+    callback(null);
+  }, function (err) {
+    debug$1('binding.write', 'error', err);
+
+    if (!err.canceled) {
+      _this4._disconnected(err);
+    }
+
+    callback(err);
+  });
+};
+
+SerialPort.prototype._writev = function (data, callback) {
+  debug$1('_writev', "".concat(data.length, " chunks of data"));
+  var dataV = data.map(function (write) {
+    return write.chunk;
+  });
+
+  this._write(Buffer.concat(dataV), null, callback);
+};
+/**
+ * Request a number of bytes from the SerialPort. The `read()` method pulls some data out of the internal buffer and returns it. If no data is available to be read, null is returned. By default, the data is returned as a `Buffer` object unless an encoding has been specified using the `.setEncoding()` method.
+ * @method SerialPort.prototype.read
+ * @param {number=} size Specify how many bytes of data to return, if available
+ * @returns {(string|Buffer|null)} The data from internal buffers
+ * @since 5.0.0
+ */
+
+/**
+ * Listening for the `data` event puts the port in flowing mode. Data is emitted as soon as it's received. Data is a `Buffer` object with a varying amount of data in it. The `readLine` parser converts the data into string lines. See the [parsers](https://serialport.io/docs/api-parsers-overview) section for more information on parsers, and the [Node.js stream documentation](https://nodejs.org/api/stream.html#stream_event_data) for more information on the data event.
+ * @event data
+ */
+
+
+SerialPort.prototype._read = function (bytesToRead) {
+  var _this5 = this;
+
+  if (!this.isOpen) {
+    debug$1('_read', 'queueing _read for after open');
+    this.once('open', function () {
+      _this5._read(bytesToRead);
+    });
+    return;
+  }
+
+  if (!this._pool || this._pool.length - this._pool.used < this._kMinPoolSpace) {
+    debug$1('_read', 'discarding the read buffer pool because it is below kMinPoolSpace');
+    this._pool = allocNewReadPool(this.settings.highWaterMark);
+  } // Grab another reference to the pool in the case that while we're
+  // in the thread pool another read() finishes up the pool, and
+  // allocates a new one.
+
+
+  var pool = this._pool; // Read the smaller of rest of the pool or however many bytes we want
+
+  var toRead = Math.min(pool.length - pool.used, bytesToRead);
+  var start = pool.used; // the actual read.
+
+  debug$1('_read', "reading", {
+    start: start,
+    toRead: toRead
+  });
+  this.binding.read(pool, start, toRead).then(function (_ref) {
+    var bytesRead = _ref.bytesRead;
+    debug$1('binding.read', "finished", {
+      bytesRead: bytesRead
+    }); // zero bytes means read means we've hit EOF? Maybe this should be an error
+
+    if (bytesRead === 0) {
+      debug$1('binding.read', 'Zero bytes read closing readable stream');
+
+      _this5.push(null);
+
+      return;
+    }
+
+    pool.used += bytesRead;
+
+    _this5.push(pool.slice(start, start + bytesRead));
+  }, function (err) {
+    debug$1('binding.read', "error", err);
+
+    if (!err.canceled) {
+      _this5._disconnected(err);
+    }
+
+    _this5._read(bytesToRead); // prime to read more once we're reconnected
+
+  });
+};
+
+SerialPort.prototype._disconnected = function (err) {
+  if (!this.isOpen) {
+    debug$1('disconnected aborted because already closed', err);
+    return;
+  }
+
+  debug$1('disconnected', err);
+  err.disconnected = true;
+  this.close(null, err);
+};
+/**
+ * The `close` event's callback is called with no arguments when the port is closed. In the case of a disconnect it will be called with a Disconnect Error object (`err.disconnected == true`). In the event of a close error (unlikely), an error event is triggered.
+ * @event close
+ */
+
+/**
+ * Closes an open connection.
+ *
+ * If there are in progress writes when the port is closed the writes will error.
+ * @param {errorCallback} callback Called once a connection is closed.
+ * @param {Error} disconnectError used internally to propagate a disconnect error
+ * @emits close
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.close = function (callback, disconnectError) {
+  var _this6 = this;
+
+  disconnectError = disconnectError || null;
+
+  if (!this.isOpen) {
+    debug$1('close attempted, but port is not open');
+    return this._asyncError(new Error('Port is not open'), callback);
+  }
+
+  this.closing = true;
+  debug$1('#close');
+  this.binding.close().then(function () {
+    _this6.closing = false;
+    debug$1('binding.close', 'finished');
+
+    _this6.emit('close', disconnectError);
+
+    if (_this6.settings.endOnClose) {
+      _this6.emit('end');
+    }
+
+    if (callback) {
+      callback.call(_this6, disconnectError);
+    }
+  }, function (err) {
+    _this6.closing = false;
+    debug$1('binding.close', 'had an error', err);
+    return _this6._error(err, callback);
+  });
+};
+/**
+ * Set control flags on an open port. Uses [`SetCommMask`](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363257(v=vs.85).aspx) for Windows and [`ioctl`](http://linux.die.net/man/4/tty_ioctl) for OS X and Linux.
+ * @param {object=} options All options are operating system default when the port is opened. Every flag is set on each call to the provided or default values. If options isn't provided default options is used.
+ * @param {Boolean} [options.brk=false] sets the brk flag
+ * @param {Boolean} [options.cts=false] sets the cts flag
+ * @param {Boolean} [options.dsr=false] sets the dsr flag
+ * @param {Boolean} [options.dtr=true] sets the dtr flag
+ * @param {Boolean} [options.rts=true] sets the rts flag
+ * @param {errorCallback=} callback Called once the port's flags have been set.
+ * @since 5.0.0
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.set = function (options, callback) {
+  var _this7 = this;
+
+  if (_typeof$1(options) !== 'object') {
+    throw TypeError('"options" is not an object');
+  }
+
+  if (!this.isOpen) {
+    debug$1('set attempted, but port is not open');
+    return this._asyncError(new Error('Port is not open'), callback);
+  }
+
+  var settings = _objectSpread$1(_objectSpread$1({}, defaultSetFlags), options);
+
+  debug$1('#set', settings);
+  this.binding.set(settings).then(function () {
+    debug$1('binding.set', 'finished');
+
+    if (callback) {
+      callback.call(_this7, null);
+    }
+  }, function (err) {
+    debug$1('binding.set', 'had an error', err);
+    return _this7._error(err, callback);
+  });
+};
+/**
+ * Returns the control flags (CTS, DSR, DCD) on the open port.
+ * Uses [`GetCommModemStatus`](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363258(v=vs.85).aspx) for Windows and [`ioctl`](http://linux.die.net/man/4/tty_ioctl) for mac and linux.
+ * @param {modemBitsCallback=} callback Called once the modem bits are retrieved.
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.get = function (callback) {
+  var _this8 = this;
+
+  if (!this.isOpen) {
+    debug$1('get attempted, but port is not open');
+    return this._asyncError(new Error('Port is not open'), callback);
+  }
+
+  debug$1('#get');
+  this.binding.get().then(function (status) {
+    debug$1('binding.get', 'finished');
+
+    if (callback) {
+      callback.call(_this8, null, status);
+    }
+  }, function (err) {
+    debug$1('binding.get', 'had an error', err);
+    return _this8._error(err, callback);
+  });
+};
+/**
+ * Flush discards data received but not read, and written but not transmitted by the operating system. For more technical details, see [`tcflush(fd, TCIOFLUSH)`](http://linux.die.net/man/3/tcflush) for Mac/Linux and [`FlushFileBuffers`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa364439) for Windows.
+ * @param  {errorCallback=} callback Called once the flush operation finishes.
+ * @returns {undefined}
+ */
+
+
+SerialPort.prototype.flush = function (callback) {
+  var _this9 = this;
+
+  if (!this.isOpen) {
+    debug$1('flush attempted, but port is not open');
+    return this._asyncError(new Error('Port is not open'), callback);
+  }
+
+  debug$1('#flush');
+  this.binding.flush().then(function () {
+    debug$1('binding.flush', 'finished');
+
+    if (callback) {
+      callback.call(_this9, null);
+    }
+  }, function (err) {
+    debug$1('binding.flush', 'had an error', err);
+    return _this9._error(err, callback);
+  });
+};
+/**
+ * Waits until all output data is transmitted to the serial port. After any pending write has completed it calls [`tcdrain()`](http://linux.die.net/man/3/tcdrain) or [FlushFileBuffers()](https://msdn.microsoft.com/en-us/library/windows/desktop/aa364439(v=vs.85).aspx) to ensure it has been written to the device.
+ * @param {errorCallback=} callback Called once the drain operation returns.
+ * @returns {undefined}
+ * @example
+Write the `data` and wait until it has finished transmitting to the target serial port before calling the callback. This will queue until the port is open and writes are finished.
+
+```js
+function writeAndDrain (data, callback) {
+  port.write(data);
+  port.drain(callback);
+}
+```
+ */
+
+
+SerialPort.prototype.drain = function (callback) {
+  var _this10 = this;
+
+  debug$1('drain');
+
+  if (!this.isOpen) {
+    debug$1('drain queuing on port open');
+    return this.once('open', function () {
+      _this10.drain(callback);
+    });
+  }
+
+  this.binding.drain().then(function () {
+    debug$1('binding.drain', 'finished');
+
+    if (callback) {
+      callback.call(_this10, null);
+    }
+  }, function (err) {
+    debug$1('binding.drain', 'had an error', err);
+    return _this10._error(err, callback);
+  });
+};
+/**
+ * The `pause()` method causes a stream in flowing mode to stop emitting 'data' events, switching out of flowing mode. Any data that becomes available remains in the internal buffer.
+ * @method SerialPort.prototype.pause
+ * @see resume
+ * @since 5.0.0
+ * @returns `this`
+ */
+
+/**
+ * The `resume()` method causes an explicitly paused, `Readable` stream to resume emitting 'data' events, switching the stream into flowing mode.
+ * @method SerialPort.prototype.resume
+ * @see pause
+ * @since 5.0.0
+ * @returns `this`
+ */
+
+/**
+ * Retrieves a list of available serial ports with metadata. Only the `path` is guaranteed. If unavailable the other fields will be undefined. The `path` is either the path or an identifier (eg `COM1`) used to open the SerialPort.
+ *
+ * We make an effort to identify the hardware attached and have consistent results between systems. Linux and OS X are mostly consistent. Windows relies on 3rd party device drivers for the information and is unable to guarantee the information. On windows If you have a USB connected device can we provide a serial number otherwise it will be `undefined`. The `pnpId` and `locationId` are not the same or present on all systems. The examples below were run with the same Arduino Uno.
+ * @type {function}
+ * @returns {Promise} Resolves with the list of available serial ports.
+ * @example
+```js
+// OSX example port
+{
+  path: '/dev/tty.usbmodem1421',
+  manufacturer: 'Arduino (www.arduino.cc)',
+  serialNumber: '752303138333518011C1',
+  pnpId: undefined,
+  locationId: '14500000',
+  productId: '0043',
+  vendorId: '2341'
+}
+
+// Linux example port
+{
+  path: '/dev/ttyACM0',
+  manufacturer: 'Arduino (www.arduino.cc)',
+  serialNumber: '752303138333518011C1',
+  pnpId: 'usb-Arduino__www.arduino.cc__0043_752303138333518011C1-if00',
+  locationId: undefined,
+  productId: '0043',
+  vendorId: '2341'
+}
+
+// Windows example port
+{
+  path: 'COM3',
+  manufacturer: 'Arduino LLC (www.arduino.cc)',
+  serialNumber: '752303138333518011C1',
+  pnpId: 'USB\\VID_2341&PID_0043\\752303138333518011C1',
+  locationId: 'Port_#0003.Hub_#0001',
+  productId: '0043',
+  vendorId: '2341'
+}
+```
+
+```js
+var SerialPort = require('serialport');
+
+// promise approach
+SerialPort.list()
+  .then(ports) {...});
+  .catch(err) {...});
+```
+ */
+
+
+SerialPort.list = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(callback) {
+    return regenerator.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            debug$1('.list');
+
+            if (SerialPort.Binding) {
+              _context.next = 3;
+              break;
+            }
+
+            throw new TypeError('No Binding set on `SerialPort.Binding`');
+
+          case 3:
+            if (!callback) {
+              _context.next = 5;
+              break;
+            }
+
+            throw new TypeError('SerialPort.list no longer takes a callback and only returns a promise');
+
+          case 5:
+            return _context.abrupt("return", SerialPort.Binding.list());
+
+          case 6:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function (_x) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+var lib$2 = SerialPort;
+
+function _superPropBase(object, property) {
+  while (!Object.prototype.hasOwnProperty.call(object, property)) {
+    object = _getPrototypeOf(object);
+    if (object === null) break;
+  }
+
+  return object;
+}
+
+function _get(target, property, receiver) {
+  if (typeof Reflect !== "undefined" && Reflect.get) {
+    _get = Reflect.get;
+  } else {
+    _get = function _get(target, property, receiver) {
+      var base = _superPropBase(target, property);
+      if (!base) return;
+      var desc = Object.getOwnPropertyDescriptor(base, property);
+
+      if (desc.get) {
+        return desc.get.call(receiver);
+      }
+
+      return desc.value;
+    };
+  }
+
+  return _get(target, property, receiver || target);
+}
+
 var browser = {exports: {}};
 
 var s = 1000;
@@ -9676,7 +11065,11 @@ var common = setup;
     // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
 
 
-    return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+    return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+    typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+    typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+    typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
   }
   /**
    * Colorize log arguments if enabled.
@@ -9805,1747 +11198,1083 @@ var common = setup;
   };
 })(browser, browser.exports);
 
+var debug = browser.exports('serialport/binding-abstract');
+/**
+ * @name Binding
+ * @type {AbstractBinding}
+ * @since 5.0.0
+ * @description The `Binding` is how Node-SerialPort talks to the underlying system. By default, we auto detect Windows, Linux and OS X, and load the appropriate module for your system. You can assign `SerialPort.Binding` to any binding you like. Find more by searching at [npm](https://npmjs.org/).
+  Prevent auto loading the default bindings by requiring SerialPort with:
+  ```js
+  var SerialPort = require('@serialport/stream');
+  SerialPort.Binding = MyBindingClass;
+  ```
+ */
+
+/**
+ * You never have to use `Binding` objects directly. SerialPort uses them to access the underlying hardware. This documentation is geared towards people who are making bindings for different platforms. This class can be inherited from to get type checking for each method.
+ * @class AbstractBinding
+ * @param {object} options options for the binding
+ * @property {boolean} isOpen Required property. `true` if the port is open, `false` otherwise. Should be read-only.
+ * @throws {TypeError} When given invalid arguments, a `TypeError` is thrown.
+ * @since 5.0.0
+ */
+
+var AbstractBinding$1 = /*#__PURE__*/function () {
+  function AbstractBinding() {
+    var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, AbstractBinding);
+
+    if (_typeof$1(opt) !== 'object') {
+      throw new TypeError('"options" is not an object');
+    }
+  }
+  /**
+   * Opens a connection to the serial port referenced by the path.
+   * @param {string} path the path or com port to open
+   * @param {openOptions} options openOptions for the serialport
+   * @returns {Promise} Resolves after the port is opened and configured.
+   * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+   */
+
+
+  _createClass(AbstractBinding, [{
+    key: "open",
+    value: function () {
+      var _open = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(path, options) {
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (path) {
+                  _context.next = 2;
+                  break;
+                }
+
+                throw new TypeError('"path" is not a valid port');
+
+              case 2:
+                if (!(_typeof$1(options) !== 'object')) {
+                  _context.next = 4;
+                  break;
+                }
+
+                throw new TypeError('"options" is not an object');
+
+              case 4:
+                debug('open');
+
+                if (!this.isOpen) {
+                  _context.next = 7;
+                  break;
+                }
+
+                throw new Error('Already open');
+
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function open(_x, _x2) {
+        return _open.apply(this, arguments);
+      }
+
+      return open;
+    }()
+    /**
+     * Closes an open connection
+     * @returns {Promise} Resolves once the connection is closed.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "close",
+    value: function () {
+      var _close = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                debug('close');
+
+                if (this.isOpen) {
+                  _context2.next = 3;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 3:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function close() {
+        return _close.apply(this, arguments);
+      }
+
+      return close;
+    }()
+    /**
+     * Request a number of bytes from the SerialPort. This function is similar to Node's [`fs.read`](http://nodejs.org/api/fs.html#fs_fs_read_fd_buffer_offset_length_position_callback) except it will always return at least one byte.
+    The in progress reads must error when the port is closed with an error object that has the property `canceled` equal to `true`. Any other error will cause a disconnection.
+      * @param {buffer} buffer Accepts a [`Buffer`](http://nodejs.org/api/buffer.html) object.
+     * @param {integer} offset The offset in the buffer to start writing at.
+     * @param {integer} length Specifies the maximum number of bytes to read.
+     * @returns {Promise} Resolves with the number of bytes read after a read operation.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "read",
+    value: function () {
+      var _read = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(buffer, offset, length) {
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (isBuffer$1(buffer)) {
+                  _context3.next = 2;
+                  break;
+                }
+
+                throw new TypeError('"buffer" is not a Buffer');
+
+              case 2:
+                if (!(typeof offset !== 'number' || isNaN(offset))) {
+                  _context3.next = 4;
+                  break;
+                }
+
+                throw new TypeError("\"offset\" is not an integer got \"".concat(isNaN(offset) ? 'NaN' : _typeof$1(offset), "\""));
+
+              case 4:
+                if (!(typeof length !== 'number' || isNaN(length))) {
+                  _context3.next = 6;
+                  break;
+                }
+
+                throw new TypeError("\"length\" is not an integer got \"".concat(isNaN(length) ? 'NaN' : _typeof$1(length), "\""));
+
+              case 6:
+                debug('read');
+
+                if (!(buffer.length < offset + length)) {
+                  _context3.next = 9;
+                  break;
+                }
+
+                throw new Error('buffer is too small');
+
+              case 9:
+                if (this.isOpen) {
+                  _context3.next = 11;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 11:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function read(_x3, _x4, _x5) {
+        return _read.apply(this, arguments);
+      }
+
+      return read;
+    }()
+    /**
+     * Write bytes to the SerialPort. Only called when there is no pending write operation.
+    The in progress writes must error when the port is closed with an error object that has the property `canceled` equal to `true`. Any other error will cause a disconnection.
+      * @param {buffer} buffer - Accepts a [`Buffer`](http://nodejs.org/api/buffer.html) object.
+     * @returns {Promise} Resolves after the data is passed to the operating system for writing.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "write",
+    value: function () {
+      var _write = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(buffer) {
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (isBuffer$1(buffer)) {
+                  _context4.next = 2;
+                  break;
+                }
+
+                throw new TypeError('"buffer" is not a Buffer');
+
+              case 2:
+                debug('write', buffer.length, 'bytes');
+
+                if (this.isOpen) {
+                  _context4.next = 6;
+                  break;
+                }
+
+                debug('write', 'error port is not open');
+                throw new Error('Port is not open');
+
+              case 6:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function write(_x6) {
+        return _write.apply(this, arguments);
+      }
+
+      return write;
+    }()
+    /**
+     * Changes connection settings on an open port. Only `baudRate` is supported.
+     * @param {object=} options Only supports `baudRate`.
+     * @param {number=} [options.baudRate] If provided a baud rate that the bindings do not support, it should reject.
+     * @returns {Promise} Resolves once the port's baud rate changes.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "update",
+    value: function () {
+      var _update = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(options) {
+        return regenerator.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (!(_typeof$1(options) !== 'object')) {
+                  _context5.next = 2;
+                  break;
+                }
+
+                throw TypeError('"options" is not an object');
+
+              case 2:
+                if (!(typeof options.baudRate !== 'number')) {
+                  _context5.next = 4;
+                  break;
+                }
+
+                throw new TypeError('"options.baudRate" is not a number');
+
+              case 4:
+                debug('update');
+
+                if (this.isOpen) {
+                  _context5.next = 7;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 7:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function update(_x7) {
+        return _update.apply(this, arguments);
+      }
+
+      return update;
+    }()
+    /**
+     * Set control flags on an open port.
+     * @param {object=} options All options are operating system default when the port is opened. Every flag is set on each call to the provided or default values. All options are always provided.
+     * @param {Boolean} [options.brk=false] flag for brk
+     * @param {Boolean} [options.cts=false] flag for cts
+     * @param {Boolean} [options.dsr=false] flag for dsr
+     * @param {Boolean} [options.dtr=true] flag for dtr
+     * @param {Boolean} [options.rts=true] flag for rts
+     * @param {Boolean} [options.lowLatency=false] flag for lowLatency mode on Linux
+     * @returns {Promise} Resolves once the port's flags are set.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "set",
+    value: function () {
+      var _set = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(options) {
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (!(_typeof$1(options) !== 'object')) {
+                  _context6.next = 2;
+                  break;
+                }
+
+                throw new TypeError('"options" is not an object');
+
+              case 2:
+                debug('set');
+
+                if (this.isOpen) {
+                  _context6.next = 5;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 5:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function set(_x8) {
+        return _set.apply(this, arguments);
+      }
+
+      return set;
+    }()
+    /**
+     * Get the control flags (CTS, DSR, DCD) on the open port.
+     * @returns {Promise} Resolves with the retrieved flags.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "get",
+    value: function () {
+      var _get = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
+        return regenerator.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                debug('get');
+
+                if (this.isOpen) {
+                  _context7.next = 3;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 3:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function get() {
+        return _get.apply(this, arguments);
+      }
+
+      return get;
+    }()
+    /**
+     * Get the OS reported baud rate for the open port.
+     * Used mostly for debugging custom baud rates.
+     * @returns {Promise} Resolves with the current baud rate.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "getBaudRate",
+    value: function () {
+      var _getBaudRate = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                debug('getbaudRate');
+
+                if (this.isOpen) {
+                  _context8.next = 3;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 3:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function getBaudRate() {
+        return _getBaudRate.apply(this, arguments);
+      }
+
+      return getBaudRate;
+    }()
+    /**
+     * Flush (discard) data received but not read, and written but not transmitted.
+     * @returns {Promise} Resolves once the flush operation finishes.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "flush",
+    value: function () {
+      var _flush = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
+        return regenerator.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                debug('flush');
+
+                if (this.isOpen) {
+                  _context9.next = 3;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 3:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function flush() {
+        return _flush.apply(this, arguments);
+      }
+
+      return flush;
+    }()
+    /**
+     * Drain waits until all output data is transmitted to the serial port. An in progress write should be completed before this returns.
+     * @returns {Promise} Resolves once the drain operation finishes.
+     * @rejects {TypeError} When given invalid arguments, a `TypeError` is rejected.
+     */
+
+  }, {
+    key: "drain",
+    value: function () {
+      var _drain = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10() {
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                debug('drain');
+
+                if (this.isOpen) {
+                  _context10.next = 3;
+                  break;
+                }
+
+                throw new Error('Port is not open');
+
+              case 3:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function drain() {
+        return _drain.apply(this, arguments);
+      }
+
+      return drain;
+    }()
+  }], [{
+    key: "list",
+    value:
+    /**
+     * Retrieves a list of available serial ports with metadata. The `path` must be guaranteed, and all other fields should be undefined if unavailable. The `path` is either the path or an identifier (eg `COM1`) used to open the serialport.
+     * @returns {Promise} resolves to an array of port [info objects](#module_serialport--SerialPort.list).
+     */
+    function () {
+      var _list = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
+        return regenerator.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                debug('list');
+
+              case 1:
+              case "end":
+                return _context11.stop();
+            }
+          }
+        }, _callee11);
+      }));
+
+      function list() {
+        return _list.apply(this, arguments);
+      }
+
+      return list;
+    }()
+  }]);
+
+  return AbstractBinding;
+}();
+
+var lib$1 = AbstractBinding$1;
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-var stream = require$$0;
-var util = require$$1;
-var debug = browser.exports('serialport/stream'); //  VALIDATION
-
-var DATABITS = Object.freeze([5, 6, 7, 8]);
-var STOPBITS = Object.freeze([1, 1.5, 2]);
-var PARITY = Object.freeze(['none', 'even', 'mark', 'odd', 'space']);
-var FLOWCONTROLS = Object.freeze(['xon', 'xoff', 'xany', 'rtscts']);
-var defaultSettings = Object.freeze({
-  autoOpen: true,
-  endOnClose: false,
-  baudRate: 9600,
-  dataBits: 8,
-  hupcl: true,
-  lock: true,
-  parity: 'none',
-  rtscts: false,
-  stopBits: 1,
-  xany: false,
-  xoff: false,
-  xon: false,
-  highWaterMark: 64 * 1024
-});
-var defaultSetFlags = Object.freeze({
-  brk: false,
-  cts: false,
-  dtr: true,
-  dts: false,
-  rts: true
-});
-
-function allocNewReadPool(poolSize) {
-  var pool = Buffer.allocUnsafe(poolSize);
-  pool.used = 0;
-  return pool;
-}
-/**
- * A callback called with an error or null.
- * @typedef {function} errorCallback
- * @param {?error} error
- */
-
-/**
- * A callback called with an error or an object with the modem line values (cts, dsr, dcd).
- * @typedef {function} modemBitsCallback
- * @param {?error} error
- * @param {?object} status
- * @param {boolean} [status.cts=false]
- * @param {boolean} [status.dsr=false]
- * @param {boolean} [status.dcd=false]
- */
-
-/**
- * @typedef {Object} openOptions
- * @property {boolean} [autoOpen=true] Automatically opens the port on `nextTick`.
- * @property {number=} [baudRate=9600] The baud rate of the port to be opened. This should match one of the commonly available baud rates, such as 110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, or 115200. Custom rates are supported best effort per platform. The device connected to the serial port is not guaranteed to support the requested baud rate, even if the port itself supports that baud rate.
- * @property {number} [dataBits=8] Must be one of these: 8, 7, 6, or 5.
- * @property {number} [highWaterMark=65536] The size of the read and write buffers defaults to 64k.
- * @property {boolean} [lock=true] Prevent other processes from opening the port. Windows does not currently support `false`.
- * @property {number} [stopBits=1] Must be one of these: 1 or 2.
- * @property {string} [parity=none] Must be one of these: 'none', 'even', 'mark', 'odd', 'space'.
- * @property {boolean} [rtscts=false] flow control setting
- * @property {boolean} [xon=false] flow control setting
- * @property {boolean} [xoff=false] flow control setting
- * @property {boolean} [xany=false] flow control setting
- * @property {object=} bindingOptions sets binding-specific options
- * @property {Binding=} binding The hardware access binding. `Bindings` are how Node-Serialport talks to the underlying system. By default we auto detect Windows (`WindowsBinding`), Linux (`LinuxBinding`) and OS X (`DarwinBinding`) and load the appropriate module for your system.
- * @property {number} [bindingOptions.vmin=1] see [`man termios`](http://linux.die.net/man/3/termios) LinuxBinding and DarwinBinding
- * @property {number} [bindingOptions.vtime=0] see [`man termios`](http://linux.die.net/man/3/termios) LinuxBinding and DarwinBinding
- */
-
-/**
- * Create a new serial port object for the `path`. In the case of invalid arguments or invalid options, when constructing a new SerialPort it will throw an error. The port will open automatically by default, which is the equivalent of calling `port.open(openCallback)` in the next tick. You can disable this by setting the option `autoOpen` to `false`.
- * @class SerialPort
- * @param {string} path - The system path of the serial port you want to open. For example, `/dev/tty.XXX` on Mac/Linux, or `COM1` on Windows.
- * @param {openOptions=} options - Port configuration options
- * @param {errorCallback=} openCallback - Called after a connection is opened. If this is not provided and an error occurs, it will be emitted on the port's `error` event. The callback will NOT be called if `autoOpen` is set to `false` in the `openOptions` as the open will not be performed.
- * @property {number} baudRate The port's baudRate. Use `.update` to change it. Read-only.
- * @property {object} binding The binding object backing the port. Read-only.
- * @property {boolean} isOpen `true` if the port is open, `false` otherwise. Read-only. (`since 5.0.0`)
- * @property {string} path The system path or name of the serial port. Read-only.
- * @throws {TypeError} When given invalid arguments, a `TypeError` will be thrown.
- * @emits open
- * @emits data
- * @emits close
- * @emits error
- * @alias module:serialport
- */
-
-
-function SerialPort(path, options, openCallback) {
-  if (!(this instanceof SerialPort)) {
-    return new SerialPort(path, options, openCallback);
-  }
-
-  if (options instanceof Function) {
-    openCallback = options;
-    options = {};
-  }
-
-  var settings = _objectSpread(_objectSpread({}, defaultSettings), options);
-
-  stream.Duplex.call(this, {
-    highWaterMark: settings.highWaterMark
-  });
-  var Binding = settings.binding || SerialPort.Binding;
-
-  if (!Binding) {
-    throw new TypeError('"Bindings" is invalid pass it as `options.binding` or set it on `SerialPort.Binding`');
-  }
-
-  if (!path) {
-    throw new TypeError("\"path\" is not defined: ".concat(path));
-  }
-
-  if (settings.baudrate) {
-    throw new TypeError("\"baudrate\" is an unknown option, did you mean \"baudRate\"?");
-  }
-
-  if (typeof settings.baudRate !== 'number') {
-    throw new TypeError("\"baudRate\" must be a number: ".concat(settings.baudRate));
-  }
-
-  if (DATABITS.indexOf(settings.dataBits) === -1) {
-    throw new TypeError("\"databits\" is invalid: ".concat(settings.dataBits));
-  }
-
-  if (STOPBITS.indexOf(settings.stopBits) === -1) {
-    throw new TypeError("\"stopbits\" is invalid: ".concat(settings.stopbits));
-  }
-
-  if (PARITY.indexOf(settings.parity) === -1) {
-    throw new TypeError("\"parity\" is invalid: ".concat(settings.parity));
-  }
-
-  FLOWCONTROLS.forEach(function (control) {
-    if (typeof settings[control] !== 'boolean') {
-      throw new TypeError("\"".concat(control, "\" is not boolean: ").concat(settings[control]));
-    }
-  });
-  var binding = new Binding({
-    bindingOptions: settings.bindingOptions
-  });
-  Object.defineProperties(this, {
-    binding: {
-      enumerable: true,
-      value: binding
-    },
-    path: {
-      enumerable: true,
-      value: path
-    },
-    settings: {
-      enumerable: true,
-      value: settings
-    }
-  });
-  this.opening = false;
-  this.closing = false;
-  this._pool = allocNewReadPool(this.settings.highWaterMark);
-  this._kMinPoolSpace = 128;
-
-  if (this.settings.autoOpen) {
-    this.open(openCallback);
-  }
-}
-
-util.inherits(SerialPort, stream.Duplex);
-Object.defineProperties(SerialPort.prototype, {
-  isOpen: {
-    enumerable: true,
-    get: function get() {
-      return this.binding.isOpen && !this.closing;
-    }
-  },
-  baudRate: {
-    enumerable: true,
-    get: function get() {
-      return this.settings.baudRate;
-    }
-  }
-});
-/**
- * The `error` event's callback is called with an error object whenever there is an error.
- * @event error
- */
-
-SerialPort.prototype._error = function (error, callback) {
-  if (callback) {
-    callback.call(this, error);
-  } else {
-    this.emit('error', error);
-  }
-};
-
-SerialPort.prototype._asyncError = function (error, callback) {
-  var _this = this;
-
-  nextTick(function () {
-    return _this._error(error, callback);
-  });
-};
-/**
- * The `open` event's callback is called with no arguments when the port is opened and ready for writing. This happens if you have the constructor open immediately (which opens in the next tick) or if you open the port manually with `open()`. See [Useage/Opening a Port](#opening-a-port) for more information.
- * @event open
- */
-
-/**
- * Opens a connection to the given serial port.
- * @param {errorCallback=} openCallback - Called after a connection is opened. If this is not provided and an error occurs, it will be emitted on the port's `error` event.
- * @emits open
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.open = function (openCallback) {
-  var _this2 = this;
-
-  if (this.isOpen) {
-    return this._asyncError(new Error('Port is already open'), openCallback);
-  }
-
-  if (this.opening) {
-    return this._asyncError(new Error('Port is opening'), openCallback);
-  }
-
-  this.opening = true;
-  debug('opening', "path: ".concat(this.path));
-  this.binding.open(this.path, this.settings).then(function () {
-    debug('opened', "path: ".concat(_this2.path));
-    _this2.opening = false;
-
-    _this2.emit('open');
-
-    if (openCallback) {
-      openCallback.call(_this2, null);
-    }
-  }, function (err) {
-    _this2.opening = false;
-    debug('Binding #open had an error', err);
-
-    _this2._error(err, openCallback);
-  });
-};
-/**
- * Changes the baud rate for an open port. Throws if you provide a bad argument. Emits an error or calls the callback if the baud rate isn't supported.
- * @param {object=} options Only supports `baudRate`.
- * @param {number=} [options.baudRate] The baud rate of the port to be opened. This should match one of the commonly available baud rates, such as 110, 300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, or 115200. Custom rates are supported best effort per platform. The device connected to the serial port is not guaranteed to support the requested baud rate, even if the port itself supports that baud rate.
- * @param {errorCallback=} [callback] Called once the port's baud rate changes. If `.update` is called without a callback, and there is an error, an error event is emitted.
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.update = function (options, callback) {
-  var _this3 = this;
-
-  if (_typeof$1(options) !== 'object') {
-    throw TypeError('"options" is not an object');
-  }
-
-  if (!this.isOpen) {
-    debug('update attempted, but port is not open');
-    return this._asyncError(new Error('Port is not open'), callback);
-  }
-
-  var settings = _objectSpread(_objectSpread({}, defaultSettings), options);
-
-  this.settings.baudRate = settings.baudRate;
-  debug('update', "baudRate: ".concat(settings.baudRate));
-  this.binding.update(this.settings).then(function () {
-    debug('binding.update', 'finished');
-
-    if (callback) {
-      callback.call(_this3, null);
-    }
-  }, function (err) {
-    debug('binding.update', 'error', err);
-    return _this3._error(err, callback);
-  });
-};
-/**
- * Writes data to the given serial port. Buffers written data if the port is not open.
-
-The write operation is non-blocking. When it returns, data might still not have been written to the serial port. See `drain()`.
-
-Some devices, like the Arduino, reset when you open a connection to them. In such cases, immediately writing to the device will cause lost data as they wont be ready to receive the data. This is often worked around by having the Arduino send a "ready" byte that your Node program waits for before writing. You can also often get away with waiting around 400ms.
-
-If a port is disconnected during a write, the write will error in addition to the `close` event.
-
-From the [stream docs](https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback) write errors don't always provide the error in the callback, sometimes they use the error event.
-> If an error occurs, the callback may or may not be called with the error as its first argument. To reliably detect write errors, add a listener for the 'error' event.
-
-In addition to the usual `stream.write` arguments (`String` and `Buffer`), `write()` can accept arrays of bytes (positive numbers under 256) which is passed to `Buffer.from([])` for conversion. This extra functionality is pretty sweet.
- * @method SerialPort.prototype.write
- * @param  {(string|array|buffer)} data Accepts a [`Buffer`](http://nodejs.org/api/buffer.html) object, or a type that is accepted by the `Buffer` constructor (e.g. an array of bytes or a string).
- * @param  {string=} encoding The encoding, if chunk is a string. Defaults to `'utf8'`. Also accepts `'ascii'`, `'base64'`, `'binary'`, and `'hex'` See [Buffers and Character Encodings](https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings) for all available options.
- * @param  {function=} callback Called once the write operation finishes. Data may not yet be flushed to the underlying port. No arguments.
- * @returns {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.
- * @since 5.0.0
- */
-
-
-var superWrite = SerialPort.prototype.write;
-
-SerialPort.prototype.write = function (data, encoding, callback) {
-  if (Array.isArray(data)) {
-    data = Buffer.from(data);
-  }
-
-  return superWrite.call(this, data, encoding, callback);
-};
-
-SerialPort.prototype._write = function (data, encoding, callback) {
-  var _this4 = this;
-
-  if (!this.isOpen) {
-    return this.once('open', function afterOpenWrite() {
-      this._write(data, encoding, callback);
-    });
-  }
-
-  debug('_write', "".concat(data.length, " bytes of data"));
-  this.binding.write(data).then(function () {
-    debug('binding.write', 'write finished');
-    callback(null);
-  }, function (err) {
-    debug('binding.write', 'error', err);
-
-    if (!err.canceled) {
-      _this4._disconnected(err);
-    }
-
-    callback(err);
-  });
-};
-
-SerialPort.prototype._writev = function (data, callback) {
-  debug('_writev', "".concat(data.length, " chunks of data"));
-  var dataV = data.map(function (write) {
-    return write.chunk;
-  });
-
-  this._write(Buffer.concat(dataV), null, callback);
-};
-/**
- * Request a number of bytes from the SerialPort. The `read()` method pulls some data out of the internal buffer and returns it. If no data is available to be read, null is returned. By default, the data is returned as a `Buffer` object unless an encoding has been specified using the `.setEncoding()` method.
- * @method SerialPort.prototype.read
- * @param {number=} size Specify how many bytes of data to return, if available
- * @returns {(string|Buffer|null)} The data from internal buffers
- * @since 5.0.0
- */
-
-/**
- * Listening for the `data` event puts the port in flowing mode. Data is emitted as soon as it's received. Data is a `Buffer` object with a varying amount of data in it. The `readLine` parser converts the data into string lines. See the [parsers](https://serialport.io/docs/api-parsers-overview) section for more information on parsers, and the [Node.js stream documentation](https://nodejs.org/api/stream.html#stream_event_data) for more information on the data event.
- * @event data
- */
-
-
-SerialPort.prototype._read = function (bytesToRead) {
-  var _this5 = this;
-
-  if (!this.isOpen) {
-    debug('_read', 'queueing _read for after open');
-    this.once('open', function () {
-      _this5._read(bytesToRead);
-    });
-    return;
-  }
-
-  if (!this._pool || this._pool.length - this._pool.used < this._kMinPoolSpace) {
-    debug('_read', 'discarding the read buffer pool because it is below kMinPoolSpace');
-    this._pool = allocNewReadPool(this.settings.highWaterMark);
-  } // Grab another reference to the pool in the case that while we're
-  // in the thread pool another read() finishes up the pool, and
-  // allocates a new one.
-
-
-  var pool = this._pool; // Read the smaller of rest of the pool or however many bytes we want
-
-  var toRead = Math.min(pool.length - pool.used, bytesToRead);
-  var start = pool.used; // the actual read.
-
-  debug('_read', "reading", {
-    start: start,
-    toRead: toRead
-  });
-  this.binding.read(pool, start, toRead).then(function (_ref) {
-    var bytesRead = _ref.bytesRead;
-    debug('binding.read', "finished", {
-      bytesRead: bytesRead
-    }); // zero bytes means read means we've hit EOF? Maybe this should be an error
-
-    if (bytesRead === 0) {
-      debug('binding.read', 'Zero bytes read closing readable stream');
-
-      _this5.push(null);
-
-      return;
-    }
-
-    pool.used += bytesRead;
-
-    _this5.push(pool.slice(start, start + bytesRead));
-  }, function (err) {
-    debug('binding.read', "error", err);
-
-    if (!err.canceled) {
-      _this5._disconnected(err);
-    }
-
-    _this5._read(bytesToRead); // prime to read more once we're reconnected
-
-  });
-};
-
-SerialPort.prototype._disconnected = function (err) {
-  if (!this.isOpen) {
-    debug('disconnected aborted because already closed', err);
-    return;
-  }
-
-  debug('disconnected', err);
-  err.disconnected = true;
-  this.close(null, err);
-};
-/**
- * The `close` event's callback is called with no arguments when the port is closed. In the case of a disconnect it will be called with a Disconnect Error object (`err.disconnected == true`). In the event of a close error (unlikely), an error event is triggered.
- * @event close
- */
-
-/**
- * Closes an open connection.
- *
- * If there are in progress writes when the port is closed the writes will error.
- * @param {errorCallback} callback Called once a connection is closed.
- * @param {Error} disconnectError used internally to propagate a disconnect error
- * @emits close
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.close = function (callback, disconnectError) {
-  var _this6 = this;
-
-  disconnectError = disconnectError || null;
-
-  if (!this.isOpen) {
-    debug('close attempted, but port is not open');
-    return this._asyncError(new Error('Port is not open'), callback);
-  }
-
-  this.closing = true;
-  debug('#close');
-  this.binding.close().then(function () {
-    _this6.closing = false;
-    debug('binding.close', 'finished');
-
-    _this6.emit('close', disconnectError);
-
-    if (_this6.settings.endOnClose) {
-      _this6.emit('end');
-    }
-
-    if (callback) {
-      callback.call(_this6, disconnectError);
-    }
-  }, function (err) {
-    _this6.closing = false;
-    debug('binding.close', 'had an error', err);
-    return _this6._error(err, callback);
-  });
-};
-/**
- * Set control flags on an open port. Uses [`SetCommMask`](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363257(v=vs.85).aspx) for Windows and [`ioctl`](http://linux.die.net/man/4/tty_ioctl) for OS X and Linux.
- * @param {object=} options All options are operating system default when the port is opened. Every flag is set on each call to the provided or default values. If options isn't provided default options is used.
- * @param {Boolean} [options.brk=false] sets the brk flag
- * @param {Boolean} [options.cts=false] sets the cts flag
- * @param {Boolean} [options.dsr=false] sets the dsr flag
- * @param {Boolean} [options.dtr=true] sets the dtr flag
- * @param {Boolean} [options.rts=true] sets the rts flag
- * @param {errorCallback=} callback Called once the port's flags have been set.
- * @since 5.0.0
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.set = function (options, callback) {
-  var _this7 = this;
-
-  if (_typeof$1(options) !== 'object') {
-    throw TypeError('"options" is not an object');
-  }
-
-  if (!this.isOpen) {
-    debug('set attempted, but port is not open');
-    return this._asyncError(new Error('Port is not open'), callback);
-  }
-
-  var settings = _objectSpread(_objectSpread({}, defaultSetFlags), options);
-
-  debug('#set', settings);
-  this.binding.set(settings).then(function () {
-    debug('binding.set', 'finished');
-
-    if (callback) {
-      callback.call(_this7, null);
-    }
-  }, function (err) {
-    debug('binding.set', 'had an error', err);
-    return _this7._error(err, callback);
-  });
-};
-/**
- * Returns the control flags (CTS, DSR, DCD) on the open port.
- * Uses [`GetCommModemStatus`](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363258(v=vs.85).aspx) for Windows and [`ioctl`](http://linux.die.net/man/4/tty_ioctl) for mac and linux.
- * @param {modemBitsCallback=} callback Called once the modem bits are retrieved.
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.get = function (callback) {
-  var _this8 = this;
-
-  if (!this.isOpen) {
-    debug('get attempted, but port is not open');
-    return this._asyncError(new Error('Port is not open'), callback);
-  }
-
-  debug('#get');
-  this.binding.get().then(function (status) {
-    debug('binding.get', 'finished');
-
-    if (callback) {
-      callback.call(_this8, null, status);
-    }
-  }, function (err) {
-    debug('binding.get', 'had an error', err);
-    return _this8._error(err, callback);
-  });
-};
-/**
- * Flush discards data received but not read, and written but not transmitted by the operating system. For more technical details, see [`tcflush(fd, TCIOFLUSH)`](http://linux.die.net/man/3/tcflush) for Mac/Linux and [`FlushFileBuffers`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa364439) for Windows.
- * @param  {errorCallback=} callback Called once the flush operation finishes.
- * @returns {undefined}
- */
-
-
-SerialPort.prototype.flush = function (callback) {
-  var _this9 = this;
-
-  if (!this.isOpen) {
-    debug('flush attempted, but port is not open');
-    return this._asyncError(new Error('Port is not open'), callback);
-  }
-
-  debug('#flush');
-  this.binding.flush().then(function () {
-    debug('binding.flush', 'finished');
-
-    if (callback) {
-      callback.call(_this9, null);
-    }
-  }, function (err) {
-    debug('binding.flush', 'had an error', err);
-    return _this9._error(err, callback);
-  });
-};
-/**
- * Waits until all output data is transmitted to the serial port. After any pending write has completed it calls [`tcdrain()`](http://linux.die.net/man/3/tcdrain) or [FlushFileBuffers()](https://msdn.microsoft.com/en-us/library/windows/desktop/aa364439(v=vs.85).aspx) to ensure it has been written to the device.
- * @param {errorCallback=} callback Called once the drain operation returns.
- * @returns {undefined}
- * @example
-Write the `data` and wait until it has finished transmitting to the target serial port before calling the callback. This will queue until the port is open and writes are finished.
-
-```js
-function writeAndDrain (data, callback) {
-  port.write(data);
-  port.drain(callback);
-}
-```
- */
-
-
-SerialPort.prototype.drain = function (callback) {
-  var _this10 = this;
-
-  debug('drain');
-
-  if (!this.isOpen) {
-    debug('drain queuing on port open');
-    return this.once('open', function () {
-      _this10.drain(callback);
-    });
-  }
-
-  this.binding.drain().then(function () {
-    debug('binding.drain', 'finished');
-
-    if (callback) {
-      callback.call(_this10, null);
-    }
-  }, function (err) {
-    debug('binding.drain', 'had an error', err);
-    return _this10._error(err, callback);
-  });
-};
-/**
- * The `pause()` method causes a stream in flowing mode to stop emitting 'data' events, switching out of flowing mode. Any data that becomes available remains in the internal buffer.
- * @method SerialPort.prototype.pause
- * @see resume
- * @since 5.0.0
- * @returns `this`
- */
-
-/**
- * The `resume()` method causes an explicitly paused, `Readable` stream to resume emitting 'data' events, switching the stream into flowing mode.
- * @method SerialPort.prototype.resume
- * @see pause
- * @since 5.0.0
- * @returns `this`
- */
-
-/**
- * Retrieves a list of available serial ports with metadata. Only the `path` is guaranteed. If unavailable the other fields will be undefined. The `path` is either the path or an identifier (eg `COM1`) used to open the SerialPort.
- *
- * We make an effort to identify the hardware attached and have consistent results between systems. Linux and OS X are mostly consistent. Windows relies on 3rd party device drivers for the information and is unable to guarantee the information. On windows If you have a USB connected device can we provide a serial number otherwise it will be `undefined`. The `pnpId` and `locationId` are not the same or present on all systems. The examples below were run with the same Arduino Uno.
- * @type {function}
- * @returns {Promise} Resolves with the list of available serial ports.
- * @example
-```js
-// OSX example port
-{
-  path: '/dev/tty.usbmodem1421',
-  manufacturer: 'Arduino (www.arduino.cc)',
-  serialNumber: '752303138333518011C1',
-  pnpId: undefined,
-  locationId: '14500000',
-  productId: '0043',
-  vendorId: '2341'
-}
-
-// Linux example port
-{
-  path: '/dev/ttyACM0',
-  manufacturer: 'Arduino (www.arduino.cc)',
-  serialNumber: '752303138333518011C1',
-  pnpId: 'usb-Arduino__www.arduino.cc__0043_752303138333518011C1-if00',
-  locationId: undefined,
-  productId: '0043',
-  vendorId: '2341'
-}
-
-// Windows example port
-{
-  path: 'COM3',
-  manufacturer: 'Arduino LLC (www.arduino.cc)',
-  serialNumber: '752303138333518011C1',
-  pnpId: 'USB\\VID_2341&PID_0043\\752303138333518011C1',
-  locationId: 'Port_#0003.Hub_#0001',
-  productId: '0043',
-  vendorId: '2341'
-}
-```
-
-```js
-var SerialPort = require('serialport');
-
-// promise approach
-SerialPort.list()
-  .then(ports) {...});
-  .catch(err) {...});
-```
- */
-
-
-SerialPort.list = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(callback) {
-    return regenerator.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            debug('.list');
-
-            if (SerialPort.Binding) {
-              _context.next = 3;
-              break;
-            }
-
-            throw new TypeError('No Binding set on `SerialPort.Binding`');
-
-          case 3:
-            if (!callback) {
-              _context.next = 5;
-              break;
-            }
-
-            throw new TypeError('SerialPort.list no longer takes a callback and only returns a promise');
-
-          case 5:
-            return _context.abrupt("return", SerialPort.Binding.list());
-
-          case 6:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function (_x) {
-    return _ref2.apply(this, arguments);
-  };
-}();
-
-var lib = SerialPort;
-
-function _superPropBase(object, property) {
-  while (!Object.prototype.hasOwnProperty.call(object, property)) {
-    object = _getPrototypeOf(object);
-    if (object === null) break;
-  }
-
-  return object;
-}
-
-function _get(target, property, receiver) {
-  if (typeof Reflect !== "undefined" && Reflect.get) {
-    _get = Reflect.get;
-  } else {
-    _get = function _get(target, property, receiver) {
-      var base = _superPropBase(target, property);
-      if (!base) return;
-      var desc = Object.getOwnPropertyDescriptor(base, property);
-
-      if (desc.get) {
-        return desc.get.call(receiver);
-      }
-
-      return desc.value;
-    };
-  }
-
-  return _get(target, property, receiver || target);
-}
-
-var wsaSpBind = {exports: {}};
-
-function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+var AbstractBinding = lib$1;
 
-(function (module, exports) {
-  !function (e, t) {
-    module.exports = t() ;
-  }(commonjsGlobal, function () {
-    return function () {
-      var e = {
-        573: function _(e, t, n) {
-          var r = n(227)("serialport/binding-abstract");
+function cancelError(message) {
+  var err = new Error(message);
+  err.canceled = true;
+  return err;
+}
 
-          e.exports = /*#__PURE__*/function () {
-            function _class() {
-              var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+function attachUsbId(dst, dstKey, id) {
+  if (typeof id === 'number') {
+    dst[dstKey] = ('000' + id.toString(16)).substr(-4);
+  }
+}
 
-              _classCallCheck(this, _class);
+var lib = /*#__PURE__*/function (_AbstractBinding) {
+  _inherits(WebSerialBinding, _AbstractBinding);
 
-              if ("object" != _typeof$1(e)) throw new TypeError('"options" is not an object');
+  var _super = _createSuper(WebSerialBinding);
+
+  function WebSerialBinding(opts) {
+    var _this;
+
+    _classCallCheck(this, WebSerialBinding);
+
+    _this = _super.call(this);
+    _this.port = null;
+    _this.writeOperation = null;
+    _this.isOpen = false;
+    _this.cancelRead = null; // callback to cancel in-progress read operation
+
+    _this.unread = null; // unread bytes; set if last read exceeded size of destination buffer
+
+    return _this;
+  }
+
+  _createClass(WebSerialBinding, [{
+    key: "open",
+    value: function () {
+      var _open = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(path, opts) {
+        var port;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                port = this.port = path;
+                _context.next = 3;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "open", this).call(this, path, opts);
+
+              case 3:
+                if (!this.isOpen) {
+                  _context.next = 5;
+                  break;
+                }
+
+                throw new Error('Open: binding is already open');
+
+              case 5:
+                _context.next = 7;
+                return port.open(this._getOpenOptions(opts));
+
+              case 7:
+                port.openOpt = _objectSpread({}, opts);
+                this.isOpen = true;
+
+              case 9:
+              case "end":
+                return _context.stop();
             }
+          }
+        }, _callee, this);
+      }));
 
-            _createClass(_class, [{
-              key: "open",
-              value: function () {
-                var _open = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(e, t) {
-                  return regenerator.wrap(function _callee$(_context) {
-                    while (1) {
-                      switch (_context.prev = _context.next) {
-                        case 0:
-                          if (e) {
-                            _context.next = 2;
-                            break;
-                          }
+      function open(_x, _x2) {
+        return _open.apply(this, arguments);
+      }
 
-                          throw new TypeError('"path" is not a valid port');
+      return open;
+    }()
+  }, {
+    key: "close",
+    value: function () {
+      var _close = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+        var port;
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                port = this.port;
 
-                        case 2:
-                          if (!("object" != _typeof$1(t))) {
-                            _context.next = 4;
-                            break;
-                          }
-
-                          throw new TypeError('"options" is not an object');
-
-                        case 4:
-                          if (!(r("open"), this.isOpen)) {
-                            _context.next = 6;
-                            break;
-                          }
-
-                          throw new Error("Already open");
-
-                        case 6:
-                        case "end":
-                          return _context.stop();
-                      }
-                    }
-                  }, _callee, this);
-                }));
-
-                function open(_x, _x2) {
-                  return _open.apply(this, arguments);
+                if (port) {
+                  _context2.next = 3;
+                  break;
                 }
 
-                return open;
-              }()
-            }, {
-              key: "close",
-              value: function () {
-                var _close = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
-                  return regenerator.wrap(function _callee2$(_context2) {
-                    while (1) {
-                      switch (_context2.prev = _context2.next) {
-                        case 0:
-                          if (!(r("close"), !this.isOpen)) {
-                            _context2.next = 2;
-                            break;
-                          }
+                throw new Error('already closed');
 
-                          throw new Error("Port is not open");
+              case 3:
+                _context2.next = 5;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "close", this).call(this);
 
-                        case 2:
-                        case "end":
-                          return _context2.stop();
-                      }
-                    }
-                  }, _callee2, this);
-                }));
+              case 5:
+                delete port.openOpt;
+                this.isOpen = false;
 
-                function close() {
-                  return _close.apply(this, arguments);
+                if (!this.cancelRead) {
+                  _context2.next = 10;
+                  break;
                 }
 
-                return close;
-              }()
-            }, {
-              key: "read",
-              value: function () {
-                var _read = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(e, t, n) {
+                _context2.next = 10;
+                return this.cancelRead();
+
+              case 10:
+                _context2.next = 12;
+                return port.close();
+
+              case 12:
+                delete this.port;
+
+              case 13:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function close() {
+        return _close.apply(this, arguments);
+      }
+
+      return close;
+    }()
+  }, {
+    key: "read",
+    value: function () {
+      var _read = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(buffer, offset, length) {
+        var _this2 = this;
+
+        var reader, op;
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                op = _get(_getPrototypeOf(WebSerialBinding.prototype), "read", this).call(this, buffer, offset, length).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+                  var src, _yield$reader$read, value, done, bytesRead;
+
                   return regenerator.wrap(function _callee3$(_context3) {
                     while (1) {
                       switch (_context3.prev = _context3.next) {
                         case 0:
-                          if (isBuffer$1(e)) {
+                          if (_this2.isOpen) {
                             _context3.next = 2;
                             break;
                           }
 
-                          throw new TypeError('"buffer" is not a Buffer');
+                          throw cancelError('Read cancelled');
 
                         case 2:
-                          if (!("number" != typeof t || isNaN(t))) {
-                            _context3.next = 4;
+                          src = _this2.unread;
+
+                          if (src) {
+                            _context3.next = 19;
                             break;
                           }
 
-                          throw new TypeError("\"offset\" is not an integer got \"".concat(isNaN(t) ? "NaN" : _typeof$1(t), "\""));
-
-                        case 4:
-                          if (!("number" != typeof n || isNaN(n))) {
-                            _context3.next = 6;
-                            break;
-                          }
-
-                          throw new TypeError("\"length\" is not an integer got \"".concat(isNaN(n) ? "NaN" : _typeof$1(n), "\""));
-
-                        case 6:
-                          if (!(r("read"), e.length < t + n)) {
-                            _context3.next = 8;
-                            break;
-                          }
-
-                          throw new Error("buffer is too small");
+                          reader = _this2.port.readable.getReader();
+                          _context3.prev = 5;
+                          _context3.next = 8;
+                          return reader.read();
 
                         case 8:
-                          if (this.isOpen) {
-                            _context3.next = 10;
+                          _yield$reader$read = _context3.sent;
+                          value = _yield$reader$read.value;
+                          done = _yield$reader$read.done;
+
+                          if (!done) {
+                            _context3.next = 13;
                             break;
                           }
 
-                          throw new Error("Port is not open");
+                          return _context3.abrupt("return", {
+                            bytesRead: 0,
+                            buffer: buffer
+                          });
 
-                        case 10:
+                        case 13:
+                          src = value;
+
+                        case 14:
+                          _context3.prev = 14;
+                          reader.releaseLock();
+                          reader = null;
+                          _this2.cancelRead = null;
+                          return _context3.finish(14);
+
+                        case 19:
+                          bytesRead = Math.min(src.length, length);
+                          buffer.set(src.subarray(0, bytesRead), offset);
+                          _this2.unread = bytesRead < src.length ? src.subarray(bytesRead) : null;
+                          return _context3.abrupt("return", {
+                            bytesRead: bytesRead,
+                            buffer: buffer
+                          });
+
+                        case 23:
                         case "end":
                           return _context3.stop();
                       }
                     }
-                  }, _callee3, this);
-                }));
+                  }, _callee3, null, [[5,, 14, 19]]);
+                })));
 
-                function read(_x3, _x4, _x5) {
-                  return _read.apply(this, arguments);
+                this.cancelRead = function () {
+                  if (reader) {
+                    reader.cancel();
+                  }
+
+                  return op;
+                };
+
+                return _context4.abrupt("return", op);
+
+              case 3:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function read(_x3, _x4, _x5) {
+        return _read.apply(this, arguments);
+      }
+
+      return read;
+    }()
+  }, {
+    key: "write",
+    value: function () {
+      var _write = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(buffer) {
+        var _this3 = this;
+
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (!this.writeOperation) {
+                  _context6.next = 2;
+                  break;
                 }
 
-                return read;
-              }()
-            }, {
-              key: "write",
-              value: function () {
-                var _write = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(e) {
-                  return regenerator.wrap(function _callee4$(_context4) {
-                    while (1) {
-                      switch (_context4.prev = _context4.next) {
-                        case 0:
-                          if (isBuffer$1(e)) {
-                            _context4.next = 2;
-                            break;
-                          }
+                throw new Error('Overlapping writes are not supported and should be queued by the serialport object');
 
-                          throw new TypeError('"buffer" is not a Buffer');
-
-                        case 2:
-                          if (!(r("write", e.length, "bytes"), !this.isOpen)) {
-                            _context4.next = 4;
-                            break;
-                          }
-
-                          throw r("write", "error port is not open"), new Error("Port is not open");
-
-                        case 4:
-                        case "end":
-                          return _context4.stop();
-                      }
-                    }
-                  }, _callee4, this);
-                }));
-
-                function write(_x6) {
-                  return _write.apply(this, arguments);
-                }
-
-                return write;
-              }()
-            }, {
-              key: "update",
-              value: function () {
-                var _update = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(e) {
+              case 2:
+                this.writeOperation = _get(_getPrototypeOf(WebSerialBinding.prototype), "write", this).call(this, buffer).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+                  var writer;
                   return regenerator.wrap(function _callee5$(_context5) {
                     while (1) {
                       switch (_context5.prev = _context5.next) {
                         case 0:
-                          if (!("object" != _typeof$1(e))) {
+                          if (_this3.isOpen) {
                             _context5.next = 2;
                             break;
                           }
 
-                          throw TypeError('"options" is not an object');
+                          throw new Error('Write cancelled');
 
                         case 2:
-                          if (!("number" != typeof e.baudRate)) {
-                            _context5.next = 4;
-                            break;
-                          }
-
-                          throw new TypeError('"options.baudRate" is not a number');
-
-                        case 4:
-                          if (!(r("update"), !this.isOpen)) {
-                            _context5.next = 6;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
+                          writer = _this3.port.writable.getWriter();
+                          _context5.prev = 3;
+                          _context5.next = 6;
+                          return writer.write(buffer);
 
                         case 6:
+                          _context5.prev = 6;
+                          writer.releaseLock();
+                          _this3.writeOperation = null;
+                          return _context5.finish(6);
+
+                        case 10:
                         case "end":
                           return _context5.stop();
                       }
                     }
-                  }, _callee5, this);
-                }));
+                  }, _callee5, null, [[3,, 6, 10]]);
+                })));
+                return _context6.abrupt("return", this.writeOperation);
 
-                function update(_x7) {
-                  return _update.apply(this, arguments);
-                }
-
-                return update;
-              }()
-            }, {
-              key: "set",
-              value: function () {
-                var _set = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(e) {
-                  return regenerator.wrap(function _callee6$(_context6) {
-                    while (1) {
-                      switch (_context6.prev = _context6.next) {
-                        case 0:
-                          if (!("object" != _typeof$1(e))) {
-                            _context6.next = 2;
-                            break;
-                          }
-
-                          throw new TypeError('"options" is not an object');
-
-                        case 2:
-                          if (!(r("set"), !this.isOpen)) {
-                            _context6.next = 4;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
-
-                        case 4:
-                        case "end":
-                          return _context6.stop();
-                      }
-                    }
-                  }, _callee6, this);
-                }));
-
-                function set(_x8) {
-                  return _set.apply(this, arguments);
-                }
-
-                return set;
-              }()
-            }, {
-              key: "get",
-              value: function () {
-                var _get = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-                  return regenerator.wrap(function _callee7$(_context7) {
-                    while (1) {
-                      switch (_context7.prev = _context7.next) {
-                        case 0:
-                          if (!(r("get"), !this.isOpen)) {
-                            _context7.next = 2;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
-
-                        case 2:
-                        case "end":
-                          return _context7.stop();
-                      }
-                    }
-                  }, _callee7, this);
-                }));
-
-                function get() {
-                  return _get.apply(this, arguments);
-                }
-
-                return get;
-              }()
-            }, {
-              key: "getBaudRate",
-              value: function () {
-                var _getBaudRate = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
-                  return regenerator.wrap(function _callee8$(_context8) {
-                    while (1) {
-                      switch (_context8.prev = _context8.next) {
-                        case 0:
-                          if (!(r("getbaudRate"), !this.isOpen)) {
-                            _context8.next = 2;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
-
-                        case 2:
-                        case "end":
-                          return _context8.stop();
-                      }
-                    }
-                  }, _callee8, this);
-                }));
-
-                function getBaudRate() {
-                  return _getBaudRate.apply(this, arguments);
-                }
-
-                return getBaudRate;
-              }()
-            }, {
-              key: "flush",
-              value: function () {
-                var _flush = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
-                  return regenerator.wrap(function _callee9$(_context9) {
-                    while (1) {
-                      switch (_context9.prev = _context9.next) {
-                        case 0:
-                          if (!(r("flush"), !this.isOpen)) {
-                            _context9.next = 2;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
-
-                        case 2:
-                        case "end":
-                          return _context9.stop();
-                      }
-                    }
-                  }, _callee9, this);
-                }));
-
-                function flush() {
-                  return _flush.apply(this, arguments);
-                }
-
-                return flush;
-              }()
-            }, {
-              key: "drain",
-              value: function () {
-                var _drain = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10() {
-                  return regenerator.wrap(function _callee10$(_context10) {
-                    while (1) {
-                      switch (_context10.prev = _context10.next) {
-                        case 0:
-                          if (!(r("drain"), !this.isOpen)) {
-                            _context10.next = 2;
-                            break;
-                          }
-
-                          throw new Error("Port is not open");
-
-                        case 2:
-                        case "end":
-                          return _context10.stop();
-                      }
-                    }
-                  }, _callee10, this);
-                }));
-
-                function drain() {
-                  return _drain.apply(this, arguments);
-                }
-
-                return drain;
-              }()
-            }], [{
-              key: "list",
-              value: function () {
-                var _list = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
-                  return regenerator.wrap(function _callee11$(_context11) {
-                    while (1) {
-                      switch (_context11.prev = _context11.next) {
-                        case 0:
-                          r("list");
-
-                        case 1:
-                        case "end":
-                          return _context11.stop();
-                      }
-                    }
-                  }, _callee11);
-                }));
-
-                function list() {
-                  return _list.apply(this, arguments);
-                }
-
-                return list;
-              }()
-            }]);
-
-            return _class;
-          }();
-        },
-        321: function _(e, t, n) {
-
-          n.r(t), n.d(t, {
-            default: function _default() {
-              return s;
+              case 4:
+              case "end":
+                return _context6.stop();
             }
-          });
-          var r = n(573),
-              o = n.n(r);
-
-          var s = /*#__PURE__*/function (_o) {
-            _inherits(s, _o);
-
-            var _super = _createSuper(s);
-
-            function s(e) {
-              var _this;
-
-              _classCallCheck(this, s);
-
-              _this = _super.call(this, e), _this.storedOpenOptions = {
-                baudRate: 115200,
-                dataBits: 8,
-                stopBits: 1,
-                parity: "none",
-                rtscts: !1
-              }, _this.boundedPort = void 0, _this.actualBaudRate = -1, _this.classReader = void 0, _this.pendingRead = void 0, _this.isOpen = !1, Object.assign(_this.storedOpenOptions, e);
-              return _this;
-            }
-
-            _createClass(s, [{
-              key: "open",
-              value: function open(e, t) {
-                var _this2 = this;
-
-                return s.internalLog("open called, path: " + e), this.classReader = void 0, _get(_getPrototypeOf(s.prototype), "open", this).call(this, e, t).then(function () {
-                  return s.updatePortsList().then(function () {
-                    var _iterator = _createForOfIteratorHelper(s.internalBasePortsList),
-                        _step;
-
-                    try {
-                      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                        var _n = _step.value;
-
-                        var _r = s.mapBasePortToPath(_n);
-
-                        if (s.internalLog("Checking " + _r), _r == e || "wsa://default" == e) {
-                          _this2.boundedPort = _n;
-                          var _e = _this2.storedOpenOptions;
-                          return Object.assign(_e, t), _this2.boundedPort.open(s.mapOpenOptions(_e)).then(function () {
-                            return s.internalLog("Open successful"), _this2.isOpen = !0, new Promise(function (e) {
-                              s.internalLog("Open resolved"), e(null);
-                            });
-                          }, function (e) {
-                            return _this2.isOpen = !1, s.internalLog("Open failed"), new Promise(function (t) {
-                              s.internalLog("Open rejected with " + e), t(null);
-                            });
-                          });
-                        }
-                      }
-                    } catch (err) {
-                      _iterator.e(err);
-                    } finally {
-                      _iterator.f();
-                    }
-                  });
-                });
-              }
-            }, {
-              key: "closePromise",
-              value: function closePromise() {
-                var _this3 = this;
-
-                return this.boundedPort.close().then(function () {
-                  return new Promise(function (e) {
-                    _this3.isOpen = !1, e(null);
-                  });
-                });
-              }
-            }, {
-              key: "close",
-              value: function close() {
-                var _this4 = this;
-
-                return s.internalLog("close called"), _get(_getPrototypeOf(s.prototype), "close", this).call(this).then(function () {
-                  if (!_this4.classReader) return _this4.closePromise();
-
-                  _this4.classReader.cancel().then(function () {
-                    return _this4.classReader.releaseLock(), _this4.closePromise();
-                  });
-                });
-              }
-            }, {
-              key: "write",
-              value: function write(e) {
-                s.internalLog("write called");
-                var t = this.boundedPort.writable.getWriter();
-                return _get(_getPrototypeOf(s.prototype), "write", this).call(this, e).then(function () {
-                  return t.write(e).then(function () {
-                    return new Promise(function (e) {
-                      s.internalLog("Write system execution completed"), t.releaseLock(), e(null);
-                    });
-                  });
-                });
-              }
-            }, {
-              key: "registerInternalRead",
-              value: function registerInternalRead() {
-                var e = this.classReader.read();
-                return this.pendingRead = e, e;
-              }
-            }, {
-              key: "clearInternalRead",
-              value: function clearInternalRead() {
-                this.pendingRead = void 0;
-              }
-            }, {
-              key: "read",
-              value: function read(e, t, n) {
-                var _this5 = this;
-
-                var r = t,
-                    o = 0,
-                    a = 0;
-                var i = this;
-                s.internalLog("read called, bytes expecting: " + n);
-
-                var l = _get(_getPrototypeOf(s.prototype), "read", this).call(this, e, t, n);
-
-                return this.boundedPort.readable ? (void 0 === this.classReader && (this.classReader = this.boundedPort.readable.getReader()), l.then(function () {
-                  return new Promise(function (t, n) {
-                    _this5.isOpen ? (s.internalLog("Read system execution initiated " + a), i.registerInternalRead().then(function (t) {
-                      return s.internalLog("Read system execution completed " + a), i.clearInternalRead(), n = t, new Promise(function (t) {
-                        if (s.internalLog("Updating result buffer " + a), n.value) {
-                          var _i = n.value,
-                              _l = _i.length;
-                          s.internalLog("Read bytes: " + _l), e.set(_i, r), r += _l, o += _l, a += 1, s.internalLog("No more data, total callbacks: " + a), s.internalLog("Returning bytes : " + o), t({
-                            bytesRead: o,
-                            buffer: e
-                          });
-                        } else t({
-                          bytesRead: 0,
-                          buffer: e
-                        });
-                      });
-                      var n;
-                    })).then(t, n) : n({
-                      canceled: !0
-                    });
-                  });
-                })) : l.then(function () {
-                  return new Promise(function (t) {
-                    t({
-                      bytesRead: 0,
-                      buffer: e
-                    });
-                  });
-                });
-              }
-            }, {
-              key: "update",
-              value: function update(e) {
-                return s.internalLog("update called"), _get(_getPrototypeOf(s.prototype), "update", this).call(this, e).then(function () {
-                  return new Promise(function (e) {
-                    s.internalLog("update not supported"), e(null);
-                  });
-                });
-              }
-            }, {
-              key: "set",
-              value: function set(e) {
-                var _this6 = this;
-
-                return s.internalLog("set called"), _get(_getPrototypeOf(s.prototype), "set", this).call(this, e).then(function () {
-                  return _this6.boundedPort.setSignals({
-                    dataTerminalReady: e.dtr,
-                    requestToSend: e.rts,
-                    break: e.brk
-                  });
-                });
-              }
-            }, {
-              key: "get",
-              value: function get() {
-                var _this7 = this;
-
-                return s.internalLog("get called"), _get(_getPrototypeOf(s.prototype), "get", this).call(this).then(function () {
-                  _this7.boundedPort.getSignals().then(function (e) {
-                    return new Promise(function (t, n) {
-                      e ? t({
-                        cts: e.clearToSend,
-                        dsr: e.dataSetReady,
-                        dcd: e.dataCarrierDetect
-                      }) : n(null);
-                    });
-                  });
-                });
-              }
-            }, {
-              key: "getBaudRate",
-              value: function getBaudRate() {
-                var _this8 = this;
-
-                return s.internalLog("getBaudRate called"), new Promise(function (e) {
-                  e(_this8.actualBaudRate);
-                });
-              }
-            }, {
-              key: "flush",
-              value: function flush() {
-                return s.internalLog("flush called"), _get(_getPrototypeOf(s.prototype), "flush", this).call(this).then(function () {
-                  return new Promise(function (e) {
-                    s.internalLog("flush not supported"), e(null);
-                  });
-                });
-              }
-            }, {
-              key: "drain",
-              value: function drain() {
-                return s.internalLog("drain called"), _get(_getPrototypeOf(s.prototype), "drain", this).call(this).then(function () {
-                  return new Promise(function (e) {
-                    s.internalLog("drain not supported"), e(null);
-                  });
-                });
-              }
-            }], [{
-              key: "list",
-              value: function list() {
-                return new Promise(function (e, t) {
-                  s.backendAvailable ? s.updatePortsList().then(function () {
-                    e(s.internalBasePortsList.map(s.mapBasePortToPortInfo));
-                  }) : t();
-                });
-              }
-            }, {
-              key: "internalLog",
-              value: function internalLog(e) {
-                s.debug && console.log("%c WSA Log: " + e, "background: #222; color: #bada55");
-              }
-            }, {
-              key: "dec2hex16bitWithPad",
-              value: function dec2hex16bitWithPad(e) {
-                return (e + 65536).toString(16).substr(-4).toUpperCase();
-              }
-            }, {
-              key: "mapBasePortToPath",
-              value: function mapBasePortToPath(e) {
-                var t = e.getInfo();
-                return "wsa://" + s.dec2hex16bitWithPad(t.usbVendorId) + "-" + s.dec2hex16bitWithPad(t.usbProductId);
-              }
-            }, {
-              key: "mapBasePortToPortInfo",
-              value: function mapBasePortToPortInfo(e) {
-                var t = e.getInfo();
-                return {
-                  path: s.mapBasePortToPath(e),
-                  productId: t.usbProductId,
-                  vendorId: t.usbVendorId
-                };
-              }
-            }, {
-              key: "updatePortsList",
-              value: function updatePortsList() {
-                return s.internalNavigatorSerial.getPorts().then(function (e) {
-                  return e.length > 0 ? new Promise(function (t) {
-                    s.internalBasePortsList = e, t(null);
-                  }) : 0 == s.internalBasePortsList.length ? s.internalNavigatorSerial.requestPort({
-                    filters: s.portFilters
-                  }).then(function (e) {
-                    return s.internalBasePortsList = [e], new Promise(function (e) {
-                      e(null);
-                    });
-                  }) : new Promise(function (e) {
-                    e(null);
-                  });
-                });
-              }
-            }, {
-              key: "mapOpenOptions",
-              value: function mapOpenOptions(e) {
-                return {
-                  baudRate: e.baudRate,
-                  dataBits: e.dataBits,
-                  stopBits: e.stopBits,
-                  parity: e.parity,
-                  bufferSize: s.internalBufferSize,
-                  flowControl: e.rtscts ? "hardware" : "none"
-                };
-              }
-            }]);
-
-            return s;
-          }(o());
-
-          s.internalBufferSize = 16384, s.internalNavigatorSerial = navigator.serial, s.backendAvailable = void 0 !== navigator.serial, s.internalBasePortsList = [], s.portFilters = void 0, s.debug = !1;
-        },
-        227: function _(e, t, n) {
-          t.formatArgs = function (t) {
-            if (t[0] = (this.useColors ? "%c" : "") + this.namespace + (this.useColors ? " %c" : " ") + t[0] + (this.useColors ? "%c " : " ") + "+" + e.exports.humanize(this.diff), !this.useColors) return;
-            var n = "color: " + this.color;
-            t.splice(1, 0, n, "color: inherit");
-            var r = 0,
-                o = 0;
-            t[0].replace(/%[a-zA-Z%]/g, function (e) {
-              "%%" !== e && (r++, "%c" === e && (o = r));
-            }), t.splice(o, 0, n);
-          }, t.save = function (e) {
-            try {
-              e ? t.storage.setItem("debug", e) : t.storage.removeItem("debug");
-            } catch (e) {}
-          }, t.load = function () {
-            var e;
-
-            try {
-              e = t.storage.getItem("debug");
-            } catch (e) {}
-
-            return !e && "undefined" != typeof process && "env" in process && (e = process.env.DEBUG), e;
-          }, t.useColors = function () {
-            return !("undefined" == typeof window || !window.process || "renderer" !== window.process.type && !window.process.__nwjs) || ("undefined" == typeof navigator || !navigator.userAgent || !navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) && ("undefined" != typeof document && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || "undefined" != typeof window && window.console && (window.console.firebug || window.console.exception && window.console.table) || "undefined" != typeof navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || "undefined" != typeof navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
-          }, t.storage = function () {
-            try {
-              return localStorage;
-            } catch (e) {}
-          }(), t.destroy = function () {
-            var e = !1;
-            return function () {
-              e || (e = !0, console.warn("Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`."));
-            };
-          }(), t.colors = ["#0000CC", "#0000FF", "#0033CC", "#0033FF", "#0066CC", "#0066FF", "#0099CC", "#0099FF", "#00CC00", "#00CC33", "#00CC66", "#00CC99", "#00CCCC", "#00CCFF", "#3300CC", "#3300FF", "#3333CC", "#3333FF", "#3366CC", "#3366FF", "#3399CC", "#3399FF", "#33CC00", "#33CC33", "#33CC66", "#33CC99", "#33CCCC", "#33CCFF", "#6600CC", "#6600FF", "#6633CC", "#6633FF", "#66CC00", "#66CC33", "#9900CC", "#9900FF", "#9933CC", "#9933FF", "#99CC00", "#99CC33", "#CC0000", "#CC0033", "#CC0066", "#CC0099", "#CC00CC", "#CC00FF", "#CC3300", "#CC3333", "#CC3366", "#CC3399", "#CC33CC", "#CC33FF", "#CC6600", "#CC6633", "#CC9900", "#CC9933", "#CCCC00", "#CCCC33", "#FF0000", "#FF0033", "#FF0066", "#FF0099", "#FF00CC", "#FF00FF", "#FF3300", "#FF3333", "#FF3366", "#FF3399", "#FF33CC", "#FF33FF", "#FF6600", "#FF6633", "#FF9900", "#FF9933", "#FFCC00", "#FFCC33"], t.log = console.debug || console.log || function () {}, e.exports = n(447)(t);
-          var r = e.exports.formatters;
-
-          r.j = function (e) {
-            try {
-              return JSON.stringify(e);
-            } catch (e) {
-              return "[UnexpectedJSONParseError]: " + e.message;
-            }
-          };
-        },
-        447: function _(e, t, n) {
-          e.exports = function (e) {
-            function t(e) {
-              var n,
-                  o = null;
-
-              function s() {
-                for (var _len = arguments.length, e = new Array(_len), _key = 0; _key < _len; _key++) {
-                  e[_key] = arguments[_key];
-                }
-
-                if (!s.enabled) return;
-                var r = s,
-                    o = Number(new Date()),
-                    a = o - (n || o);
-                r.diff = a, r.prev = n, r.curr = o, n = o, e[0] = t.coerce(e[0]), "string" != typeof e[0] && e.unshift("%O");
-                var i = 0;
-                e[0] = e[0].replace(/%([a-zA-Z%])/g, function (n, o) {
-                  if ("%%" === n) return "%";
-                  i++;
-                  var s = t.formatters[o];
-
-                  if ("function" == typeof s) {
-                    var _t = e[i];
-                    n = s.call(r, _t), e.splice(i, 1), i--;
-                  }
-
-                  return n;
-                }), t.formatArgs.call(r, e), (r.log || t.log).apply(r, e);
-              }
-
-              return s.namespace = e, s.useColors = t.useColors(), s.color = t.selectColor(e), s.extend = r, s.destroy = t.destroy, Object.defineProperty(s, "enabled", {
-                enumerable: !0,
-                configurable: !1,
-                get: function get() {
-                  return null === o ? t.enabled(e) : o;
-                },
-                set: function set(e) {
-                  o = e;
-                }
-              }), "function" == typeof t.init && t.init(s), s;
-            }
-
-            function r(e, n) {
-              var r = t(this.namespace + (void 0 === n ? ":" : n) + e);
-              return r.log = this.log, r;
-            }
-
-            function o(e) {
-              return e.toString().substring(2, e.toString().length - 2).replace(/\.\*\?$/, "*");
-            }
-
-            return t.debug = t, t.default = t, t.coerce = function (e) {
-              return e instanceof Error ? e.stack || e.message : e;
-            }, t.disable = function () {
-              var e = [].concat(_toConsumableArray(t.names.map(o)), _toConsumableArray(t.skips.map(o).map(function (e) {
-                return "-" + e;
-              }))).join(",");
-              return t.enable(""), e;
-            }, t.enable = function (e) {
-              var n;
-              t.save(e), t.names = [], t.skips = [];
-              var r = ("string" == typeof e ? e : "").split(/[\s,]+/),
-                  o = r.length;
-
-              for (n = 0; n < o; n++) {
-                r[n] && ("-" === (e = r[n].replace(/\*/g, ".*?"))[0] ? t.skips.push(new RegExp("^" + e.substr(1) + "$")) : t.names.push(new RegExp("^" + e + "$")));
-              }
-            }, t.enabled = function (e) {
-              if ("*" === e[e.length - 1]) return !0;
-              var n, r;
-
-              for (n = 0, r = t.skips.length; n < r; n++) {
-                if (t.skips[n].test(e)) return !1;
-              }
-
-              for (n = 0, r = t.names.length; n < r; n++) {
-                if (t.names[n].test(e)) return !0;
-              }
-
-              return !1;
-            }, t.humanize = n(824), t.destroy = function () {
-              console.warn("Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.");
-            }, Object.keys(e).forEach(function (n) {
-              t[n] = e[n];
-            }), t.names = [], t.skips = [], t.formatters = {}, t.selectColor = function (e) {
-              var n = 0;
-
-              for (var _t2 = 0; _t2 < e.length; _t2++) {
-                n = (n << 5) - n + e.charCodeAt(_t2), n |= 0;
-              }
-
-              return t.colors[Math.abs(n) % t.colors.length];
-            }, t.enable(t.load()), t;
-          };
-        },
-        824: function _(e) {
-          var t = 1e3,
-              n = 60 * t,
-              r = 60 * n,
-              o = 24 * r;
-
-          function s(e, t, n, r) {
-            var o = t >= 1.5 * n;
-            return Math.round(e / n) + " " + r + (o ? "s" : "");
           }
+        }, _callee6, this);
+      }));
 
-          e.exports = function (e, a) {
-            a = a || {};
-
-            var i,
-                l,
-                c = _typeof$1(e);
-
-            if ("string" === c && e.length > 0) return function (e) {
-              if (!((e = String(e)).length > 100)) {
-                var s = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(e);
-
-                if (s) {
-                  var a = parseFloat(s[1]);
-
-                  switch ((s[2] || "ms").toLowerCase()) {
-                    case "years":
-                    case "year":
-                    case "yrs":
-                    case "yr":
-                    case "y":
-                      return 315576e5 * a;
-
-                    case "weeks":
-                    case "week":
-                    case "w":
-                      return 6048e5 * a;
-
-                    case "days":
-                    case "day":
-                    case "d":
-                      return a * o;
-
-                    case "hours":
-                    case "hour":
-                    case "hrs":
-                    case "hr":
-                    case "h":
-                      return a * r;
-
-                    case "minutes":
-                    case "minute":
-                    case "mins":
-                    case "min":
-                    case "m":
-                      return a * n;
-
-                    case "seconds":
-                    case "second":
-                    case "secs":
-                    case "sec":
-                    case "s":
-                      return a * t;
-
-                    case "milliseconds":
-                    case "millisecond":
-                    case "msecs":
-                    case "msec":
-                    case "ms":
-                      return a;
-
-                    default:
-                      return;
-                  }
-                }
-              }
-            }(e);
-            if ("number" === c && isFinite(e)) return a.long ? (i = e, (l = Math.abs(i)) >= o ? s(i, l, o, "day") : l >= r ? s(i, l, r, "hour") : l >= n ? s(i, l, n, "minute") : l >= t ? s(i, l, t, "second") : i + " ms") : function (e) {
-              var s = Math.abs(e);
-              return s >= o ? Math.round(e / o) + "d" : s >= r ? Math.round(e / r) + "h" : s >= n ? Math.round(e / n) + "m" : s >= t ? Math.round(e / t) + "s" : e + "ms";
-            }(e);
-            throw new Error("val is not a non-empty string or a valid number. val=" + JSON.stringify(e));
-          };
-        }
-      },
-          t = {};
-
-      function n(r) {
-        if (t[r]) return t[r].exports;
-        var o = t[r] = {
-          exports: {}
-        };
-        return e[r](o, o.exports, n), o.exports;
+      function write(_x6) {
+        return _write.apply(this, arguments);
       }
 
-      return n.n = function (e) {
-        var t = e && e.__esModule ? function () {
-          return e.default;
-        } : function () {
-          return e;
-        };
-        return n.d(t, {
-          a: t
-        }), t;
-      }, n.d = function (e, t) {
-        for (var r in t) {
-          n.o(t, r) && !n.o(e, r) && Object.defineProperty(e, r, {
-            enumerable: !0,
-            get: t[r]
-          });
-        }
-      }, n.o = function (e, t) {
-        return Object.prototype.hasOwnProperty.call(e, t);
-      }, n.r = function (e) {
-        "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {
-          value: "Module"
-        }), Object.defineProperty(e, "__esModule", {
-          value: !0
+      return write;
+    }()
+  }, {
+    key: "update",
+    value: function () {
+      var _update = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(opts) {
+        return regenerator.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                throw new Error("update() is not supported");
+
+              case 1:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7);
+      }));
+
+      function update(_x7) {
+        return _update.apply(this, arguments);
+      }
+
+      return update;
+    }()
+  }, {
+    key: "set",
+    value: function () {
+      var _set = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(signals) {
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "set", this).call(this, signals);
+
+              case 2:
+                _context8.next = 4;
+                return this.port.setSignals({
+                  dataTerminalReady: signals.dtr,
+                  requestToSend: signals.rts,
+                  break: signals.brk
+                });
+
+              case 4:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function set(_x8) {
+        return _set.apply(this, arguments);
+      }
+
+      return set;
+    }()
+  }, {
+    key: "get",
+    value: function () {
+      var _get2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
+        var signals;
+        return regenerator.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.next = 2;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "get", this).call(this);
+
+              case 2:
+                _context9.next = 4;
+                return this.port.getSignals();
+
+              case 4:
+                signals = _context9.sent;
+                return _context9.abrupt("return", {
+                  cts: signals.clearToSend,
+                  dsr: signals.dataSetReady,
+                  dcd: signals.dataCarrierDetect
+                });
+
+              case 6:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function get() {
+        return _get2.apply(this, arguments);
+      }
+
+      return get;
+    }()
+  }, {
+    key: "getBaudRate",
+    value: function () {
+      var _getBaudRate = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10() {
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "getBaudRate", this).call(this);
+
+              case 2:
+                return _context10.abrupt("return", {
+                  baudRate: this.port.openOpt.baudRate
+                });
+
+              case 3:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function getBaudRate() {
+        return _getBaudRate.apply(this, arguments);
+      }
+
+      return getBaudRate;
+    }()
+  }, {
+    key: "flush",
+    value: function () {
+      var _flush = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
+        return regenerator.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "flush", this).call(this);
+
+              case 2:
+                console.log("flush!"); // TODO
+
+              case 3:
+              case "end":
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this);
+      }));
+
+      function flush() {
+        return _flush.apply(this, arguments);
+      }
+
+      return flush;
+    }()
+  }, {
+    key: "drain",
+    value: function () {
+      var _drain = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee12() {
+        return regenerator.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return _get(_getPrototypeOf(WebSerialBinding.prototype), "drain", this).call(this);
+
+              case 2:
+                _context12.next = 4;
+                return this.writeOperation;
+
+              case 4:
+              case "end":
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function drain() {
+        return _drain.apply(this, arguments);
+      }
+
+      return drain;
+    }()
+  }, {
+    key: "_getOpenOptions",
+    value: function _getOpenOptions(opts) {
+      if (opts.xon || opts.xoff || opts.xany) {
+        throw new Error("unsupported flow control setting");
+      } // Generally the range of supported values by serialport
+      // is a superset of those supported by Web Serial. We'll
+      // pass the options values to Web Serial and allow it
+      // to perform the validation.
+
+
+      return {
+        baudRate: opts.baudRate,
+        // Valid serialport values: 5, 6, 7, 8
+        // Valid Web Serial values: 7, 8
+        dataBits: opts.dataBits,
+        // Valid serialport values: 1, 2
+        // Valid Web Serial values: 1, 2
+        stopBits: opts.stopBits,
+        // Valid serialport values: none, even, mark, odd, space
+        // Valid Web Serial values: none, even, odd
+        parity: opts.parity,
+        flowControl: opts.rtscts ? 'hardware' : 'none'
+      };
+    }
+  }], [{
+    key: "list",
+    value: function list() {
+      return navigator.serial.getPorts().then(function (portList) {
+        return portList.map(function (path) {
+          var entry = {
+            path: path
+          };
+          var portInfo = path.getInfo();
+          attachUsbId(entry, 'productId', portInfo.usbProductId);
+          attachUsbId(entry, 'vendorId', portInfo.usbVendorId);
+          return entry;
         });
-      }, n(321);
-    }();
-  });
-})(wsaSpBind);
+      });
+    }
+  }]);
 
-var WSABinding = /*@__PURE__*/getDefaultExportFromCjs(wsaSpBind.exports);
+  return WebSerialBinding;
+}(AbstractBinding);
 
-lib.Binding = WSABinding;
-var FirmataClass = firmata(lib);
+lib$2.Binding = lib;
+var FirmataClass = firmata(lib$2); // eslint-disable-next-line prefer-const
 
 var FirmataBoard = /*#__PURE__*/function () {
   /**
@@ -11575,59 +12304,119 @@ var FirmataBoard = /*#__PURE__*/function () {
      */
 
     this.port = null;
-    this.portPath = null;
+    this.portInfo = null;
   }
 
   _createClass(FirmataBoard, [{
     key: "requestPort",
-    value: function requestPort() {
-      var _this = this;
+    value: function () {
+      var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+        var _this = this;
 
-      if (this.isConnected()) return;
-      this.port = new lib('wsa://default', {
-        baudRate: 57600,
-        // firmata: 57600
-        autoOpen: false
-      });
-      this.portPath = this.port.path;
-      this.board = new FirmataClass(this.port);
-      this.board.once('ready', function () {
-        console.log('READY!');
-        console.log("".concat(_this.board.firmware.name, "-").concat(_this.board.firmware.version.major, ".").concat(_this.board.firmware.version.minor)); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-        //     name: this.name,
-        //     path: this.portPath
-        // });
-      });
-      this.onDisconnect = this.onDisconnect.bind(this);
-      this.board.addListener('disconnect', this.onDisconnect); // for DEBUG
+        var nativePort;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this.port) {
+                  _context.next = 2;
+                  break;
+                }
 
-      this.port.on('data', function (data) {
-        console.log(data);
-      });
-      return this.port.open();
+                return _context.abrupt("return");
+
+              case 2:
+                this.state = 'portRequesting';
+                _context.next = 5;
+                return navigator.serial.requestPort();
+
+              case 5:
+                nativePort = _context.sent;
+                this.port = new lib$2(nativePort, {
+                  baudRate: 57600,
+                  // firmata: 57600
+                  autoOpen: false
+                });
+                this.portInfo = this.port.path.getInfo();
+                this.board = new FirmataClass(this.port);
+                this.board.once('connect', function () {
+                  _this.state = 'connect';
+                });
+                this.board.once('close', function (error) {
+                  if (_this.state === 'disconnect') return;
+
+                  if (error) {
+                    _this.handleDisconnectError(error);
+                  } else {
+                    _this.releaseBoard();
+                  }
+                });
+
+                {
+                  this.port.addListener('data', function (data) {
+                    console.log(data);
+                  });
+                }
+
+                return _context.abrupt("return", new Promise(function (resolve) {
+                  _this.port.open(function (error) {
+                    if (error) {
+                      _this.releaseBoard();
+
+                      resolve("".concat(error));
+                      return;
+                    }
+
+                    _this.board.once('ready', function () {
+                      _this.onBoarReady();
+
+                      resolve("connected to ".concat(JSON.stringify(_this.portInfo)));
+                    });
+                  });
+                }));
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function requestPort() {
+        return _requestPort.apply(this, arguments);
+      }
+
+      return requestPort;
+    }()
+  }, {
+    key: "onBoarReady",
+    value: function onBoarReady() {
+      var firmInfo = this.board.firmware;
+      console.log("".concat(firmInfo.name, "-").concat(firmInfo.version.major, ".").concat(firmInfo.version.minor));
+      this.board.i2cConfig();
+      this.state = 'ready'; // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+      //     name: this.name,
+      //     path: this.portInfo
+      // });
     }
   }, {
     key: "isConnected",
     value: function isConnected() {
-      return !!this.port && this.port.isOpen;
+      return this.state === 'connect' || this.state === 'ready';
     }
   }, {
     key: "isReady",
     value: function isReady() {
-      var ready = this.isConnected();
-      ready = ready && this.board.analogPins.length > 0; // Is analog pin map received?
-
-      return ready;
+      return this.state === 'ready';
     }
   }, {
-    key: "release",
-    value: function release() {
+    key: "releaseBoard",
+    value: function releaseBoard() {
+      this.state = 'disconnect';
+
       if (this.port && this.port.isOpen) {
         this.port.close();
-      }
-
-      if (this.board) {
-        this.board.removeListener('disconnect', this.onDisconnect);
       }
 
       this.port = null;
@@ -11636,19 +12425,10 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "disconnect",
     value: function disconnect() {
-      this.release(); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+      this.releaseBoard(); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
       //     name: this.name,
-      //     path: this.portPath
+      //     path: this.portInfo
       // });
-    }
-  }, {
-    key: "onDisconnect",
-    value: function onDisconnect(error) {
-      if (error) {
-        this.handleDisconnectError(error);
-      } else {
-        this.release();
-      }
     }
     /**
      * Handle an error resulting from losing connection to a peripheral.
@@ -11667,7 +12447,7 @@ var FirmataBoard = /*#__PURE__*/function () {
     key: "handleDisconnectError",
     value: function handleDisconnectError(error) {
       console.err(error);
-      if (!this.isConnected()) return;
+      if (this.state === 'disconnect') return;
       this.disconnect();
     }
   }, {
@@ -11706,6 +12486,26 @@ var FirmataBoard = /*#__PURE__*/function () {
       return this.board.reportAnalogPin(pin, value);
     }
   }, {
+    key: "i2cWrite",
+    value: function i2cWrite(address, registerOrData, inBytes) {
+      return this.board.i2cWrite(address, registerOrData, inBytes);
+    }
+  }, {
+    key: "i2cRead",
+    value: function i2cRead(address, register, bytesToRead, callback) {
+      return this.board.i2cRead(address, register, bytesToRead, callback);
+    }
+  }, {
+    key: "i2cStop",
+    value: function i2cStop(options) {
+      return this.board.i2cStop(options);
+    }
+  }, {
+    key: "i2cReadOnce",
+    value: function i2cReadOnce(address, register, bytesToRead, callback) {
+      return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+    }
+  }, {
     key: "MODES",
     get: function get() {
       return this.board.MODES;
@@ -11730,12 +12530,41 @@ var FirmataBoard = /*#__PURE__*/function () {
   return FirmataBoard;
 }();
 
+var DEBUG = true;
+
+var stringToNumber = function stringToNumber(stringExp) {
+  try {
+    if (stringExp.includes('0x')) return parseInt(stringExp, 16);
+    return parseFloat(stringExp);
+  } catch (error) {
+    return NaN;
+  }
+};
+
+var numericArrayToString = function numericArrayToString(array) {
+  return array.join(', ');
+};
+
+var stringToNumericArray = function stringToNumericArray(stringExp) {
+  stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+
+  if (stringExp.includes(',')) {
+    return stringExp.split(',').map(function (item) {
+      return stringToNumber(item);
+    });
+  }
+
+  return stringExp.split(/\s+/).map(function (item) {
+    return stringToNumber(item);
+  });
+};
 /**
  * Formatter which is used for translation.
  * This will be replaced which is used in the runtime.
  * @param {object} messageData - format-message object
  * @returns {string} - message for the locale
  */
+
 
 var formatMessage = function formatMessage(messageData) {
   return messageData.defaultMessage;
@@ -11803,7 +12632,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   _createClass(ExtensionBlocks, [{
     key: "isConnected",
     value: function isConnected() {
-      return this.board.isConnected();
+      return this.board.isReady();
     }
   }, {
     key: "connectBoard",
@@ -11820,13 +12649,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "boardStateChanged",
     value: function boardStateChanged(args) {
-      if (args.STATE === 'connected') {
-        return this.isConnected();
-      }
-
-      if (args.STATE === 'disconnected') {
-        return !this.isConnected();
-      }
+      return args.STATE === 'connected' === this.isConnected();
     }
     /**
      * Whether the level of the connector is HIGHT as digital input.
@@ -11840,7 +12663,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function digitalIsHigh(args) {
       var _this2 = this;
 
-      if (!this.board.isConnected()) return Promise.resolve(false);
+      if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.INPUT);
       return new Promise(function (resolve) {
@@ -11868,7 +12691,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "digitalLevelSet",
     value: function digitalLevelSet(args) {
-      if (!this.board.isConnected()) return;
+      if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var value = cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
       this.board.pinMode(pin, this.board.MODES.OUTPUT);
@@ -11886,7 +12709,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function analogLevelGet(args) {
       var _this3 = this;
 
-      if (!this.board.isConnected()) return Promise.resolve(0);
+      if (!this.isConnected()) return Promise.resolve(0);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.ANALOG);
       return new Promise(function (resolve) {
@@ -11908,7 +12731,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "analogLevelSet",
     value: function analogLevelSet(args) {
-      if (!this.board.isConnected()) return;
+      if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var percent = Math.min(Math.max(cast.toNumber(args.LEVEL), 0), 100);
       var value = Math.round((this.board.RESOLUTION.PWM - 0) * (percent / 100));
@@ -11925,13 +12748,30 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "i2cWrite",
     value: function i2cWrite(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return;
+      var address = stringToNumber(args.ADDRESS);
+      var register = stringToNumber(args.REGISTER);
+      var data = stringToNumericArray(args.DATA);
+      this.board.i2cWrite(address, register, data);
     }
   }, {
-    key: "i2cRead",
-    value: function i2cRead(args) {
+    key: "i2cReadOnce",
+    value: function i2cReadOnce(args) {
+      var _this4 = this;
+
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return;
+      var address = stringToNumber(args.ADDRESS);
+      var register = stringToNumber(args.REGISTER);
+      var length = parseInt(cast.toNumber(args.LENGTH), 10);
+      return new Promise(function (resolve) {
+        _this4.board.i2cReadOnce(address, register, length, function (data) {
+          resolve(numericArrayToString(data));
+        });
+      }).catch(function (reason) {
+        console.error(reason);
+        return '';
+      });
     }
   }, {
     key: "oneWireUpdate",
@@ -11968,6 +12808,58 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function neoPixelClear(args) {
       console.log(args);
       return 'not implemented yet';
+    }
+  }, {
+    key: "numberAtIndex",
+    value: function numberAtIndex(args) {
+      var array = stringToNumericArray(args.ARRAY);
+      return array[stringToNumber(args.INDEX) - 1] || NaN;
+    }
+  }, {
+    key: "lengthOfNumbers",
+    value: function lengthOfNumbers(args) {
+      var array = stringToNumericArray(args.ARRAY);
+      return array.length;
+    }
+  }, {
+    key: "readBytesAs",
+    value: function readBytesAs(args) {
+      console.log(args);
+
+      try {
+        var array = stringToNumericArray(args.ARRAY);
+        var buffer = new Uint8Array(array).buffer;
+        var dataView = new DataView(buffer);
+        var little = args.ENDIAN === 'little';
+        var result = [];
+
+        if (args.TYPE === 'Int16') {
+          if (array.length < 2) return '';
+
+          for (var index = 0; index < array.length / 2; index++) {
+            var element = dataView.getInt16(index * 2, little);
+            result[index] = element;
+          }
+
+          return numericArrayToString(result);
+        }
+
+        if (args.TYPE === 'Uint16') {
+          if (array.length < 2) return '';
+
+          for (var _index = 0; _index < array.length / 2; _index++) {
+            var _element = dataView.getUint16(_index * 2, little);
+
+            result[_index] = _element;
+          }
+
+          return numericArrayToString(result);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+
+      return '';
     }
     /**
      * @returns {object} metadata for this extension and its blocks.
@@ -12130,19 +13022,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.i2cWrite',
-            default: 'I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]',
+            default: 'I2C write on [ADDRESS] register [REGISTER] with [DATA]',
             description: 'write I2C data to the connector'
           }),
           arguments: {
-            CONNECTOR: {
-              type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
-            },
             ADDRESS: {
               type: argumentType.STRING,
               defaultValue: '0x00'
             },
-            REG: {
+            REGISTER: {
               type: argumentType.STRING,
               defaultValue: '0x00'
             },
@@ -12152,23 +13040,19 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, {
-          opcode: 'i2cRead',
+          opcode: 'i2cReadOnce',
           blockType: blockType.REPORTER,
           text: formatMessage({
-            id: 'g2s.i2cRead',
-            default: 'I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]',
+            id: 'g2s.i2cReadOnce',
+            default: 'I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]',
             description: 'read I2C data from the connector'
           }),
           arguments: {
-            CONNECTOR: {
-              type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
-            },
             ADDRESS: {
               type: argumentType.STRING,
               defaultValue: '0x00'
             },
-            REG: {
+            REGISTER: {
               type: argumentType.STRING,
               defaultValue: '0x00'
             },
@@ -12222,7 +13106,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelSetColor',
-            default: 'NeoPixel [CONNECTOR] set [POSITION] color [COLOR]',
+            default: 'NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]',
             description: 'set NeoPixel color on the connector'
           }),
           arguments: {
@@ -12234,8 +13118,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               type: argumentType.NUMBER,
               defaultValue: '1'
             },
-            COLOR: {
-              type: argumentType.COLOR
+            RED: {
+              type: argumentType.NUMBER,
+              defaultValue: '255'
+            },
+            GREEN: {
+              type: argumentType.NUMBER,
+              defaultValue: '255'
+            },
+            BLUE: {
+              type: argumentType.NUMBER,
+              defaultValue: '255'
             }
           }
         }, {
@@ -12250,9 +13143,60 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             CONNECTOR: {
               type: argumentType.STRING,
               menu: 'digitalConnectorMenu'
+            }
+          }
+        }, '---', {
+          opcode: 'numberAtIndex',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.numberAtIndex',
+            default: 'number of [ARRAY] at [INDEX]',
+            description: 'get a number at the index of the array'
+          }),
+          arguments: {
+            ARRAY: {
+              type: argumentType.STRING,
+              defaultValue: '1.0, 1E1, 0xFF'
             },
-            COLOR: {
-              type: argumentType.COLOR
+            INDEX: {
+              type: argumentType.NUMBER,
+              defaultValue: '1'
+            }
+          }
+        }, {
+          opcode: 'lengthOfNumbers',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.lengthOfNumbers',
+            default: 'length of numbers [ARRAY]',
+            description: 'get length of an Array in string'
+          }),
+          arguments: {
+            ARRAY: {
+              type: argumentType.STRING,
+              defaultValue: '1.0, 1E1, 0xFF'
+            }
+          }
+        }, {
+          opcode: 'readBytesAs',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.readBytesAs',
+            default: 'read bytes [ARRAY] as [TYPE] [ENDIAN]',
+            description: 'read typed value from bytes'
+          }),
+          arguments: {
+            ARRAY: {
+              type: argumentType.STRING,
+              defaultValue: '0x00, 0xFF, 0xFF, 0x00'
+            },
+            TYPE: {
+              type: argumentType.STRING,
+              menu: 'bytesTypeMenu'
+            },
+            ENDIAN: {
+              type: argumentType.STRING,
+              menu: 'endianMenu'
             }
           }
         }],
@@ -12284,6 +13228,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           oneWireDeviceMenu: {
             acceptReporters: false,
             items: this.getOneWireDeviceMenu()
+          },
+          bytesTypeMenu: {
+            acceptReporters: false,
+            items: ['Int16', 'Uint16']
+          },
+          endianMenu: {
+            acceptReporters: false,
+            items: ['little', 'big']
           }
         }
       };
@@ -12427,4 +13379,4 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   return ExtensionBlocks;
 }();
 
-export { ExtensionBlocks as blockClass, entry };
+export { DEBUG, ExtensionBlocks as blockClass, entry };
