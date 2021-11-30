@@ -157,6 +157,10 @@ class FirmataBoard {
         return this.board.pwmWrite(pin, value);
     }
 
+    servoWrite (...args) {
+        return this.board.servoWrite(...args);
+    }
+
     analogRead (pin, callback) {
         return this.board.analogRead(pin, callback);
     }

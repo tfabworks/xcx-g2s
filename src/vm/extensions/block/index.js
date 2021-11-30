@@ -228,7 +228,10 @@ class ExtensionBlocks {
 
     servoTurn (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        const pin = parseInt(args.CONNECTOR, 10);
+        const value = Cast.toNumber(args.DEGREE);
+        this.board.pinMode(pin, this.board.MODES.SERVO);
+        this.board.servoWrite(pin, value);
     }
 
     i2cWrite (args) {
