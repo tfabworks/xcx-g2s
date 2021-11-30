@@ -8,6 +8,27 @@ import FirmataBoard from './firmata-board';
 
 export const DEBUG = true;
 
+const stringToNumber = stringExp => {
+    try {
+        if (stringExp.includes('0x')) return parseInt(stringExp, 16);
+        return parseFloat(stringExp);
+    } catch (error) {
+        return NaN;
+    }
+};
+
+const numericArrayToString = array => array.join(', ');
+
+const stringToNumericArray = stringExp => {
+    stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+    if (stringExp.includes(',')) {
+        return stringExp.split(',')
+            .map(item => stringToNumber(item));
+    }
+    return stringExp.split(/\s+/)
+        .map(item => stringToNumber(item));
+};
+
 /**
  * Formatter which is used for translation.
  * This will be replaced which is used in the runtime.
@@ -211,13 +232,34 @@ class ExtensionBlocks {
     }
 
     i2cWrite (args) {
-        console.log(args);
-        return 'not implemented yet';
+        if (DEBUG) console.log(args);
+        if (!this.isConnected()) return;
+        const address = stringToNumber(args.ADDRESS);
+        const register = stringToNumber(args.REGISTER);
+        const data = stringToNumericArray(args.DATA);
+        this.board.i2cWrite(address, register, data);
     }
 
-    i2cRead (args) {
-        console.log(args);
-        return 'not implemented yet';
+    i2cReadOnce (args) {
+        if (DEBUG) console.log(args);
+        if (!this.isConnected()) return;
+        const address = stringToNumber(args.ADDRESS);
+        const register = stringToNumber(args.REGISTER);
+        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        return new Promise(resolve => {
+            this.board.i2cReadOnce(
+                address,
+                register,
+                length,
+                data => {
+                    resolve(numericArrayToString(data));
+                }
+            );
+        })
+            .catch(reason => {
+                console.error(reason);
+                return '';
+            });
     }
 
     oneWireUpdate (args) {
@@ -425,19 +467,15 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.i2cWrite',
-                        default: 'I2C [CONNECTOR] write on [ADDRESS] register [REG] with [DATA]',
+                        default: 'I2C write on [ADDRESS] register [REGISTER] with [DATA]',
                         description: 'write I2C data to the connector'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
                         ADDRESS: {
                             type: ArgumentType.STRING,
                             defaultValue: '0x00'
                         },
-                        REG: {
+                        REGISTER: {
                             type: ArgumentType.STRING,
                             defaultValue: '0x00'
                         },
@@ -448,23 +486,19 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'i2cRead',
+                    opcode: 'i2cReadOnce',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
-                        id: 'g2s.i2cRead',
-                        default: 'I2C [CONNECTOR] read [LENGTH] bytes from [ADDRESS] register [REG]',
+                        id: 'g2s.i2cReadOnce',
+                        default: 'I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]',
                         description: 'read I2C data from the connector'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
                         ADDRESS: {
                             type: ArgumentType.STRING,
                             defaultValue: '0x00'
                         },
-                        REG: {
+                        REGISTER: {
                             type: ArgumentType.STRING,
                             defaultValue: '0x00'
                         },

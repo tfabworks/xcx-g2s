@@ -165,6 +165,22 @@ class FirmataBoard {
         return this.board.reportAnalogPin(pin, value);
     }
 
+    i2cWrite (address, registerOrData, inBytes) {
+        return this.board.i2cWrite(address, registerOrData, inBytes);
+    }
+
+    i2cRead (address, register, bytesToRead, callback) {
+        return this.board.i2cRead(address, register, bytesToRead, callback);
+    }
+
+    i2cStop (options) {
+        return this.board.i2cStop(options);
+    }
+
+    i2cReadOnce (address, register, bytesToRead, callback) {
+        return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+    }
+
     get MODES () {
         return this.board.MODES;
     }
