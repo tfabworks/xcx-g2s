@@ -302,7 +302,9 @@ class ExtensionBlocks {
 
     numberAtIndex (args) {
         const array = stringToNumericArray(args.ARRAY);
-        return array[stringToNumber(args.INDEX) - 1] || NaN;
+        const index = stringToNumber(args.INDEX);
+        if (isNaN(index) || array.length < index || index < 1) return NaN;
+        return array[index - 1];
     }
 
     lengthOfNumbers (args) {
