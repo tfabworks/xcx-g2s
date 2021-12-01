@@ -748,8 +748,10 @@ var en = {
 	"g2s.servoTurn": "Servo [CONNECTOR] turn [DEGREE]",
 	"g2s.i2cWrite": "I2C write on [ADDRESS] register [REGISTER] with [DATA]",
 	"g2s.i2cReadOnce": "I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]",
+	"g2s.oneWireReset": "OneWire [CONNECTOR] reset",
 	"g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
+	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
 	"g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]",
 	"g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
@@ -773,11 +775,13 @@ var ja = {
 	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
-	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]度回す",
+	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
+	"g2s.oneWireReset": "[CONNECTOR]のOneWireをリセットする",
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
-	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytes読み出す",
+	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
+	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
 	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
 	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
@@ -804,11 +808,13 @@ var translations = {
 	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
-	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]どまわす",
+	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
+	"g2s.oneWireReset": "[CONNECTOR]のOneWireをリセットする",
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
-	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]bytesよみだす",
+	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
+	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
 	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
 	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
@@ -12421,6 +12427,7 @@ var FirmataBoard = /*#__PURE__*/function () {
 
       this.port = null;
       this.board = null;
+      this.oneWireDevices = null;
     }
   }, {
     key: "disconnect",
@@ -12476,6 +12483,13 @@ var FirmataBoard = /*#__PURE__*/function () {
       return this.board.pwmWrite(pin, value);
     }
   }, {
+    key: "servoWrite",
+    value: function servoWrite() {
+      var _this$board;
+
+      return (_this$board = this.board).servoWrite.apply(_this$board, arguments);
+    }
+  }, {
     key: "analogRead",
     value: function analogRead(pin, callback) {
       return this.board.analogRead(pin, callback);
@@ -12504,6 +12518,74 @@ var FirmataBoard = /*#__PURE__*/function () {
     key: "i2cReadOnce",
     value: function i2cReadOnce(address, register, bytesToRead, callback) {
       return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+    }
+  }, {
+    key: "sendOneWireReset",
+    value: function sendOneWireReset(pin) {
+      return this.board.sendOneWireReset(pin);
+    }
+  }, {
+    key: "searchOneWireDevices",
+    value: function searchOneWireDevices(pin) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        if (_this2.board.pins[pin].mode !== _this2.board.MODES.ONEWIRE) {
+          _this2.board.sendOneWireConfig(pin, true);
+
+          return _this2.board.sendOneWireSearch(pin, function (error, founds) {
+            if (error) return reject(error);
+            if (founds.length < 1) return reject(new Error('no device'));
+
+            _this2.board.pinMode(pin, _this2.board.MODES.ONEWIRE);
+
+            _this2.oneWireDevices = founds;
+
+            _this2.board.sendOneWireDelay(pin, 1);
+
+            resolve(_this2.oneWireDevices);
+          });
+        }
+
+        resolve(_this2.oneWireDevices);
+      });
+    }
+  }, {
+    key: "oneWireWrite",
+    value: function oneWireWrite(pin, data) {
+      var _this3 = this;
+
+      return this.searchOneWireDevices(pin).then(function (devices) {
+        _this3.board.sendOneWireWrite(pin, devices[0], data);
+      });
+    }
+  }, {
+    key: "oneWireRead",
+    value: function oneWireRead(pin, length) {
+      var _this4 = this;
+
+      return this.searchOneWireDevices(pin).then(function (devices) {
+        return new Promise(function (resolve, reject) {
+          _this4.board.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+            if (readError) return reject(readError);
+            resolve(data);
+          });
+        });
+      });
+    }
+  }, {
+    key: "oneWireWriteAndRead",
+    value: function oneWireWriteAndRead(pin, data, numBytesToRead) {
+      var _this5 = this;
+
+      return this.searchOneWireDevices(pin).then(function (devices) {
+        return new Promise(function (resolve, reject) {
+          _this5.board.sendOneWireWriteAndRead(pin, devices[0], data, numBytesToRead, function (readError, readData) {
+            if (readError) return reject(readError);
+            resolve(readData);
+          });
+        });
+      });
     }
   }, {
     key: "MODES",
@@ -12546,17 +12628,22 @@ var numericArrayToString = function numericArrayToString(array) {
 };
 
 var stringToNumericArray = function stringToNumericArray(stringExp) {
-  stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+  try {
+    stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
 
-  if (stringExp.includes(',')) {
-    return stringExp.split(',').map(function (item) {
+    if (stringExp.includes(',')) {
+      return stringExp.split(',').map(function (item) {
+        return stringToNumber(item);
+      });
+    }
+
+    return stringExp.split(/\s+/).map(function (item) {
       return stringToNumber(item);
     });
+  } catch (error) {
+    console.log(error);
+    return [];
   }
-
-  return stringExp.split(/\s+/).map(function (item) {
-    return stringToNumber(item);
-  });
 };
 /**
  * Formatter which is used for translation.
@@ -12742,7 +12829,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "servoTurn",
     value: function servoTurn(args) {
       console.log(args);
-      return 'not implemented yet';
+      var pin = parseInt(args.CONNECTOR, 10);
+      var value = cast.toNumber(args.DEGREE);
+      this.board.pinMode(pin, this.board.MODES.SERVO);
+      this.board.servoWrite(pin, value);
     }
   }, {
     key: "i2cWrite",
@@ -12774,22 +12864,51 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
   }, {
-    key: "oneWireUpdate",
-    value: function oneWireUpdate(args) {
+    key: "oneWireReset",
+    value: function oneWireReset(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return;
+      var pin = parseInt(args.CONNECTOR, 10);
+      this.board.sendOneWireReset(pin);
     }
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return;
+      var pin = parseInt(args.CONNECTOR, 10);
+      var data = stringToNumericArray(args.DATA);
+      return this.board.oneWireWrite(pin, data).catch(function (error) {
+        console.log(error);
+        return error.message ? error.message : error;
+      });
     }
   }, {
     key: "oneWireRead",
     value: function oneWireRead(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return;
+      var pin = parseInt(args.CONNECTOR, 10);
+      var length = parseInt(cast.toNumber(args.LENGTH), 10);
+      return this.board.oneWireRead(pin, length).catch(function (error) {
+        console.log(error);
+        return error.message ? error.message : error;
+      });
+    }
+  }, {
+    key: "oneWireWriteAndRead",
+    value: function oneWireWriteAndRead(args) {
+      console.log(args);
+      if (!this.isConnected()) return;
+      var pin = parseInt(args.CONNECTOR, 10);
+      var data = stringToNumericArray(args.DATA);
+      var readLength = parseInt(cast.toNumber(args.LENGTH), 10);
+      return this.board.oneWireWriteAndRead(pin, data, readLength).then(function (readData) {
+        return numericArrayToString(readData);
+      }).catch(function (error) {
+        console.log(error);
+        return error.message ? error.message : error;
+      });
     }
   }, {
     key: "oneWireConfigure",
@@ -12813,7 +12932,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "numberAtIndex",
     value: function numberAtIndex(args) {
       var array = stringToNumericArray(args.ARRAY);
-      return array[stringToNumber(args.INDEX) - 1] || NaN;
+      var index = stringToNumber(args.INDEX);
+      if (isNaN(index) || array.length < index || index < 1) return NaN;
+      return array[index - 1];
     }
   }, {
     key: "lengthOfNumbers",
@@ -12836,7 +12957,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         if (args.TYPE === 'Int16') {
           if (array.length < 2) return '';
 
-          for (var index = 0; index < array.length / 2; index++) {
+          for (var index = 0; index < Math.floor(array.length / 2); index++) {
             var element = dataView.getInt16(index * 2, little);
             result[index] = element;
           }
@@ -12847,7 +12968,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         if (args.TYPE === 'Uint16') {
           if (array.length < 2) return '';
 
-          for (var _index = 0; _index < array.length / 2; _index++) {
+          for (var _index = 0; _index < Math.floor(array.length / 2); _index++) {
             var _element = dataView.getUint16(_index * 2, little);
 
             result[_index] = _element;
@@ -13062,6 +13183,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, '---', {
+          opcode: 'oneWireReset',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.oneWireReset',
+            default: 'reset OneWire [CONNECTOR]',
+            description: 'Reset OneWire on the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            }
+          }
+        }, {
           opcode: 'oneWireWrite',
           blockType: blockType.COMMAND,
           text: formatMessage({
@@ -13084,7 +13219,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.REPORTER,
           text: formatMessage({
             id: 'g2s.oneWireRead',
-            default: 'OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]',
+            default: 'OneWire [CONNECTOR] read [LENGTH] bytes',
             description: 'read OneWire data from the device on the connector'
           }),
           arguments: {
@@ -13092,9 +13227,27 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               type: argumentType.STRING,
               menu: 'digitalConnectorMenu'
             },
-            DEVICE: {
+            LENGTH: {
+              type: argumentType.NUMBER,
+              defaultValue: 1
+            }
+          }
+        }, {
+          opcode: 'oneWireWriteAndRead',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.oneWireWriteAndRead',
+            default: 'OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes',
+            description: 'write OneWire data then read at the device on the connector'
+          }),
+          arguments: {
+            CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'oneWireDeviceMenu'
+              menu: 'digitalConnectorMenu'
+            },
+            DATA: {
+              type: argumentType.STRING,
+              defaultValue: '0x00, 0x00'
             },
             LENGTH: {
               type: argumentType.NUMBER,
