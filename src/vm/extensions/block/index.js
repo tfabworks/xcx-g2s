@@ -20,13 +20,18 @@ const stringToNumber = stringExp => {
 const numericArrayToString = array => array.join(', ');
 
 const stringToNumericArray = stringExp => {
-    stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
-    if (stringExp.includes(',')) {
-        return stringExp.split(',')
+    try {
+        stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+        if (stringExp.includes(',')) {
+            return stringExp.split(',')
+                .map(item => stringToNumber(item));
+        }
+        return stringExp.split(/\s+/)
             .map(item => stringToNumber(item));
+    } catch (error) {
+        console.log(error);
+        return [];
     }
-    return stringExp.split(/\s+/)
-        .map(item => stringToNumber(item));
 };
 
 /**
