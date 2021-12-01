@@ -122,15 +122,20 @@ class ExtensionBlocks {
 
         this.board = new FirmataBoard(runtime);
 
+        // register to call scan()/connect()
+        this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
+
         this.runtime.addListener(this.runtime.constructor.PERIPHERAL_CONNECTED, peripheral => {
+            if (!peripheral) return;
             if ((peripheral.name === this.board.name) &&
-                (peripheral.path === this.board.portPath)) {
+                (peripheral.portInfo === this.board.portInfo)) {
                 // this.startBoardReporting();
             }
         });
         this.runtime.addListener(this.runtime.constructor.PERIPHERAL_DISCONNECTED, peripheral => {
+            if (!peripheral) return;
             if ((peripheral.name === this.board.name) &&
-                (peripheral.path === this.board.portPath)) {
+                (peripheral.portInfo === this.board.portInfo)) {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
                     message: `Scratch lost connection to`,
                     extensionId: EXTENSION_ID
@@ -139,13 +144,39 @@ class ExtensionBlocks {
         });
     }
 
+    /**
+     * Called by the runtime when user wants to scan for a peripheral.
+     * @returns {Promise} - a Promise which resolves when a board was connected
+     */
+    scan () {
+        return this.connectBoard();
+    }
+
+    /**
+     * Called by the runtime when user wants to connect to a certain peripheral.
+     * @param {number} id - the id of the peripheral to connect to.
+     */
+    connect (...args) {
+        if (DEBUG) console.log(args);
+    }
+
+    /**
+     * Called by the runtime when user wants to cancel scanning or the peripheral was disconnected.
+     */
+    disconnect () {
+        if (DEBUG) console.log('disconnect');
+        this.disconnectBoard();
+    }
 
     isConnected () {
         return this.board.isReady();
     }
 
     connectBoard () {
-        return this.board.requestPort();
+        return this.board.requestPort()
+            .then(() => {
+                this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED);
+            });
     }
 
     disconnectBoard () {
@@ -383,7 +414,7 @@ class ExtensionBlocks {
             name: ExtensionBlocks.EXTENSION_NAME,
             extensionURL: ExtensionBlocks.extensionURL,
             blockIconURI: blockIcon,
-            showStatusButton: false,
+            showStatusButton: true,
             blocks: [
                 {
                     opcode: 'connectBoard',

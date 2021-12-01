@@ -66,16 +66,16 @@ class FirmataBoard {
                 console.log(data);
             });
         }
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.port.open(error => {
                 if (error) {
                     this.releaseBoard();
-                    resolve(`${error}`);
+                    reject(error);
                     return;
                 }
                 this.board.once('ready', () => {
                     this.onBoarReady();
-                    resolve(`connected to ${JSON.stringify(this.portInfo)}`);
+                    resolve(this.portInfo);
                 });
             });
         });
@@ -110,14 +110,14 @@ class FirmataBoard {
         this.port = null;
         this.board = null;
         this.oneWireDevices = null;
+        this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+            name: this.name,
+            path: this.portInfo
+        });
     }
 
     disconnect () {
         this.releaseBoard();
-        // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-        //     name: this.name,
-        //     path: this.portInfo
-        // });
     }
 
     /**
