@@ -270,20 +270,51 @@ class ExtensionBlocks {
             });
     }
 
-    oneWireUpdate (args) {
+    oneWireReset (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        this.board.sendOneWireReset(pin);
     }
 
     oneWireWrite (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        const data = stringToNumericArray(args.DATA);
+        return this.board.oneWireWrite(pin, data)
+            .catch(error => {
+                console.log(error);
+                return error.message ? error.message : error;
+            });
     }
 
     oneWireRead (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        return this.board.oneWireRead(pin, length)
+            .catch(error => {
+                console.log(error);
+                return error.message ? error.message : error;
+            });
     }
+    
+    oneWireWriteAndRead (args) {
+        if (DEBUG) console.log(args);
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        const data = stringToNumericArray(args.DATA);
+        const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
+        return this.board.oneWireWriteAndRead(pin, data, readLength)
+            .then(readData => numericArrayToString(readData))
+            .catch(error => {
+                console.log(error);
+                return error.message ? error.message : error;
+            });
+    }
+
 
     oneWireConfigure (args) {
         if (DEBUG) console.log(args);
@@ -560,6 +591,21 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'oneWireReset',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.oneWireReset',
+                        default: 'reset OneWire [CONNECTOR]',
+                        description: 'Reset OneWire on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'oneWireWrite',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -583,7 +629,7 @@ class ExtensionBlocks {
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.oneWireRead',
-                        default: 'OneWire [CONNECTOR] read [LENGTH] bytes from device [DEVICE]',
+                        default: 'OneWire [CONNECTOR] read [LENGTH] bytes',
                         description: 'read OneWire data from the device on the connector'
                     }),
                     arguments: {
@@ -591,9 +637,28 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
                         },
-                        DEVICE: {
+                        LENGTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    }
+                },
+                {
+                    opcode: 'oneWireWriteAndRead',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.oneWireWriteAndRead',
+                        default: 'OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes',
+                        description: 'write OneWire data then read at the device on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'oneWireDeviceMenu'
+                            menu: 'digitalConnectorMenu'
+                        },
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x00, 0x00'
                         },
                         LENGTH: {
                             type: ArgumentType.NUMBER,

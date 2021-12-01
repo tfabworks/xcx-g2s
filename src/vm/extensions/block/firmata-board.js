@@ -109,6 +109,7 @@ class FirmataBoard {
         }
         this.port = null;
         this.board = null;
+        this.oneWireDevices = null;
     }
 
     disconnect () {
@@ -183,6 +184,56 @@ class FirmataBoard {
 
     i2cReadOnce (address, register, bytesToRead, callback) {
         return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+    }
+
+    sendOneWireReset (pin) {
+        return this.board.sendOneWireReset(pin);
+    }
+
+    searchOneWireDevices (pin) {
+        return new Promise((resolve, reject) => {
+            if (this.board.pins[pin].mode !== this.board.MODES.ONEWIRE) {
+                this.board.sendOneWireConfig(pin, true);
+                return this.board.sendOneWireSearch(pin, (error, founds) => {
+                    if (error) return reject(error);
+                    if (founds.length < 1) return reject(new Error('no device'));
+                    this.board.pinMode(pin, this.board.MODES.ONEWIRE);
+                    this.oneWireDevices = founds;
+                    this.board.sendOneWireDelay(pin, 1);
+                    resolve(this.oneWireDevices);
+                });
+            }
+            resolve(this.oneWireDevices);
+        });
+    }
+
+    oneWireWrite (pin, data) {
+        return this.searchOneWireDevices(pin)
+            .then(devices => {
+                this.board.sendOneWireWrite(pin, devices[0], data);
+            });
+    }
+
+    oneWireRead (pin, length) {
+        return this.searchOneWireDevices(pin)
+            .then(devices =>
+                new Promise((resolve, reject) => {
+                    this.board.sendOneWireRead(pin, devices[0], length, (readError, data) => {
+                        if (readError) return reject(readError);
+                        resolve(data);
+                    });
+                }));
+    }
+
+    oneWireWriteAndRead (pin, data, numBytesToRead) {
+        return this.searchOneWireDevices(pin)
+            .then(devices =>
+                new Promise((resolve, reject) => {
+                    this.board.sendOneWireWriteAndRead(pin, devices[0], data, numBytesToRead, (readError, readData) => {
+                        if (readError) return reject(readError);
+                        resolve(readData);
+                    });
+                }));
     }
 
     get MODES () {
