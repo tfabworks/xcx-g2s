@@ -322,7 +322,7 @@ class ExtensionBlocks {
             const result = [];
             if (args.TYPE === 'Int16') {
                 if (array.length < 2) return '';
-                for (let index = 0; index < (array.length / 2); index++) {
+                for (let index = 0; index < Math.floor(array.length / 2); index++) {
                     const element = dataView.getInt16(index * 2, little);
                     result[index] = element;
                 }
@@ -330,7 +330,7 @@ class ExtensionBlocks {
             }
             if (args.TYPE === 'Uint16') {
                 if (array.length < 2) return '';
-                for (let index = 0; index < (array.length / 2); index++) {
+                for (let index = 0; index < Math.floor(array.length / 2); index++) {
                     const element = dataView.getUint16(index * 2, little);
                     result[index] = element;
                 }
