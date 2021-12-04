@@ -1,6 +1,17 @@
 import bindTransport from './firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
+import {
+    START_SYSEX,
+    END_SYSEX,
+    FIRMATA_7BIT_MASK,
+    COLOR_ORDER,
+    PIXEL_COMMAND,
+    PIXEL_CONFIG,
+    PIXEL_SET_PIXEL,
+    PIXEL_SHOW
+} from './node-pixel/lib/constants';
+
 
 // Setup transport of Firmata.
 SerialPort.Binding = WSABinding;
@@ -8,6 +19,33 @@ const FirmataClass = bindTransport(SerialPort);
 
 // eslint-disable-next-line prefer-const
 export let DEBUG = true;
+
+const neoPixelGammaTable = ((steps, gamma) => {
+    const gammaTable = new Array(steps);
+    for (let i = 0; i < steps; i++) {
+        gammaTable[i] = Math.floor((Math.pow((i / 255.0), gamma) * 255) + 0.5);
+    }
+    return gammaTable;
+})(256, 2.8);
+
+const neoPixelColorValue = (colors, gammaTable) => {
+    // colors are assumed to be an array of [r, g, b] bytes
+    // colorValue returns a packed value able to be pushed to firmata rather than
+    // text values.
+    // if gammaTable is passed then it should use the supplied gamma
+    // correction table to correct the received value.
+
+    // before sending, account for gamma correction.
+    const gammaCorrectedColor = Object.assign({}, colors);
+    gammaCorrectedColor[0] = gammaTable[gammaCorrectedColor[0]];
+    gammaCorrectedColor[1] = gammaTable[gammaCorrectedColor[1]];
+    gammaCorrectedColor[2] = gammaTable[gammaCorrectedColor[2]];
+    return (
+        (gammaCorrectedColor[0] << 16) +
+        (gammaCorrectedColor[1] << 8) +
+        (gammaCorrectedColor[2])
+    );
+};
 
 class FirmataBoard {
 
@@ -38,6 +76,8 @@ class FirmataBoard {
         this.port = null;
 
         this.portInfo = null;
+
+        this.neoPixel = null;
     }
 
     async requestPort () {
@@ -102,8 +142,12 @@ class FirmataBoard {
         return this.state === 'ready';
     }
 
-    releaseBoard () {
+    async releaseBoard () {
+        if (this.isReady()) {
+            await this.neoPixelClear();
+        }
         this.state = 'disconnect';
+        this.neoPixel = null;
         if (this.port && this.port.isOpen) {
             this.port.close();
         }
@@ -234,6 +278,64 @@ class FirmataBoard {
                         resolve(readData);
                     });
                 }));
+    }
+
+    neoPixelConfigStrip (pin, length) {
+        // now send the config message with length and data point.
+        this.neoPixel = {pin: pin, length: length};
+        const data = new Array(7);
+        data[0] = START_SYSEX;
+        data[1] = PIXEL_COMMAND;
+        data[2] = PIXEL_CONFIG;
+        data[3] = ((COLOR_ORDER.GRB << 5) | pin);
+        data[4] = (length & FIRMATA_7BIT_MASK);
+        data[5] = ((length >> 7) & FIRMATA_7BIT_MASK);
+        data[6] = (END_SYSEX);
+        return new Promise(
+            resolve => {
+                this.port.write(data, () => resolve());
+            });
+    }
+
+    neoPixelSetColor (index, color) {
+        if (!this.neoPixel) return Promise.resolve();
+        const address = Math.min(this.neoPixel.length, Math.max(0, index));
+        const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
+        const data = new Array(10);
+        data[0] = (START_SYSEX);
+        data[1] = (PIXEL_COMMAND);
+        data[2] = (PIXEL_SET_PIXEL);
+        data[3] = (address & FIRMATA_7BIT_MASK);
+        data[4] = ((address >> 7) & FIRMATA_7BIT_MASK);
+        data[5] = (colorValue & FIRMATA_7BIT_MASK);
+        data[6] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
+        data[7] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
+        data[8] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
+        data[9] = (END_SYSEX);
+        return new Promise(
+            resolve => {
+                this.port.write(data, () => resolve());
+            });
+    }
+
+    async neoPixelClear () {
+        if (!this.neoPixel) return Promise.resolve();
+        for (let index = 0; index < this.neoPixel.length; index++) {
+            await this.neoPixelSetColor(index, [0, 0, 0]);
+        }
+        return this.neoPixelShow();
+    }
+
+    neoPixelShow () {
+        const data = [];
+        data[0] = START_SYSEX;
+        data[1] = PIXEL_COMMAND;
+        data[2] = PIXEL_SHOW;
+        data[3] = END_SYSEX;
+        return new Promise(
+            resolve => {
+                this.port.write(data, () => resolve());
+            });
     }
 
     get MODES () {

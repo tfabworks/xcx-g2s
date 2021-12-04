@@ -142,6 +142,9 @@ class ExtensionBlocks {
                 });
             }
         });
+        this.runtime.on('PROJECT_STOP_ALL', () => {
+            this.neoPixelClear();
+        });
     }
 
     /**
@@ -169,6 +172,7 @@ class ExtensionBlocks {
     }
 
     isConnected () {
+        if (!this.board) return false;
         return this.board.isReady();
     }
 
@@ -352,14 +356,34 @@ class ExtensionBlocks {
         return 'not implemented yet';
     }
 
+    neoPixelConfigStrip (args) {
+        if (DEBUG) console.log(args);
+        if (!this.isConnected()) return Promise.resolve();
+        const pin = parseInt(args.CONNECTOR, 10);
+        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        return this.board.neoPixelConfigStrip(pin, length);
+    }
+
+    neoPixelShow (args) {
+        if (DEBUG) console.log(args);
+        if (!this.isConnected()) return Promise.resolve();
+        return this.board.neoPixelShow();
+    }
+
     neoPixelSetColor (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        if (!this.isConnected()) return Promise.resolve();
+        const index = parseInt(Cast.toNumber(args.POSITION), 10) - 1;
+        const r = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.RED), 10)));
+        const g = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.GREEN), 10)));
+        const b = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.BLUE), 10)));
+        return this.board.neoPixelSetColor(index, [r, g, b]);
     }
 
     neoPixelClear (args) {
         if (DEBUG) console.log(args);
-        return 'not implemented yet';
+        if (!this.isConnected()) return Promise.resolve();
+        return this.board.neoPixelClear();
     }
 
     numberAtIndex (args) {
@@ -699,18 +723,33 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'neoPixelSetColor',
+                    opcode: 'neoPixelConfigStrip',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'g2s.neoPixelSetColor',
-                        default: 'NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]',
-                        description: 'set NeoPixel color on the connector'
+                        id: 'g2s.neoPixelConfigStrip',
+                        default: 'NeoPixel [CONNECTOR] length [LENGTH]',
+                        description: 'configure NeoPixel on the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
                         },
+                        LENGTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '16'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelSetColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelSetColor',
+                        default: 'NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]',
+                        description: 'set NeoPixel color'
+                    }),
+                    arguments: {
                         POSITION: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
@@ -730,18 +769,25 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'neoPixelShow',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelShow',
+                        default: 'NeoPixel show',
+                        description: 'show NeoPixel'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
                     opcode: 'neoPixelClear',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelClear',
-                        default: 'NeoPixel clear on [CONNECTOR]',
-                        description: 'clear NeoPixel on the connector'
+                        default: 'NeoPixel clear',
+                        description: 'clear NeoPixel'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
                     }
                 },
                 '---',

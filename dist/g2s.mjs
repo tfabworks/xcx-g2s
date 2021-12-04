@@ -752,8 +752,10 @@ var en = {
 	"g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
 	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
-	"g2s.neoPixelSetColor": "NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]",
-	"g2s.neoPixelClear": "NeoPixel clear on [CONNECTOR]",
+	"g2s.neoPixelConfigStrip": "Set NeoPixel length [LENGTH] on [CONNECTOR]",
+	"g2s.neoPixelSetColor": "NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]",
+	"g2s.neoPixelShow": "NeoPixel show",
+	"g2s.neoPixelClear": "NeoPixel clear",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
 	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
 	"g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]"
@@ -782,8 +784,10 @@ var ja = {
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
-	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
-	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelを消す",
+	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のNeoPixelをつなぐ",
+	"g2s.neoPixelSetColor": "NeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
+	"g2s.neoPixelShow": "NeoPixelを光らせる",
+	"g2s.neoPixelClear": "NeoPixelを消す",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
 	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
 	"g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む"
@@ -815,8 +819,10 @@ var translations = {
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
-	"g2s.neoPixelSetColor": "[CONNECTOR]のNeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
-	"g2s.neoPixelClear": "[CONNECTOR]のNeoPixelをけす",
+	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のNeoPixelをつなぐ",
+	"g2s.neoPixelSetColor": "NeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
+	"g2s.neoPixelShow": "NeoPixelをひからせる",
+	"g2s.neoPixelClear": "NeoPixelをけす",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
 	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
 	"g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ"
@@ -4561,7 +4567,7 @@ var ANALOG_MESSAGE = 0xE0;
 var CAPABILITY_QUERY = 0x6B;
 var CAPABILITY_RESPONSE = 0x6C;
 var DIGITAL_MESSAGE = 0x90;
-var END_SYSEX = 0xF7;
+var END_SYSEX$1 = 0xF7;
 var EXTENDED_ANALOG = 0x6F;
 var I2C_CONFIG = 0x78;
 var I2C_REPLY = 0x77;
@@ -4601,10 +4607,10 @@ var SERIAL_REPLY = 0x40;
 var SERIAL_CLOSE = 0x50;
 var SERIAL_FLUSH = 0x60;
 var SERIAL_LISTEN = 0x70;
-var START_SYSEX = 0xF0;
+var START_SYSEX$1 = 0xF0;
 var STEPPER = 0x72;
 var ACCELSTEPPER = 0x62;
-var STRING_DATA = 0x71;
+var STRING_DATA$1 = 0x71;
 var SYSTEM_RESET = 0xFF;
 var MAX_PIN_COUNT = 128;
 var SYM_sendOneWireSearch = Symbol("sendOneWireSearch");
@@ -4801,7 +4807,7 @@ var SYSEX_RESPONSE = (_SYSEX_RESPONSE = {}, _defineProperty(_SYSEX_RESPONSE, QUE
   var decoded = Encoder7Bit.from7BitArray(encoded);
   var correlationId = decoded[1] << 8 | decoded[0];
   board.emit("1-wire-read-reply-".concat(correlationId), decoded.slice(2));
-}), _defineProperty(_SYSEX_RESPONSE, STRING_DATA, function (board) {
+}), _defineProperty(_SYSEX_RESPONSE, STRING_DATA$1, function (board) {
   board.emit("string", Buffer.from(board.buffer.slice(2, -1)).toString().replace(/\0/g, ""));
 }), _defineProperty(_SYSEX_RESPONSE, PING_READ, function (board) {
   var pin = board.buffer[2] & 0x7F | (board.buffer[3] & 0x7F) << 7;
@@ -4828,7 +4834,7 @@ var SYSEX_RESPONSE = (_SYSEX_RESPONSE = {}, _defineProperty(_SYSEX_RESPONSE, QUE
     board.emit("multi-stepper-done-".concat(deviceNum));
   }
 }), _defineProperty(_SYSEX_RESPONSE, SERIAL_MESSAGE, function (board) {
-  var command = board.buffer[2] & START_SYSEX;
+  var command = board.buffer[2] & START_SYSEX$1;
   var portId = board.buffer[2] & 0x0F;
   var reply = [];
   /* istanbul ignore else */
@@ -5037,7 +5043,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
           var first = _this.buffer[0];
           var last = _this.buffer[_this.buffer.length - 1]; // [START_SYSEX, ... END_SYSEX]
 
-          if (first === START_SYSEX && last === END_SYSEX) {
+          if (first === START_SYSEX$1 && last === END_SYSEX$1) {
             var handler = SYSEX_RESPONSE[_this.buffer[1]]; // Ensure a valid SYSEX_RESPONSE handler exists
             // Only process these AFTER the REPORT_VERSION
             // message has been received and processed.
@@ -5067,7 +5073,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
 
 
             _this.buffer.length = 0;
-          } else if (first === START_SYSEX && _this.buffer.length > 0) {
+          } else if (first === START_SYSEX$1 && _this.buffer.length > 0) {
             // we have a new command after an incomplete sysex command
             var currByte = data[i];
 
@@ -5078,11 +5084,11 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
             }
           } else {
             /* istanbul ignore else */
-            if (first !== START_SYSEX) {
+            if (first !== START_SYSEX$1) {
               // Check if data gets out of sync: first byte in buffer
               // must be a valid response if not START_SYSEX
               // Identify response on first byte
-              var response = first < START_SYSEX ? first & START_SYSEX : first; // Check if the first byte is possibly
+              var response = first < START_SYSEX$1 ? first & START_SYSEX$1 : first; // Check if the first byte is possibly
               // a valid MIDI_RESPONSE (handler)
 
               /* istanbul ignore else */
@@ -5097,9 +5103,9 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
           // Might have a MIDI Command
 
 
-          if (_this.buffer.length === 3 && first !== START_SYSEX) {
+          if (_this.buffer.length === 3 && first !== START_SYSEX$1) {
             // response bytes under 0xF0 we have a multi byte operation
-            var _response = first < START_SYSEX ? first & START_SYSEX : first;
+            var _response = first < START_SYSEX$1 ? first & START_SYSEX$1 : first;
             /* istanbul ignore else */
 
 
@@ -5220,7 +5226,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "queryFirmware",
     value: function queryFirmware(callback) {
       this.once("queryfirmware", callback);
-      writeToTransport(this, [START_SYSEX, QUERY_FIRMWARE, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, QUERY_FIRMWARE, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to read analog data. Turn on reporting for this pin.
@@ -5247,7 +5253,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       this.pins[pin].value = value;
 
       if (pin > 15) {
-        data = [START_SYSEX, EXTENDED_ANALOG, pin, value & 0x7F, value >> 7 & 0x7F];
+        data = [START_SYSEX$1, EXTENDED_ANALOG, pin, value & 0x7F, value >> 7 & 0x7F];
 
         if (value > 0x00004000) {
           data[data.length] = value >> 14 & 0x7F;
@@ -5261,7 +5267,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
           data[data.length] = value >> 28 & 0x7F;
         }
 
-        data[data.length] = END_SYSEX;
+        data[data.length] = END_SYSEX$1;
       } else {
         data = [ANALOG_MESSAGE | pin, value & 0x7F, value >> 7 & 0x7F];
       }
@@ -5307,7 +5313,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
 
 
       this.pins[pin].mode = this.MODES.SERVO;
-      writeToTransport(this, [START_SYSEX, SERVO_CONFIG, pin, min & 0x7F, min >> 7 & 0x7F, max & 0x7F, max >> 7 & 0x7F, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SERVO_CONFIG, pin, min & 0x7F, min >> 7 & 0x7F, max & 0x7F, max >> 7 & 0x7F, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to move a servo
@@ -5432,7 +5438,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "queryCapabilities",
     value: function queryCapabilities(callback) {
       this.once("capability-query", callback);
-      writeToTransport(this, [START_SYSEX, CAPABILITY_QUERY, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, CAPABILITY_QUERY, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to tell us its analog pin mapping
@@ -5443,7 +5449,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "queryAnalogMapping",
     value: function queryAnalogMapping(callback) {
       this.once("analog-mapping-query", callback);
-      writeToTransport(this, [START_SYSEX, ANALOG_MAPPING_QUERY, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ANALOG_MAPPING_QUERY, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to tell us the current state of a pin
@@ -5455,7 +5461,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "queryPinState",
     value: function queryPinState(pin, callback) {
       this.once("pin-state-".concat(pin), callback);
-      writeToTransport(this, [START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, PIN_STATE_QUERY, pin, END_SYSEX$1]);
     }
     /**
      * Sends a string to the arduino
@@ -5467,13 +5473,13 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     value: function sendString(string) {
       var bytes = Buffer.from("".concat(string, "\0"), "utf8");
       var data = [];
-      data.push(START_SYSEX, STRING_DATA);
+      data.push(START_SYSEX$1, STRING_DATA$1);
 
       for (var i = 0, length = bytes.length; i < length; i++) {
         data.push(bytes[i] & 0x7F, bytes[i] >> 7 & 0x7F);
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       writeToTransport(this, data);
     }
     /**
@@ -5548,7 +5554,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       }
 
       settings.delay = delay = delay || 0;
-      i2cRequest(this, [START_SYSEX, I2C_CONFIG, delay & 0xFF, delay >> 8 & 0xFF, END_SYSEX]);
+      i2cRequest(this, [START_SYSEX$1, I2C_CONFIG, delay & 0xFF, delay >> 8 & 0xFF, END_SYSEX$1]);
       return this;
     }
     /**
@@ -5564,13 +5570,13 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       /* istanbul ignore next */
 
       bytes = bytes || [];
-      data.push(START_SYSEX, I2C_REQUEST, slaveAddress, this.I2C_MODES.WRITE << 3);
+      data.push(START_SYSEX$1, I2C_REQUEST, slaveAddress, this.I2C_MODES.WRITE << 3);
 
       for (var i = 0, length = bytes.length; i < length; i++) {
         data.push(bytes[i] & 0x7F, bytes[i] >> 7 & 0x7F);
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       i2cRequest(this, data);
     }
     /**
@@ -5600,7 +5606,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
        * command [, ...]
        *
        */
-      var data = [START_SYSEX, I2C_REQUEST, address, this.I2C_MODES.WRITE << 3]; // If i2cWrite was used for an i2cWriteReg call...
+      var data = [START_SYSEX$1, I2C_REQUEST, address, this.I2C_MODES.WRITE << 3]; // If i2cWrite was used for an i2cWriteReg call...
 
       if (arguments.length === 3 && !Array.isArray(registerOrData) && !Array.isArray(inBytes)) {
         return this.i2cWriteReg(address, registerOrData, inBytes);
@@ -5622,7 +5628,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         data.push(bytes[i] & 0x7F, bytes[i] >> 7 & 0x7F);
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       i2cRequest(this, data);
       return this;
     }
@@ -5638,9 +5644,9 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cWriteReg",
     value: function i2cWriteReg(address, register, byte) {
-      i2cRequest(this, [START_SYSEX, I2C_REQUEST, address, this.I2C_MODES.WRITE << 3, // register
+      i2cRequest(this, [START_SYSEX$1, I2C_REQUEST, address, this.I2C_MODES.WRITE << 3, // register
       register & 0x7F, register >> 7 & 0x7F, // byte
-      byte & 0x7F, byte >> 7 & 0x7F, END_SYSEX]);
+      byte & 0x7F, byte >> 7 & 0x7F, END_SYSEX$1]);
       return this;
     }
     /**
@@ -5653,7 +5659,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendI2CReadRequest",
     value: function sendI2CReadRequest(address, numBytes, callback) {
-      i2cRequest(this, [START_SYSEX, I2C_REQUEST, address, this.I2C_MODES.READ << 3, numBytes & 0x7F, numBytes >> 7 & 0x7F, END_SYSEX]);
+      i2cRequest(this, [START_SYSEX$1, I2C_REQUEST, address, this.I2C_MODES.READ << 3, numBytes & 0x7F, numBytes >> 7 & 0x7F, END_SYSEX$1]);
       this.once("I2C-reply-".concat(address, "-0"), callback);
     } // TODO: Refactor i2cRead and i2cReadOnce
     //      to share most operations.
@@ -5676,7 +5682,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         register = null;
       }
 
-      var data = [START_SYSEX, I2C_REQUEST, address, this.I2C_MODES.CONTINUOUS_READ << 3];
+      var data = [START_SYSEX$1, I2C_REQUEST, address, this.I2C_MODES.CONTINUOUS_READ << 3];
       var event = "I2C-reply-".concat(address, "-");
 
       if (register !== null) {
@@ -5686,7 +5692,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       }
 
       event += register;
-      data.push(bytesToRead & 0x7F, bytesToRead >> 7 & 0x7F, END_SYSEX);
+      data.push(bytesToRead & 0x7F, bytesToRead >> 7 & 0x7F, END_SYSEX$1);
       this.on(event, callback);
       i2cRequest(this, data);
       return this;
@@ -5719,7 +5725,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         };
       }
 
-      writeToTransport(this, [START_SYSEX, I2C_REQUEST, options.address, this.I2C_MODES.STOP_READING << 3, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, I2C_REQUEST, options.address, this.I2C_MODES.STOP_READING << 3, END_SYSEX$1]);
       Object.keys(this._events).forEach(function (event) {
         if (event.startsWith("I2C-reply-".concat(options.address))) {
           _this2.removeAllListeners(event);
@@ -5749,7 +5755,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         register = null;
       }
 
-      var data = [START_SYSEX, I2C_REQUEST, address, this.I2C_MODES.READ << 3];
+      var data = [START_SYSEX$1, I2C_REQUEST, address, this.I2C_MODES.READ << 3];
       var event = "I2C-reply-".concat(address, "-");
 
       if (register !== null) {
@@ -5759,7 +5765,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       }
 
       event += register;
-      data.push(bytesToRead & 0x7F, bytesToRead >> 7 & 0x7F, END_SYSEX);
+      data.push(bytesToRead & 0x7F, bytesToRead >> 7 & 0x7F, END_SYSEX$1);
       this.once(event, callback);
       i2cRequest(this, data);
       return this;
@@ -5774,7 +5780,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendOneWireConfig",
     value: function sendOneWireConfig(pin, enableParasiticPower) {
-      writeToTransport(this, [START_SYSEX, ONEWIRE_DATA, ONEWIRE_CONFIG_REQUEST, pin, enableParasiticPower ? 0x01 : 0x00, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ONEWIRE_DATA, ONEWIRE_CONFIG_REQUEST, pin, enableParasiticPower ? 0x01 : 0x00, END_SYSEX$1]);
     }
     /**
      * Searches for 1-wire devices on the bus.  The passed callback should accept
@@ -5803,7 +5809,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: SYM_sendOneWireSearch,
     value: function value(type, event, pin, callback) {
-      writeToTransport(this, [START_SYSEX, ONEWIRE_DATA, type, pin, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ONEWIRE_DATA, type, pin, END_SYSEX$1]);
       var timeout = setTimeout(function () {
         /* istanbul ignore next */
         callback(new Error("1-Wire device search timeout - are you running ConfigurableFirmata?"));
@@ -5936,7 +5942,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         bytes.push.apply(bytes, _toConsumableArray(dataToWrite));
       }
 
-      var output = [START_SYSEX, ONEWIRE_DATA, subcommand, pin].concat(_toConsumableArray(Encoder7Bit.to7BitArray(bytes)), [END_SYSEX]);
+      var output = [START_SYSEX$1, ONEWIRE_DATA, subcommand, pin].concat(_toConsumableArray(Encoder7Bit.to7BitArray(bytes)), [END_SYSEX$1]);
       writeToTransport(this, output);
 
       if (event && callback) {
@@ -5953,7 +5959,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     value: function setSamplingInterval(interval) {
       var safeint = interval < 10 ? 10 : interval > 65535 ? 65535 : interval;
       this.settings.samplingInterval = safeint;
-      writeToTransport(this, [START_SYSEX, SAMPLING_INTERVAL, safeint & 0x7F, safeint >> 7 & 0x7F, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SAMPLING_INTERVAL, safeint & 0x7F, safeint >> 7 & 0x7F, END_SYSEX$1]);
     }
     /**
      * Get sampling interval in millis. Default is 19 ms
@@ -6016,7 +6022,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
           pulseOut = _options$pulseOut === void 0 ? 0 : _options$pulseOut,
           _options$timeout = options.timeout,
           timeout = _options$timeout === void 0 ? 1000000 : _options$timeout;
-      writeToTransport(this, [START_SYSEX, PING_READ, pin, value].concat(_toConsumableArray(Firmata.encode([pulseOut >> 24 & 0xFF, pulseOut >> 16 & 0xFF, pulseOut >> 8 & 0xFF, pulseOut & 0xFF])), _toConsumableArray(Firmata.encode([timeout >> 24 & 0xFF, timeout >> 16 & 0xFF, timeout >> 8 & 0xFF, timeout & 0xFF])), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, PING_READ, pin, value].concat(_toConsumableArray(Firmata.encode([pulseOut >> 24 & 0xFF, pulseOut >> 16 & 0xFF, pulseOut >> 8 & 0xFF, pulseOut & 0xFF])), _toConsumableArray(Firmata.encode([timeout >> 24 & 0xFF, timeout >> 16 & 0xFF, timeout >> 8 & 0xFF, timeout & 0xFF])), [END_SYSEX$1]));
       this.once("ping-read-".concat(pin), callback);
     }
     /**
@@ -6054,7 +6060,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
           stepSize = _options$stepSize === void 0 ? this.STEPPER.STEP_SIZE.WHOLE : _options$stepSize,
           _options$type = options.type,
           type = _options$type === void 0 ? this.STEPPER.TYPE.FOUR_WIRE : _options$type;
-      var data = [START_SYSEX, ACCELSTEPPER, 0x00, // STEPPER_CONFIG from firmware
+      var data = [START_SYSEX$1, ACCELSTEPPER, 0x00, // STEPPER_CONFIG from firmware
       deviceNum];
       var iface = (type & 0x07) << 4 | (stepSize & 0x07) << 1;
       var pinsToInvert = 0x00;
@@ -6092,7 +6098,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         }
       }
 
-      data.push(pinsToInvert, END_SYSEX);
+      data.push(pinsToInvert, END_SYSEX$1);
       writeToTransport(this, data);
     }
     /**
@@ -6104,8 +6110,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperZero",
     value: function accelStepperZero(deviceNum) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x01, // STEPPER_ZERO from firmware
-      deviceNum, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x01, // STEPPER_ZERO from firmware
+      deviceNum, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to move a stepper a number of steps
@@ -6118,8 +6124,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperStep",
     value: function accelStepperStep(deviceNum, steps, callback) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x02, // STEPPER_STEP from firmware
-      deviceNum].concat(_toConsumableArray(encode32BitSignedInteger(steps)), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x02, // STEPPER_STEP from firmware
+      deviceNum].concat(_toConsumableArray(encode32BitSignedInteger(steps)), [END_SYSEX$1]));
 
       if (callback) {
         this.once("stepper-done-".concat(deviceNum), callback);
@@ -6134,8 +6140,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperTo",
     value: function accelStepperTo(deviceNum, position, callback) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x03, // STEPPER_TO from firmware
-      deviceNum].concat(_toConsumableArray(encode32BitSignedInteger(position)), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x03, // STEPPER_TO from firmware
+      deviceNum].concat(_toConsumableArray(encode32BitSignedInteger(position)), [END_SYSEX$1]));
 
       if (callback) {
         this.once("stepper-done-".concat(deviceNum), callback);
@@ -6151,8 +6157,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "accelStepperEnable",
     value: function accelStepperEnable(deviceNum) {
       var enabled = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x04, // ENABLE from firmware
-      deviceNum, enabled & 0x01, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x04, // ENABLE from firmware
+      deviceNum, enabled & 0x01, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to stop a stepper
@@ -6162,8 +6168,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperStop",
     value: function accelStepperStop(deviceNum) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x05, // STEPPER_STOP from firmware
-      deviceNum, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x05, // STEPPER_STOP from firmware
+      deviceNum, END_SYSEX$1]);
     }
     /**
      * Asks the arduino to report the position of a stepper
@@ -6173,8 +6179,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperReportPosition",
     value: function accelStepperReportPosition(deviceNum, callback) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x06, // STEPPER_REPORT_POSITION from firmware
-      deviceNum, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x06, // STEPPER_REPORT_POSITION from firmware
+      deviceNum, END_SYSEX$1]);
       /* istanbul ignore else */
 
       if (callback) {
@@ -6190,8 +6196,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperAcceleration",
     value: function accelStepperAcceleration(deviceNum, acceleration) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x08, // STEPPER_SET_ACCELERATION from firmware
-      deviceNum].concat(_toConsumableArray(encodeCustomFloat(acceleration)), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x08, // STEPPER_SET_ACCELERATION from firmware
+      deviceNum].concat(_toConsumableArray(encodeCustomFloat(acceleration)), [END_SYSEX$1]));
     }
     /**
      * Asks the arduino to set the max speed for a stepper
@@ -6203,8 +6209,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "accelStepperSpeed",
     value: function accelStepperSpeed(deviceNum, speed) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x09, // STEPPER_SET_SPEED from firmware
-      deviceNum].concat(_toConsumableArray(encodeCustomFloat(speed)), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x09, // STEPPER_SET_SPEED from firmware
+      deviceNum].concat(_toConsumableArray(encodeCustomFloat(speed)), [END_SYSEX$1]));
     }
     /**
      * Asks the arduino to configure a multiStepper group
@@ -6216,8 +6222,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "multiStepperConfig",
     value: function multiStepperConfig(options) {
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x20, // MULTISTEPPER_CONFIG from firmware
-      options.groupNum].concat(_toConsumableArray(options.devices), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x20, // MULTISTEPPER_CONFIG from firmware
+      options.groupNum].concat(_toConsumableArray(options.devices), [END_SYSEX$1]));
     }
     /**
      * Asks the arduino to move a multiStepper group
@@ -6232,10 +6238,10 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         throw new RangeError("Invalid \"groupNum\": ".concat(groupNum, ". Expected \"groupNum\" between 0-5"));
       }
 
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x21, // MULTISTEPPER_TO from firmware
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x21, // MULTISTEPPER_TO from firmware
       groupNum].concat(_toConsumableArray(positions.reduce(function (a, b) {
         return a.concat.apply(a, _toConsumableArray(encode32BitSignedInteger(b)));
-      }, [])), [END_SYSEX]));
+      }, [])), [END_SYSEX$1]));
       /* istanbul ignore else */
 
       if (callback) {
@@ -6255,8 +6261,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         throw new RangeError("Invalid \"groupNum\": ".concat(groupNum, ". Expected \"groupNum\" between 0-5"));
       }
 
-      writeToTransport(this, [START_SYSEX, ACCELSTEPPER, 0x23, // MULTISTEPPER_STOP from firmware
-      groupNum, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, ACCELSTEPPER, 0x23, // MULTISTEPPER_STOP from firmware
+      groupNum, END_SYSEX$1]);
     }
     /**
      * Stepper functions to support AdvancedFirmata's asynchronous control of stepper motors
@@ -6277,8 +6283,8 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "stepperConfig",
     value: function stepperConfig(deviceNum, type, stepsPerRev, dirOrMotor1Pin, dirOrMotor2Pin, motorPin3, motorPin4) {
-      writeToTransport(this, [START_SYSEX, STEPPER, 0x00, // STEPPER_CONFIG from firmware
-      deviceNum, type, stepsPerRev & 0x7F, stepsPerRev >> 7 & 0x7F, dirOrMotor1Pin, dirOrMotor2Pin].concat(_toConsumableArray(type === this.STEPPER.TYPE.FOUR_WIRE ? [motorPin3, motorPin4] : []), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1, STEPPER, 0x00, // STEPPER_CONFIG from firmware
+      deviceNum, type, stepsPerRev & 0x7F, stepsPerRev >> 7 & 0x7F, dirOrMotor1Pin, dirOrMotor2Pin].concat(_toConsumableArray(type === this.STEPPER.TYPE.FOUR_WIRE ? [motorPin3, motorPin4] : []), [END_SYSEX$1]));
     }
     /**
      * Asks the arduino to move a stepper a number of steps at a specific speed
@@ -6304,9 +6310,9 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         decel = 0;
       }
 
-      writeToTransport(this, [START_SYSEX, STEPPER, 0x01, // STEPPER_STEP from firmware
+      writeToTransport(this, [START_SYSEX$1, STEPPER, 0x01, // STEPPER_STEP from firmware
       deviceNum, direction, // one of this.STEPPER.DIRECTION.*
-      steps & 0x7F, steps >> 7 & 0x7F, steps >> 14 & 0x7F, speed & 0x7F, speed >> 7 & 0x7F].concat(_toConsumableArray(accel > 0 || decel > 0 ? [accel & 0x7F, accel >> 7 & 0x7F, decel & 0x7F, decel >> 7 & 0x7F] : []), [END_SYSEX]));
+      steps & 0x7F, steps >> 7 & 0x7F, steps >> 14 & 0x7F, speed & 0x7F, speed >> 7 & 0x7F].concat(_toConsumableArray(accel > 0 || decel > 0 ? [accel & 0x7F, accel >> 7 & 0x7F, decel & 0x7F, decel >> 7 & 0x7F] : []), [END_SYSEX$1]));
       /* istanbul ignore else */
 
       if (callback) {
@@ -6346,7 +6352,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
       }
 
       baud = baud || 57600;
-      var data = [START_SYSEX, SERIAL_MESSAGE, SERIAL_CONFIG | portId, baud & 0x7F, baud >> 7 & 0x7F, baud >> 14 & 0x7F];
+      var data = [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_CONFIG | portId, baud & 0x7F, baud >> 7 & 0x7F, baud >> 14 & 0x7F];
 
       if (portId > 7 && typeof rxPin !== "undefined" && typeof txPin !== "undefined") {
         data.push(rxPin, txPin);
@@ -6354,7 +6360,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         throw new Error("Both RX and TX pins must be defined when using Software Serial.");
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       writeToTransport(this, data);
     }
     /**
@@ -6366,13 +6372,13 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "serialWrite",
     value: function serialWrite(portId, bytes) {
-      var data = [START_SYSEX, SERIAL_MESSAGE, SERIAL_WRITE | portId];
+      var data = [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_WRITE | portId];
 
       for (var i = 0, len = bytes.length; i < len; i++) {
         data.push(bytes[i] & 0x7F, bytes[i] >> 7 & 0x7F);
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       /* istanbul ignore else */
 
       if (bytes.length > 0) {
@@ -6392,7 +6398,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "serialRead",
     value: function serialRead(portId, maxBytesToRead, callback) {
-      var data = [START_SYSEX, SERIAL_MESSAGE, SERIAL_READ | portId, this.SERIAL_MODES.CONTINUOUS_READ];
+      var data = [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_READ | portId, this.SERIAL_MODES.CONTINUOUS_READ];
 
       if (arguments.length === 2 && typeof maxBytesToRead === "function") {
         callback = maxBytesToRead;
@@ -6400,7 +6406,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         data.push(maxBytesToRead & 0x7F, maxBytesToRead >> 7 & 0x7F);
       }
 
-      data.push(END_SYSEX);
+      data.push(END_SYSEX$1);
       writeToTransport(this, data);
       this.on("serial-data-".concat(portId), callback);
     }
@@ -6413,7 +6419,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "serialStop",
     value: function serialStop(portId) {
-      writeToTransport(this, [START_SYSEX, SERIAL_MESSAGE, SERIAL_READ | portId, this.SERIAL_MODES.STOP_READING, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_READ | portId, this.SERIAL_MODES.STOP_READING, END_SYSEX$1]);
       this.removeAllListeners("serial-data-".concat(portId));
     }
     /**
@@ -6424,7 +6430,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "serialClose",
     value: function serialClose(portId) {
-      writeToTransport(this, [START_SYSEX, SERIAL_MESSAGE, SERIAL_CLOSE | portId, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_CLOSE | portId, END_SYSEX$1]);
     }
     /**
      * Flush the specified serial port. For hardware serial, this waits for the transmission of
@@ -6436,7 +6442,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "serialFlush",
     value: function serialFlush(portId) {
-      writeToTransport(this, [START_SYSEX, SERIAL_MESSAGE, SERIAL_FLUSH | portId, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_FLUSH | portId, END_SYSEX$1]);
     }
     /**
      * For SoftwareSerial only. Only a single SoftwareSerial instance can read data at a time.
@@ -6453,7 +6459,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         return;
       }
 
-      writeToTransport(this, [START_SYSEX, SERIAL_MESSAGE, SERIAL_LISTEN | portId, END_SYSEX]);
+      writeToTransport(this, [START_SYSEX$1, SERIAL_MESSAGE, SERIAL_LISTEN | portId, END_SYSEX$1]);
     }
     /**
      * Allow user code to handle arbitrary sysex responses
@@ -6516,7 +6522,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
         throw new Error("Sysex Command cannot be empty");
       }
 
-      writeToTransport(this, [START_SYSEX].concat(_toConsumableArray(message.slice()), [END_SYSEX]));
+      writeToTransport(this, [START_SYSEX$1].concat(_toConsumableArray(message.slice()), [END_SYSEX$1]));
       return this;
     }
     /**
@@ -12279,8 +12285,79 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
   return WebSerialBinding;
 }(AbstractBinding);
 
+var START_SYSEX = 0xF0;
+var STRING_DATA = 0x71;
+var END_SYSEX = 0xF7;
+var FIRMATA_7BIT_MASK = 0x7F;
+var PIXEL_SHIFT_WRAP = 0x40;
+var PIXEL_COMMAND = 0x51;
+var PIXEL_OFF = 0x00;
+var PIXEL_CONFIG = 0x01;
+var PIXEL_SHOW = 0x02;
+var PIXEL_SET_PIXEL = 0x03;
+var PIXEL_SET_STRIP = 0x04;
+var PIXEL_SHIFT = 0x05;
+var SHIFT_FORWARD = 0x20;
+var SHIFT_BACKWARD = 0x00;
+var MAX_STRIPS = 8;
+var PIN_DEFAULT = 6; // use this if not supplied
+
+var I2C_DEFAULT = 0x42;
+var GAMMA_DEFAULT = 1.0; // set to 1.0 in 0.9, 2.8 in 0.10
+
+var COLOR_ORDER = {
+  GRB: 0x00,
+  RGB: 0x01,
+  BRG: 0x02
+};
+var constants = {
+  START_SYSEX: START_SYSEX,
+  STRING_DATA: STRING_DATA,
+  END_SYSEX: END_SYSEX,
+  FIRMATA_7BIT_MASK: FIRMATA_7BIT_MASK,
+  PIXEL_SHIFT_WRAP: PIXEL_SHIFT_WRAP,
+  PIXEL_COMMAND: PIXEL_COMMAND,
+  PIXEL_OFF: PIXEL_OFF,
+  PIXEL_CONFIG: PIXEL_CONFIG,
+  PIXEL_SHOW: PIXEL_SHOW,
+  PIXEL_SET_PIXEL: PIXEL_SET_PIXEL,
+  PIXEL_SET_STRIP: PIXEL_SET_STRIP,
+  PIXEL_SHIFT: PIXEL_SHIFT,
+  SHIFT_FORWARD: SHIFT_FORWARD,
+  SHIFT_BACKWARD: SHIFT_BACKWARD,
+  MAX_STRIPS: MAX_STRIPS,
+  PIN_DEFAULT: PIN_DEFAULT,
+  I2C_DEFAULT: I2C_DEFAULT,
+  GAMMA_DEFAULT: GAMMA_DEFAULT,
+  COLOR_ORDER: COLOR_ORDER
+};
+
 lib$2.Binding = lib;
 var FirmataClass = firmata(lib$2); // eslint-disable-next-line prefer-const
+
+var neoPixelGammaTable = function (steps, gamma) {
+  var gammaTable = new Array(steps);
+
+  for (var i = 0; i < steps; i++) {
+    gammaTable[i] = Math.floor(Math.pow(i / 255.0, gamma) * 255 + 0.5);
+  }
+
+  return gammaTable;
+}(256, 2.8);
+
+var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
+  // colors are assumed to be an array of [r, g, b] bytes
+  // colorValue returns a packed value able to be pushed to firmata rather than
+  // text values.
+  // if gammaTable is passed then it should use the supplied gamma
+  // correction table to correct the received value.
+  // before sending, account for gamma correction.
+  var gammaCorrectedColor = Object.assign({}, colors);
+  gammaCorrectedColor[0] = gammaTable[gammaCorrectedColor[0]];
+  gammaCorrectedColor[1] = gammaTable[gammaCorrectedColor[1]];
+  gammaCorrectedColor[2] = gammaTable[gammaCorrectedColor[2]];
+  return (gammaCorrectedColor[0] << 16) + (gammaCorrectedColor[1] << 8) + gammaCorrectedColor[2];
+};
 
 var FirmataBoard = /*#__PURE__*/function () {
   /**
@@ -12311,6 +12388,7 @@ var FirmataBoard = /*#__PURE__*/function () {
 
     this.port = null;
     this.portInfo = null;
+    this.neoPixel = null;
   }
 
   _createClass(FirmataBoard, [{
@@ -12364,19 +12442,19 @@ var FirmataBoard = /*#__PURE__*/function () {
                   });
                 }
 
-                return _context.abrupt("return", new Promise(function (resolve) {
+                return _context.abrupt("return", new Promise(function (resolve, reject) {
                   _this.port.open(function (error) {
                     if (error) {
                       _this.releaseBoard();
 
-                      resolve("".concat(error));
+                      reject(error);
                       return;
                     }
 
                     _this.board.once('ready', function () {
                       _this.onBoarReady();
 
-                      resolve("connected to ".concat(JSON.stringify(_this.portInfo)));
+                      resolve(_this.portInfo);
                     });
                   });
                 }));
@@ -12418,24 +12496,54 @@ var FirmataBoard = /*#__PURE__*/function () {
     }
   }, {
     key: "releaseBoard",
-    value: function releaseBoard() {
-      this.state = 'disconnect';
+    value: function () {
+      var _releaseBoard = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (!this.isReady()) {
+                  _context2.next = 3;
+                  break;
+                }
 
-      if (this.port && this.port.isOpen) {
-        this.port.close();
+                _context2.next = 3;
+                return this.neoPixelClear();
+
+              case 3:
+                this.state = 'disconnect';
+                this.neoPixel = null;
+
+                if (this.port && this.port.isOpen) {
+                  this.port.close();
+                }
+
+                this.port = null;
+                this.board = null;
+                this.oneWireDevices = null;
+                this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+                  name: this.name,
+                  path: this.portInfo
+                });
+
+              case 10:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function releaseBoard() {
+        return _releaseBoard.apply(this, arguments);
       }
 
-      this.port = null;
-      this.board = null;
-      this.oneWireDevices = null;
-    }
+      return releaseBoard;
+    }()
   }, {
     key: "disconnect",
     value: function disconnect() {
-      this.releaseBoard(); // this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-      //     name: this.name,
-      //     path: this.portInfo
-      // });
+      this.releaseBoard();
     }
     /**
      * Handle an error resulting from losing connection to a peripheral.
@@ -12588,6 +12696,121 @@ var FirmataBoard = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "neoPixelConfigStrip",
+    value: function neoPixelConfigStrip(pin, length) {
+      var _this6 = this;
+
+      // now send the config message with length and data point.
+      this.neoPixel = {
+        pin: pin,
+        length: length
+      };
+      var data = new Array(7);
+      data[0] = constants.START_SYSEX;
+      data[1] = constants.PIXEL_COMMAND;
+      data[2] = constants.PIXEL_CONFIG;
+      data[3] = constants.COLOR_ORDER.GRB << 5 | pin;
+      data[4] = length & constants.FIRMATA_7BIT_MASK;
+      data[5] = length >> 7 & constants.FIRMATA_7BIT_MASK;
+      data[6] = constants.END_SYSEX;
+      return new Promise(function (resolve) {
+        _this6.port.write(data, function () {
+          return resolve();
+        });
+      });
+    }
+  }, {
+    key: "neoPixelSetColor",
+    value: function neoPixelSetColor(index, color) {
+      var _this7 = this;
+
+      if (!this.neoPixel) return Promise.resolve();
+      var address = Math.min(this.neoPixel.length, Math.max(0, index));
+      var colorValue = neoPixelColorValue(color, neoPixelGammaTable);
+      var data = new Array(10);
+      data[0] = constants.START_SYSEX;
+      data[1] = constants.PIXEL_COMMAND;
+      data[2] = constants.PIXEL_SET_PIXEL;
+      data[3] = address & constants.FIRMATA_7BIT_MASK;
+      data[4] = address >> 7 & constants.FIRMATA_7BIT_MASK;
+      data[5] = colorValue & constants.FIRMATA_7BIT_MASK;
+      data[6] = colorValue >> 7 & constants.FIRMATA_7BIT_MASK;
+      data[7] = colorValue >> 14 & constants.FIRMATA_7BIT_MASK;
+      data[8] = colorValue >> 21 & constants.FIRMATA_7BIT_MASK;
+      data[9] = constants.END_SYSEX;
+      return new Promise(function (resolve) {
+        _this7.port.write(data, function () {
+          return resolve();
+        });
+      });
+    }
+  }, {
+    key: "neoPixelClear",
+    value: function () {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+        var index;
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (this.neoPixel) {
+                  _context3.next = 2;
+                  break;
+                }
+
+                return _context3.abrupt("return", Promise.resolve());
+
+              case 2:
+                index = 0;
+
+              case 3:
+                if (!(index < this.neoPixel.length)) {
+                  _context3.next = 9;
+                  break;
+                }
+
+                _context3.next = 6;
+                return this.neoPixelSetColor(index, [0, 0, 0]);
+
+              case 6:
+                index++;
+                _context3.next = 3;
+                break;
+
+              case 9:
+                return _context3.abrupt("return", this.neoPixelShow());
+
+              case 10:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function neoPixelClear() {
+        return _neoPixelClear.apply(this, arguments);
+      }
+
+      return neoPixelClear;
+    }()
+  }, {
+    key: "neoPixelShow",
+    value: function neoPixelShow() {
+      var _this8 = this;
+
+      var data = [];
+      data[0] = constants.START_SYSEX;
+      data[1] = constants.PIXEL_COMMAND;
+      data[2] = constants.PIXEL_SHOW;
+      data[3] = constants.END_SYSEX;
+      return new Promise(function (resolve) {
+        _this8.port.write(data, function () {
+          return resolve();
+        });
+      });
+    }
+  }, {
     key: "MODES",
     get: function get() {
       return this.board.MODES;
@@ -12702,29 +12925,77 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       formatMessage = runtime.formatMessage;
     }
 
-    this.board = new FirmataBoard(runtime);
+    this.board = new FirmataBoard(runtime); // register to call scan()/connect()
+
+    this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
     this.runtime.addListener(this.runtime.constructor.PERIPHERAL_CONNECTED, function (peripheral) {
-      if (peripheral.name === _this.board.name && peripheral.path === _this.board.portPath) ;
+      if (!peripheral) return;
+
+      if (peripheral.name === _this.board.name && peripheral.portInfo === _this.board.portInfo) ;
     });
     this.runtime.addListener(this.runtime.constructor.PERIPHERAL_DISCONNECTED, function (peripheral) {
-      if (peripheral.name === _this.board.name && peripheral.path === _this.board.portPath) {
+      if (!peripheral) return;
+
+      if (peripheral.name === _this.board.name && peripheral.portInfo === _this.board.portInfo) {
         _this.runtime.emit(_this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
           message: "Scratch lost connection to",
           extensionId: EXTENSION_ID
         });
       }
     });
+    this.runtime.on('PROJECT_STOP_ALL', function () {
+      _this.neoPixelClear();
+    });
   }
+  /**
+   * Called by the runtime when user wants to scan for a peripheral.
+   * @returns {Promise} - a Promise which resolves when a board was connected
+   */
+
 
   _createClass(ExtensionBlocks, [{
+    key: "scan",
+    value: function scan() {
+      return this.connectBoard();
+    }
+    /**
+     * Called by the runtime when user wants to connect to a certain peripheral.
+     * @param {number} id - the id of the peripheral to connect to.
+     */
+
+  }, {
+    key: "connect",
+    value: function connect() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      console.log(args);
+    }
+    /**
+     * Called by the runtime when user wants to cancel scanning or the peripheral was disconnected.
+     */
+
+  }, {
+    key: "disconnect",
+    value: function disconnect() {
+      console.log('disconnect');
+      this.disconnectBoard();
+    }
+  }, {
     key: "isConnected",
     value: function isConnected() {
+      if (!this.board) return false;
       return this.board.isReady();
     }
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      return this.board.requestPort();
+      var _this2 = this;
+
+      return this.board.requestPort().then(function () {
+        _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_CONNECTED);
+      });
     }
   }, {
     key: "disconnectBoard",
@@ -12748,15 +13019,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "digitalIsHigh",
     value: function digitalIsHigh(args) {
-      var _this2 = this;
+      var _this3 = this;
 
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.INPUT);
       return new Promise(function (resolve) {
-        _this2.board.digitalRead(pin, function (value) {
+        _this3.board.digitalRead(pin, function (value) {
           // `board.digitalRead()` starts reporting automatically, so it should be stopped.
-          _this2.board.reportDigitalPin(pin, 0);
+          _this3.board.reportDigitalPin(pin, 0);
 
           resolve(value !== 0);
         });
@@ -12794,15 +13065,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "analogLevelGet",
     value: function analogLevelGet(args) {
-      var _this3 = this;
+      var _this4 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.ANALOG);
       return new Promise(function (resolve) {
-        _this3.board.analogRead(pin, function (value) {
+        _this4.board.analogRead(pin, function (value) {
           // `board.analogRead()` starts reporting automatically, so it should be stopped.
-          _this3.board.reportAnalogPin(pin, 0);
+          _this4.board.reportAnalogPin(pin, 0);
 
           resolve(value);
         });
@@ -12847,7 +13118,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(args) {
-      var _this4 = this;
+      var _this5 = this;
 
       console.log(args);
       if (!this.isConnected()) return;
@@ -12855,7 +13126,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var register = stringToNumber(args.REGISTER);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
       return new Promise(function (resolve) {
-        _this4.board.i2cReadOnce(address, register, length, function (data) {
+        _this5.board.i2cReadOnce(address, register, length, function (data) {
           resolve(numericArrayToString(data));
         });
       }).catch(function (reason) {
@@ -12917,16 +13188,38 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return 'not implemented yet';
     }
   }, {
+    key: "neoPixelConfigStrip",
+    value: function neoPixelConfigStrip(args) {
+      console.log(args);
+      if (!this.isConnected()) return Promise.resolve();
+      var pin = parseInt(args.CONNECTOR, 10);
+      var length = parseInt(cast.toNumber(args.LENGTH), 10);
+      return this.board.neoPixelConfigStrip(pin, length);
+    }
+  }, {
+    key: "neoPixelShow",
+    value: function neoPixelShow(args) {
+      console.log(args);
+      if (!this.isConnected()) return Promise.resolve();
+      return this.board.neoPixelShow();
+    }
+  }, {
     key: "neoPixelSetColor",
     value: function neoPixelSetColor(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return Promise.resolve();
+      var index = parseInt(cast.toNumber(args.POSITION), 10) - 1;
+      var r = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.RED), 10)));
+      var g = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.GREEN), 10)));
+      var b = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.BLUE), 10)));
+      return this.board.neoPixelSetColor(index, [r, g, b]);
     }
   }, {
     key: "neoPixelClear",
     value: function neoPixelClear(args) {
       console.log(args);
-      return 'not implemented yet';
+      if (!this.isConnected()) return Promise.resolve();
+      return this.board.neoPixelClear();
     }
   }, {
     key: "numberAtIndex",
@@ -12995,7 +13288,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         name: ExtensionBlocks.EXTENSION_NAME,
         extensionURL: ExtensionBlocks.extensionURL,
         blockIconURI: img,
-        showStatusButton: false,
+        showStatusButton: true,
         blocks: [{
           opcode: 'connectBoard',
           blockType: blockType.COMMAND,
@@ -13255,18 +13548,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, '---', {
-          opcode: 'neoPixelSetColor',
+          opcode: 'neoPixelConfigStrip',
           blockType: blockType.COMMAND,
           text: formatMessage({
-            id: 'g2s.neoPixelSetColor',
-            default: 'NeoPixel [CONNECTOR] set [POSITION] R [RED] G [GREEN] B [BLUE]',
-            description: 'set NeoPixel color on the connector'
+            id: 'g2s.neoPixelConfigStrip',
+            default: 'NeoPixel [CONNECTOR] length [LENGTH]',
+            description: 'configure NeoPixel on the connector'
           }),
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
               menu: 'digitalConnectorMenu'
             },
+            LENGTH: {
+              type: argumentType.NUMBER,
+              defaultValue: '16'
+            }
+          }
+        }, {
+          opcode: 'neoPixelSetColor',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.neoPixelSetColor',
+            default: 'NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]',
+            description: 'set NeoPixel color'
+          }),
+          arguments: {
             POSITION: {
               type: argumentType.NUMBER,
               defaultValue: '1'
@@ -13285,19 +13592,23 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, {
+          opcode: 'neoPixelShow',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.neoPixelShow',
+            default: 'NeoPixel show',
+            description: 'show NeoPixel'
+          }),
+          arguments: {}
+        }, {
           opcode: 'neoPixelClear',
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelClear',
-            default: 'NeoPixel clear on [CONNECTOR]',
-            description: 'clear NeoPixel on the connector'
+            default: 'NeoPixel clear',
+            description: 'clear NeoPixel'
           }),
-          arguments: {
-            CONNECTOR: {
-              type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
-            }
-          }
+          arguments: {}
         }, '---', {
           opcode: 'numberAtIndex',
           blockType: blockType.REPORTER,
