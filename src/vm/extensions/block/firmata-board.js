@@ -143,9 +143,6 @@ class FirmataBoard {
     }
 
     async releaseBoard () {
-        if (this.isReady()) {
-            await this.neoPixelClear();
-        }
         this.state = 'disconnect';
         this.neoPixel = null;
         if (this.port && this.port.isOpen) {
