@@ -10,7 +10,7 @@ import {
     PIXEL_CONFIG,
     PIXEL_SET_PIXEL,
     PIXEL_SHOW
-} from './node-pixel/lib/constants';
+} from './node-pixel-constants';
 
 
 // Setup transport of Firmata.
