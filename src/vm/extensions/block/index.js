@@ -206,8 +206,6 @@ class ExtensionBlocks {
         this.board.pinMode(pin, this.board.MODES.INPUT);
         return new Promise(resolve => {
             this.board.digitalRead(pin, value => {
-                // `board.digitalRead()` starts reporting automatically, so it should be stopped.
-                this.board.reportDigitalPin(pin, 0);
                 resolve(value !== 0);
             });
         });
