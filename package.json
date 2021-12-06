@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@serialport/stream": "^9.2.4",
+    "firmata-io": "https://gitpkg.now.sh/yokobond/firmata.js/packages/firmata-io?xcx-g2s",
     "web-serial-binding": "github:jaz303/web-serial-binding"
   }
 }

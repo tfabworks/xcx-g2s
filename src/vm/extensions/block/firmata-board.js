@@ -1,4 +1,4 @@
-import bindTransport from './firmata-io';
+import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
 import {
