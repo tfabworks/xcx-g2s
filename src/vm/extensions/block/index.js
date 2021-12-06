@@ -244,8 +244,6 @@ class ExtensionBlocks {
         this.board.pinMode(pin, this.board.MODES.ANALOG);
         return new Promise(resolve => {
             this.board.analogRead(pin, value => {
-                // `board.analogRead()` starts reporting automatically, so it should be stopped.
-                this.board.reportAnalogPin(pin, 0);
                 resolve(value);
             });
         });
