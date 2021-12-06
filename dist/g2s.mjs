@@ -5007,7 +5007,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
 
     _this.transport.on("close", function (event) {
       // https://github.com/node-serialport/node-serialport/blob/5.0.0/UPGRADE_GUIDE.md#opening-and-closing
-      if (event && event.disconnect && event.disconnected) {
+      if (event && event.disconnected) {
         _this.emit("disconnect");
 
         return;
@@ -12285,6 +12285,8 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
   return WebSerialBinding;
 }(AbstractBinding);
 
+// ajfisher/node-pixel: https://github.com/ajfisher/node-pixel
+
 var START_SYSEX = 0xF0;
 var STRING_DATA = 0x71;
 var END_SYSEX = 0xF7;
@@ -12310,7 +12312,7 @@ var COLOR_ORDER = {
   RGB: 0x01,
   BRG: 0x02
 };
-var constants = {
+var nodePixelConstants = {
   START_SYSEX: START_SYSEX,
   STRING_DATA: STRING_DATA,
   END_SYSEX: END_SYSEX,
@@ -12502,15 +12504,6 @@ var FirmataBoard = /*#__PURE__*/function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                if (!this.isReady()) {
-                  _context2.next = 3;
-                  break;
-                }
-
-                _context2.next = 3;
-                return this.neoPixelClear();
-
-              case 3:
                 this.state = 'disconnect';
                 this.neoPixel = null;
 
@@ -12526,7 +12519,7 @@ var FirmataBoard = /*#__PURE__*/function () {
                   path: this.portInfo
                 });
 
-              case 10:
+              case 7:
               case "end":
                 return _context2.stop();
             }
@@ -12706,13 +12699,13 @@ var FirmataBoard = /*#__PURE__*/function () {
         length: length
       };
       var data = new Array(7);
-      data[0] = constants.START_SYSEX;
-      data[1] = constants.PIXEL_COMMAND;
-      data[2] = constants.PIXEL_CONFIG;
-      data[3] = constants.COLOR_ORDER.GRB << 5 | pin;
-      data[4] = length & constants.FIRMATA_7BIT_MASK;
-      data[5] = length >> 7 & constants.FIRMATA_7BIT_MASK;
-      data[6] = constants.END_SYSEX;
+      data[0] = nodePixelConstants.START_SYSEX;
+      data[1] = nodePixelConstants.PIXEL_COMMAND;
+      data[2] = nodePixelConstants.PIXEL_CONFIG;
+      data[3] = nodePixelConstants.COLOR_ORDER.GRB << 5 | pin;
+      data[4] = length & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[5] = length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[6] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
         _this6.port.write(data, function () {
           return resolve();
@@ -12728,16 +12721,16 @@ var FirmataBoard = /*#__PURE__*/function () {
       var address = Math.min(this.neoPixel.length, Math.max(0, index));
       var colorValue = neoPixelColorValue(color, neoPixelGammaTable);
       var data = new Array(10);
-      data[0] = constants.START_SYSEX;
-      data[1] = constants.PIXEL_COMMAND;
-      data[2] = constants.PIXEL_SET_PIXEL;
-      data[3] = address & constants.FIRMATA_7BIT_MASK;
-      data[4] = address >> 7 & constants.FIRMATA_7BIT_MASK;
-      data[5] = colorValue & constants.FIRMATA_7BIT_MASK;
-      data[6] = colorValue >> 7 & constants.FIRMATA_7BIT_MASK;
-      data[7] = colorValue >> 14 & constants.FIRMATA_7BIT_MASK;
-      data[8] = colorValue >> 21 & constants.FIRMATA_7BIT_MASK;
-      data[9] = constants.END_SYSEX;
+      data[0] = nodePixelConstants.START_SYSEX;
+      data[1] = nodePixelConstants.PIXEL_COMMAND;
+      data[2] = nodePixelConstants.PIXEL_SET_PIXEL;
+      data[3] = address & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[4] = address >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[5] = colorValue & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[6] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[7] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[8] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
+      data[9] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
         _this7.port.write(data, function () {
           return resolve();
@@ -12800,10 +12793,10 @@ var FirmataBoard = /*#__PURE__*/function () {
       var _this8 = this;
 
       var data = [];
-      data[0] = constants.START_SYSEX;
-      data[1] = constants.PIXEL_COMMAND;
-      data[2] = constants.PIXEL_SHOW;
-      data[3] = constants.END_SYSEX;
+      data[0] = nodePixelConstants.START_SYSEX;
+      data[1] = nodePixelConstants.PIXEL_COMMAND;
+      data[2] = nodePixelConstants.PIXEL_SHOW;
+      data[3] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
         _this8.port.write(data, function () {
           return resolve();
