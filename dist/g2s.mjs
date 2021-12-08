@@ -12389,6 +12389,11 @@ var FirmataBoard = /*#__PURE__*/function () {
      */
 
     this.port = null;
+    /**
+     * ID of the extension which requested to open port.
+     */
+
+    this.extensionId = null;
     this.portInfo = null;
     this.neoPixel = null;
   }
@@ -12396,7 +12401,7 @@ var FirmataBoard = /*#__PURE__*/function () {
   _createClass(FirmataBoard, [{
     key: "requestPort",
     value: function () {
-      var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+      var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId) {
         var _this = this;
 
         var nativePort;
@@ -12413,10 +12418,11 @@ var FirmataBoard = /*#__PURE__*/function () {
 
               case 2:
                 this.state = 'portRequesting';
-                _context.next = 5;
+                this.extensionId = extensionId;
+                _context.next = 6;
                 return navigator.serial.requestPort();
 
-              case 5:
+              case 6:
                 nativePort = _context.sent;
                 this.port = new lib$2(nativePort, {
                   baudRate: 57600,
@@ -12425,10 +12431,20 @@ var FirmataBoard = /*#__PURE__*/function () {
                 });
                 this.portInfo = this.port.path.getInfo();
                 this.board = new FirmataClass(this.port);
-                this.board.once('connect', function () {
+                this.board.once('open', function () {
                   _this.state = 'connect';
                 });
-                this.board.once('close', function (error) {
+                this.board.once('close', function () {
+                  if (_this.state === 'disconnect') return;
+
+                  _this.releaseBoard();
+                });
+                this.board.once('disconnect', function (error) {
+                  if (_this.state === 'disconnect') return;
+
+                  _this.handleDisconnectError(error);
+                });
+                this.board.once('error', function (error) {
                   if (_this.state === 'disconnect') return;
 
                   if (error) {
@@ -12456,12 +12472,12 @@ var FirmataBoard = /*#__PURE__*/function () {
                     _this.board.once('ready', function () {
                       _this.onBoarReady();
 
-                      resolve(_this.portInfo);
+                      resolve('connected');
                     });
                   });
                 }));
 
-              case 13:
+              case 16:
               case "end":
                 return _context.stop();
             }
@@ -12469,7 +12485,7 @@ var FirmataBoard = /*#__PURE__*/function () {
         }, _callee, this);
       }));
 
-      function requestPort() {
+      function requestPort(_x) {
         return _requestPort.apply(this, arguments);
       }
 
@@ -12479,12 +12495,13 @@ var FirmataBoard = /*#__PURE__*/function () {
     key: "onBoarReady",
     value: function onBoarReady() {
       var firmInfo = this.board.firmware;
-      console.log("".concat(firmInfo.name, "-").concat(firmInfo.version.major, ".").concat(firmInfo.version.minor));
+      console.log("".concat(firmInfo.name, "-").concat(firmInfo.version.major, ".").concat(firmInfo.version.minor, " on: ").concat(JSON.stringify(this.portInfo)));
       this.board.i2cConfig();
-      this.state = 'ready'; // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-      //     name: this.name,
-      //     path: this.portInfo
-      // });
+      this.state = 'ready';
+      this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+        name: this.name,
+        path: this.portInfo
+      });
     }
   }, {
     key: "isConnected",
@@ -12514,12 +12531,13 @@ var FirmataBoard = /*#__PURE__*/function () {
                 this.port = null;
                 this.board = null;
                 this.oneWireDevices = null;
+                this.extensionId = null;
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
                   name: this.name,
                   path: this.portInfo
                 });
 
-              case 7:
+              case 8:
               case "end":
                 return _context2.stop();
             }
@@ -12554,8 +12572,13 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "handleDisconnectError",
     value: function handleDisconnectError(error) {
-      console.err(error);
       if (this.state === 'disconnect') return;
+      error = error ? error : 'Firmata was disconnected by device';
+      console.error(error);
+      this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
+        message: "Scratch lost connection to",
+        extensionId: this.extensionId
+      });
       this.disconnect();
     }
   }, {
@@ -12984,11 +13007,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      var _this2 = this;
-
-      return this.board.requestPort().then(function () {
-        _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_CONNECTED);
-      });
+      return this.board.requestPort(EXTENSION_ID);
     }
   }, {
     key: "disconnectBoard",
@@ -13012,16 +13031,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "digitalIsHigh",
     value: function digitalIsHigh(args) {
-      var _this3 = this;
+      var _this2 = this;
 
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.INPUT);
       return new Promise(function (resolve) {
-        _this3.board.digitalRead(pin, function (value) {
-          // `board.digitalRead()` starts reporting automatically, so it should be stopped.
-          _this3.board.reportDigitalPin(pin, 0);
-
+        _this2.board.digitalRead(pin, function (value) {
           resolve(value !== 0);
         });
       });
@@ -13058,16 +13074,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "analogLevelGet",
     value: function analogLevelGet(args) {
-      var _this4 = this;
+      var _this3 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.ANALOG);
       return new Promise(function (resolve) {
-        _this4.board.analogRead(pin, function (value) {
-          // `board.analogRead()` starts reporting automatically, so it should be stopped.
-          _this4.board.reportAnalogPin(pin, 0);
-
+        _this3.board.analogRead(pin, function (value) {
           resolve(value);
         });
       });
@@ -13111,7 +13124,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(args) {
-      var _this5 = this;
+      var _this4 = this;
 
       console.log(args);
       if (!this.isConnected()) return;
@@ -13119,7 +13132,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var register = stringToNumber(args.REGISTER);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
       return new Promise(function (resolve) {
-        _this5.board.i2cReadOnce(address, register, length, function (data) {
+        _this4.board.i2cReadOnce(address, register, length, function (data) {
           resolve(numericArrayToString(data));
         });
       }).catch(function (reason) {
