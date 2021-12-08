@@ -75,14 +75,20 @@ class FirmataBoard {
          */
         this.port = null;
 
+        /**
+         * ID of the extension which requested to open port.
+         */
+        this.extensionId = null;
+
         this.portInfo = null;
 
         this.neoPixel = null;
     }
 
-    async requestPort () {
+    async requestPort (extensionId) {
         if (this.port) return;
         this.state = 'portRequesting';
+        this.extensionId = extensionId;
         const nativePort = await navigator.serial.requestPort();
         this.port = new SerialPort(nativePort, {
             baudRate: 57600, // firmata: 57600
@@ -90,10 +96,18 @@ class FirmataBoard {
         });
         this.portInfo = this.port.path.getInfo();
         this.board = new FirmataClass(this.port);
-        this.board.once('connect', () => {
+        this.board.once('open', () => {
             this.state = 'connect';
         });
-        this.board.once('close', error => {
+        this.board.once('close', () => {
+            if (this.state === 'disconnect') return;
+            this.releaseBoard();
+        });
+        this.board.once('disconnect', error => {
+            if (this.state === 'disconnect') return;
+            this.handleDisconnectError(error);
+        });
+        this.board.once('error', error => {
             if (this.state === 'disconnect') return;
             if (error) {
                 this.handleDisconnectError(error);
@@ -115,7 +129,7 @@ class FirmataBoard {
                 }
                 this.board.once('ready', () => {
                     this.onBoarReady();
-                    resolve(this.portInfo);
+                    resolve('connected');
                 });
             });
         });
@@ -124,14 +138,14 @@ class FirmataBoard {
     onBoarReady () {
         const firmInfo = this.board.firmware;
         console.log(
-            `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor}`
+            `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor} on: ${JSON.stringify(this.portInfo)}`
         );
         this.board.i2cConfig();
         this.state = 'ready';
-        // this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-        //     name: this.name,
-        //     path: this.portInfo
-        // });
+        this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+            name: this.name,
+            path: this.portInfo
+        });
     }
 
     isConnected () {
@@ -151,6 +165,7 @@ class FirmataBoard {
         this.port = null;
         this.board = null;
         this.oneWireDevices = null;
+        this.extensionId = null;
         this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
             name: this.name,
             path: this.portInfo
@@ -174,8 +189,13 @@ class FirmataBoard {
      * @returns {undefined}
      */
     handleDisconnectError (error) {
-        console.err(error);
         if (this.state === 'disconnect') return;
+        error = error ? error : 'Firmata was disconnected by device';
+        console.error(error);
+        this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
+            message: `Scratch lost connection to`,
+            extensionId: this.extensionId
+        });
         this.disconnect();
     }
 

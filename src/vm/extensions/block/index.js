@@ -177,10 +177,7 @@ class ExtensionBlocks {
     }
 
     connectBoard () {
-        return this.board.requestPort()
-            .then(() => {
-                this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED);
-            });
+        return this.board.requestPort(EXTENSION_ID);
     }
 
     disconnectBoard () {
