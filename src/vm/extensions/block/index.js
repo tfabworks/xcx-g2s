@@ -75,7 +75,7 @@ class ExtensionBlocks {
     static get EXTENSION_NAME () {
         return formatMessage({
             id: 'g2s.name',
-            default: 'Grove',
+            default: 'AkaDako',
             description: 'name of the extension'
         });
     }

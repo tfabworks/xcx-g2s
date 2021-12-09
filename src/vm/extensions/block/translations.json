@@ -1,6 +1,6 @@
 {
   "en": {
-    "g2s.name": "Grove",
+    "g2s.name": "AkaDako",
     "g2s.connectBoard": "connect board",
     "g2s.disconnectBoard": "disconnect board",
     "g2s.isConnected": "board is connected",
@@ -32,7 +32,7 @@
     "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]"
   },
   "ja": {
-    "g2s.name": "Grove",
+    "g2s.name": "AkaDako",
     "g2s.connectBoard": "ボードを接続する",
     "g2s.disconnectBoard": "ボードを切断する",
     "g2s.isConnected": "ボードに接続している",
@@ -64,7 +64,7 @@
     "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む"
   },
   "ja-Hira": {
-    "g2s.name": "Grove",
+    "g2s.name": "AkaDako",
     "g2s.connectBoard": "ボードをせつぞくする",
     "g2s.disconnectBoard": "ボードをせつだんする",
     "g2s.isConnected": "ボードにせつぞくている",

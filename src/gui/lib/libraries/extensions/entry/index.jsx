@@ -3,7 +3,7 @@
  */
 
 import iconURL from './entry-icon.png';
-import insetIconURL from './inset-icon.svg';
+import insetIconURL from './inset-icon.png';
 import translations from './translations.json';
 
 /**
@@ -18,7 +18,7 @@ const entry = {
     get name () {
         return formatMessage({
             id: 'g2s.entry.name',
-            default: 'Grove',
+            default: 'AkaDako',
             description: 'name of the extension'
         });
     },
@@ -38,7 +38,7 @@ const entry = {
     disabled: false,
     bluetoothRequired: false,
     internetConnectionRequired: false,
-    helpLink: 'https://tfabworks.github.io/xcx-g2s/',
+    helpLink: 'https://tfabworks.com/akadako/',
     setFormatMessage: formatter => {
         formatMessage = formatter;
     },
