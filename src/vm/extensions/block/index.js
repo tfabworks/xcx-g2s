@@ -414,6 +414,17 @@ class ExtensionBlocks {
         return '';
     }
 
+    bitOperation (args) {
+        const op = args.OP;
+        const left = readAsNumber(args.LEFT);
+        const right = readAsNumber(args.RIGHT);
+        if (op === '<<') return left << right;
+        if (op === '>>') return left >> right;
+        if (op === '&') return left & right;
+        if (op === '|') return left | right;
+        if (op === '^') return left ^ right;
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -833,6 +844,29 @@ class ExtensionBlocks {
                             menu: 'endianMenu'
                         }
                     }
+                },
+                {
+                    opcode: 'bitOperation',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.bitOperation',
+                        default: 'bit [LEFT] [OP] [RIGHT]',
+                        description: 'bitwise operation'
+                    }),
+                    arguments: {
+                        OP: {
+                            type: ArgumentType.STRING,
+                            menu: 'bitOperationMenu'
+                        },
+                        LEFT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x03'
+                        },
+                        RIGHT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x01'
+                        }
+                    }
                 }
             ],
             menus: {
@@ -871,6 +905,10 @@ class ExtensionBlocks {
                 endianMenu: {
                     acceptReporters: false,
                     items: ['little', 'big']
+                },
+                bitOperationMenu: {
+                    acceptReporters: false,
+                    items: ['<<', '>>', '&', '|', '^']
                 }
             }
         };
