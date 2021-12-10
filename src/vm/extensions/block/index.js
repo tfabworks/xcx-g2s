@@ -8,30 +8,23 @@ import FirmataBoard from './firmata-board';
 
 export const DEBUG = true;
 
-const stringToNumber = stringExp => {
-    try {
-        if (stringExp.includes('0x')) return parseInt(stringExp, 16);
-        return parseFloat(stringExp);
-    } catch (error) {
-        return NaN;
-    }
+const readAsNumber = stringExp => {
+    if (typeof stringExp !== 'string') return Number(stringExp);
+    if (stringExp.includes('0x')) return parseInt(stringExp, 16);
+    return parseFloat(stringExp);
 };
 
 const numericArrayToString = array => array.join(', ');
 
-const stringToNumericArray = stringExp => {
-    try {
-        stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
-        if (stringExp.includes(',')) {
-            return stringExp.split(',')
-                .map(item => stringToNumber(item));
-        }
-        return stringExp.split(/\s+/)
-            .map(item => stringToNumber(item));
-    } catch (error) {
-        console.log(error);
-        return [];
+const readAsNumericArray = stringExp => {
+    if (typeof stringExp !== 'string') return [Number(stringExp)];
+    stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+    if (stringExp.includes(',')) {
+        return stringExp.split(',')
+            .map(item => readAsNumber(item));
     }
+    return stringExp.split(/\s+/)
+        .map(item => readAsNumber(item));
 };
 
 /**
@@ -270,17 +263,17 @@ class ExtensionBlocks {
     i2cWrite (args) {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
-        const address = stringToNumber(args.ADDRESS);
-        const register = stringToNumber(args.REGISTER);
-        const data = stringToNumericArray(args.DATA);
+        const address = readAsNumber(args.ADDRESS);
+        const register = readAsNumber(args.REGISTER);
+        const data = readAsNumericArray(args.DATA);
         this.board.i2cWrite(address, register, data);
     }
 
     i2cReadOnce (args) {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
-        const address = stringToNumber(args.ADDRESS);
-        const register = stringToNumber(args.REGISTER);
+        const address = readAsNumber(args.ADDRESS);
+        const register = readAsNumber(args.REGISTER);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return new Promise(resolve => {
             this.board.i2cReadOnce(
@@ -309,7 +302,7 @@ class ExtensionBlocks {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
-        const data = stringToNumericArray(args.DATA);
+        const data = readAsNumericArray(args.DATA);
         return this.board.oneWireWrite(pin, data)
             .catch(error => {
                 console.log(error);
@@ -333,7 +326,7 @@ class ExtensionBlocks {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
-        const data = stringToNumericArray(args.DATA);
+        const data = readAsNumericArray(args.DATA);
         const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireWriteAndRead(pin, data, readLength)
             .then(readData => numericArrayToString(readData))
@@ -380,21 +373,21 @@ class ExtensionBlocks {
     }
 
     numberAtIndex (args) {
-        const array = stringToNumericArray(args.ARRAY);
-        const index = stringToNumber(args.INDEX);
+        const array = readAsNumericArray(args.ARRAY);
+        const index = readAsNumber(args.INDEX);
         if (isNaN(index) || array.length < index || index < 1) return NaN;
         return array[index - 1];
     }
 
     lengthOfNumbers (args) {
-        const array = stringToNumericArray(args.ARRAY);
+        const array = readAsNumericArray(args.ARRAY);
         return array.length;
     }
 
     readBytesAs (args) {
         if (DEBUG) console.log(args);
         try {
-            const array = stringToNumericArray(args.ARRAY);
+            const array = readAsNumericArray(args.ARRAY);
             const buffer = new Uint8Array(array).buffer;
             const dataView = new DataView(buffer);
             const little = (args.ENDIAN === 'little');
