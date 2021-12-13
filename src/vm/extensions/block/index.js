@@ -8,10 +8,6 @@ import FirmataBoard from './firmata-board';
 
 export const DEBUG = true;
 
-const readAsNumber = stringExp => {
-    if (typeof stringExp !== 'string') return Number(stringExp);
-    if (stringExp.includes('0x')) return parseInt(stringExp, 16);
-    return parseFloat(stringExp);
 };
 
 const numericArrayToString = array => array.join(', ');
@@ -21,10 +17,10 @@ const readAsNumericArray = stringExp => {
     stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
     if (stringExp.includes(',')) {
         return stringExp.split(',')
-            .map(item => readAsNumber(item));
+            .map(item => Number(item));
     }
     return stringExp.split(/\s+/)
-        .map(item => readAsNumber(item));
+        .map(item => Number(item));
 };
 
 /**
@@ -263,8 +259,8 @@ class ExtensionBlocks {
     i2cWrite (args) {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
-        const address = readAsNumber(args.ADDRESS);
-        const register = readAsNumber(args.REGISTER);
+        const address = Number(args.ADDRESS);
+        const register = Number(args.REGISTER);
         const data = readAsNumericArray(args.DATA);
         this.board.i2cWrite(address, register, data);
     }
@@ -272,8 +268,8 @@ class ExtensionBlocks {
     i2cReadOnce (args) {
         if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
-        const address = readAsNumber(args.ADDRESS);
-        const register = readAsNumber(args.REGISTER);
+        const address = Number(args.ADDRESS);
+        const register = Number(args.REGISTER);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return new Promise(resolve => {
             this.board.i2cReadOnce(
@@ -374,7 +370,7 @@ class ExtensionBlocks {
 
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
-        const index = readAsNumber(args.INDEX);
+        const index = Number(args.INDEX);
         if (isNaN(index) || array.length < index || index < 1) return NaN;
         return array[index - 1];
     }
