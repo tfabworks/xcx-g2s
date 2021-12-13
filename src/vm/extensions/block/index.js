@@ -4,10 +4,34 @@ import Cast from '../../util/cast';
 import translations from './translations.json';
 import blockIcon from './block-icon.png';
 
+import Long from 'long';
+
 import FirmataBoard from './firmata-board';
 
 export const DEBUG = true;
 
+const integer64From = (value, unsigned) => {
+    if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
+    let radix = 10;
+    if (typeof value === 'string'){
+        value = value.trim();
+        if (value.length === 0) return (unsigned ? Long.UZERO : Long.ZERO);
+        let sign = '';
+        if (value[0] === '-') {
+            sign = '-';
+            value = value.slice(1).trim();
+        }
+        if (value.includes('0x')) {
+            radix = 16;
+            value = value.slice(2);
+        }
+        if (value.includes('0b')) {
+            radix = 2;
+            value = value.slice(2);
+        }
+        return Long.fromString((sign + value), unsigned, radix);
+    }
+    return Long.fromValue(value, unsigned);
 };
 
 const numericArrayToString = array => array.join(', ');
@@ -412,13 +436,23 @@ class ExtensionBlocks {
 
     bitOperation (args) {
         const op = args.OP;
-        const left = readAsNumber(args.LEFT);
-        const right = readAsNumber(args.RIGHT);
-        if (op === '<<') return left << right;
-        if (op === '>>') return left >> right;
-        if (op === '&') return left & right;
-        if (op === '|') return left | right;
-        if (op === '^') return left ^ right;
+        const left = integer64From(args.LEFT);
+        const right = integer64From(args.RIGHT);
+        if (op === '<<') {
+            return left.shiftLeft(right).toString(10);
+        }
+        if (op === '>>') {
+            return left.shiftRight(right).toString(10);
+        }
+        if (op === '&') {
+            return left.and(right).toString(10);
+        }
+        if (op === '|') {
+            return left.or(right).toString(10);
+        }
+        if (op === '^') {
+            return left.xor(right).toString(10);
+        }
     }
 
     /**
