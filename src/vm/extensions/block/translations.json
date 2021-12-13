@@ -29,7 +29,9 @@
     "g2s.neoPixelClear": "NeoPixel clear",
     "g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
     "g2s.lengthOfNumbers": "length of numbers [ARRAY]",
-    "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]"
+    "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
+    "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
+    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -61,7 +63,9 @@
     "g2s.neoPixelClear": "NeoPixelを消す",
     "g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
     "g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
-    "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む"
+    "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
+    "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
+    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -93,6 +97,8 @@
     "g2s.neoPixelClear": "NeoPixelをけす",
     "g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
     "g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
-    "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ"
+    "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
+    "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
+    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
   }
 }
