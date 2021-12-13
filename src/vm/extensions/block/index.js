@@ -434,6 +434,27 @@ class ExtensionBlocks {
         return '';
     }
 
+    int64Operation (args) {
+        const op = args.OP;
+        const left = integer64From(args.LEFT);
+        const right = integer64From(args.RIGHT);
+        if (op === '＋') {
+            return left.add(right).toString(10);
+        }
+        if (op === '－') {
+            return left.subtract(right).toString(10);
+        }
+        if (op === '✕') {
+            return left.multiply(right).toString(10);
+        }
+        if (op === '÷') {
+            return left.divide(right).toString(10);
+        }
+        if (op === 'mod') {
+            return left.modulo(right).toString(10);
+        }
+    }
+
     bitOperation (args) {
         const op = args.OP;
         const left = integer64From(args.LEFT);
@@ -876,6 +897,29 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'int64Operation',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.int64Operation',
+                        default: 'int64 [LEFT] [OP] [RIGHT]',
+                        description: 'bitwise operation'
+                    }),
+                    arguments: {
+                        OP: {
+                            type: ArgumentType.STRING,
+                            menu: 'int64OperationMenu'
+                        },
+                        LEFT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x01'
+                        },
+                        RIGHT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x02'
+                        }
+                    }
+                },
+                {
                     opcode: 'bitOperation',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
@@ -935,6 +979,10 @@ class ExtensionBlocks {
                 endianMenu: {
                     acceptReporters: false,
                     items: ['little', 'big']
+                },
+                int64OperationMenu: {
+                    acceptReporters: false,
+                    items: ['＋', '－', '✕', '÷', 'mod']
                 },
                 bitOperationMenu: {
                     acceptReporters: false,
