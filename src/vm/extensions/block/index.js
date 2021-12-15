@@ -135,6 +135,9 @@ class ExtensionBlocks {
 
         this.board = new FirmataBoard(runtime);
 
+        this.pins = [];
+        this.digitalReadInterval = 100;
+
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
@@ -205,25 +208,53 @@ class ExtensionBlocks {
     }
 
     /**
-     * Whether the level of the connector is HIGHT as digital input.
+     * Update pin value as a digital input when the last update was too old.
+     * @param {number} pin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+    updateDigitalInput (pin) {
+        if (!this.pins[pin]) {
+            this.pins[pin] = {time: 0, level: false};
+        }
+        if ((Date.now() - this.pins[pin].time) > this.digitalReadInterval) {
+            return new Promise(resolve => {
+                this.board.digitalRead(
+                    pin,
+                    value => {
+                        this.pins[pin].level = (value !== 0);
+                        resolve(this.pins[pin].level);
+                    });
+            });
+        }
+        return new Promise.resolve(this.pins[pin].level);
+    }
+
+    /**
+     * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise} - a Promise which resolves boolean when the response was returned
+     * @returns {Promise} a Promise which resolves boolean when the response was returned
      */
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.pinMode(pin, this.board.MODES.INPUT);
-        return new Promise(resolve => {
-            this.board.digitalRead(pin, value => {
-                resolve(value !== 0);
-            });
-        });
+        return this.updateDigitalInput(pin);
     }
 
-    digitalStateChanged (args) {
-        if (DEBUG) console.log(args);
-        return false; // not implemented yet
+    /**
+     * Detect the edge as digital level of the connector for HAT block.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {boolean} args.LEVEL - level to detect edge
+     * @returns {boolean} is the level same as the current of the connector
+     */
+    digitalLevelChanged (args) {
+        if (!this.isConnected()) return Promise.resolve(false);
+        const pin = parseInt(args.CONNECTOR, 10);
+        const rise = Cast.toBoolean(args.LEVEL);
+        this.updateDigitalInput(pin); // update for the next call
+        return rise === this.pins[pin].level; // Do NOT return Promise for the hat execute correctly.
     }
 
     /**
@@ -570,21 +601,21 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'digitalStateChanged',
+                    opcode: 'digitalLevelChanged',
                     blockType: BlockType.HAT,
                     text: formatMessage({
-                        id: 'g2s.digitalStateChanged',
-                        default: 'When [CONNECTOR] is [STATE]',
-                        description: 'catch event when the connector state was changed'
+                        id: 'g2s.digitalLevelChanged',
+                        default: 'When [CONNECTOR] is [LEVEL]',
+                        description: 'catch pulse rise/fall of the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
                         },
-                        STATE: {
+                        LEVEL: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalStateMenu'
+                            menu: 'digitalLevelMenu'
                         }
                     }
                 },
@@ -953,10 +984,6 @@ class ExtensionBlocks {
                     items: this.getDigitalConnectorMenu()
                 },
                 digitalLevelMenu: {
-                    acceptReporters: true,
-                    items: this.getDigitalLevelMenu()
-                },
-                digitalStateMenu: {
                     acceptReporters: true,
                     items: this.getDigitalLevelMenu()
                 },
