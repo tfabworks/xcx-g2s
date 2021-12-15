@@ -85,11 +85,11 @@ class FirmataBoard {
         this.neoPixel = null;
     }
 
-    async requestPort (extensionId) {
+    async requestPort (extensionId, options) {
         if (this.port) return;
         this.state = 'portRequesting';
         this.extensionId = extensionId;
-        const nativePort = await navigator.serial.requestPort();
+        const nativePort = await navigator.serial.requestPort(options);
         this.port = new SerialPort(nativePort, {
             baudRate: 57600, // firmata: 57600
             autoOpen: false

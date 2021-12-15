@@ -138,6 +138,14 @@ class ExtensionBlocks {
         this.pins = [];
         this.digitalReadInterval = 100;
 
+        this.serialPortOptions = {
+            filters: [
+                {usbVendorId: 0x04D8, usbProductId: 0xE83A}, // Licensed for AkaDako
+                {usbVendorId: 0x04D8, usbProductId: 0x000A}, // Dev board
+                {usbVendorId: 0x04D9, usbProductId: 0xB534} // Use in the future
+            ]
+        };
+
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
@@ -193,7 +201,7 @@ class ExtensionBlocks {
     }
 
     connectBoard () {
-        return this.board.requestPort(EXTENSION_ID);
+        return this.board.requestPort(EXTENSION_ID, this.serialPortOptions);
     }
 
     disconnectBoard () {
