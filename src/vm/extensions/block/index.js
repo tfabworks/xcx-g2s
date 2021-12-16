@@ -330,7 +330,7 @@ class ExtensionBlocks {
 
     i2cReadOnce (args) {
         if (DEBUG) console.log(args);
-        if (!this.isConnected()) return;
+        if (!this.isConnected()) return '';
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
@@ -371,19 +371,20 @@ class ExtensionBlocks {
 
     oneWireRead (args) {
         if (DEBUG) console.log(args);
-        if (!this.isConnected()) return;
+        if (!this.isConnected()) return '';
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireRead(pin, length)
+            .then(readData => numericArrayToString(readData))
             .catch(error => {
                 console.log(error);
-                return error.message ? error.message : error;
+                return '';
             });
     }
     
     oneWireWriteAndRead (args) {
         if (DEBUG) console.log(args);
-        if (!this.isConnected()) return;
+        if (!this.isConnected()) return '';
         const pin = parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
         const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
@@ -391,7 +392,7 @@ class ExtensionBlocks {
             .then(readData => numericArrayToString(readData))
             .catch(error => {
                 console.log(error);
-                return error.message ? error.message : error;
+                return '';
             });
     }
 
