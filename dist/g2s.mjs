@@ -742,7 +742,7 @@ var en = {
 	"g2s.digitalLevelMenu.low": "Low",
 	"g2s.digitalLevelMenu.high": "High",
 	"g2s.digitalIsHigh": "[CONNECTOR] is HIGH",
-	"g2s.digitalStateChanged": "When [CONNECTOR] is [STATE]",
+	"g2s.digitalLevelChanged": "When [CONNECTOR] is [LEVEL]",
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
 	"g2s.analogLevelSet": "[CONNECTOR] to PWM [LEVEL]",
 	"g2s.servoTurn": "Servo [CONNECTOR] turn [DEGREE]",
@@ -776,7 +776,7 @@ var ja = {
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
 	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
-	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
+	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
 	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]度にする",
@@ -813,7 +813,7 @@ var translations = {
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
 	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
-	"g2s.digitalStateChanged": "[CONNECTOR]が[STATE]になったとき",
+	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
 	"g2s.analogLevelSet": "[CONNECTOR]をPWM[LEVEL]にする",
 	"g2s.servoTurn": "[CONNECTOR]のサーボを[DEGREE]どにする",
@@ -13828,7 +13828,7 @@ var FirmataBoard = /*#__PURE__*/function () {
   _createClass(FirmataBoard, [{
     key: "requestPort",
     value: function () {
-      var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId) {
+      var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
         var _this = this;
 
         var nativePort;
@@ -13847,7 +13847,7 @@ var FirmataBoard = /*#__PURE__*/function () {
                 this.state = 'portRequesting';
                 this.extensionId = extensionId;
                 _context.next = 6;
-                return navigator.serial.requestPort();
+                return navigator.serial.requestPort(options);
 
               case 6:
                 nativePort = _context.sent;
@@ -13912,7 +13912,7 @@ var FirmataBoard = /*#__PURE__*/function () {
         }, _callee, this);
       }));
 
-      function requestPort(_x) {
+      function requestPort(_x, _x2) {
         return _requestPort.apply(this, arguments);
       }
 
@@ -14316,17 +14316,26 @@ var numericArrayToString = function numericArrayToString(array) {
 
 var readAsNumericArray = function readAsNumericArray(stringExp) {
   if (typeof stringExp !== 'string') return [Number(stringExp)];
+  stringExp = stringExp.trim();
+  if (stringExp.length === 0) return [];
   stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+  var array = [];
 
   if (stringExp.includes(',')) {
-    return stringExp.split(',').map(function (item) {
-      return Number(item);
+    stringExp.split(',').forEach(function (numberString) {
+      numberString = numberString.trim(); // remove blank items
+
+      if (numberString.length !== 0) {
+        array.push(Number(numberString));
+      }
+    });
+  } else {
+    stringExp.split(/\s+/).forEach(function (item) {
+      array.push(Number(item));
     });
   }
 
-  return stringExp.split(/\s+/).map(function (item) {
-    return Number(item);
-  });
+  return array;
 };
 /**
  * Formatter which is used for translation.
@@ -14385,7 +14394,24 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       formatMessage = runtime.formatMessage;
     }
 
-    this.board = new FirmataBoard(runtime); // register to call scan()/connect()
+    this.board = new FirmataBoard(runtime);
+    this.pins = [];
+    this.digitalReadInterval = 100;
+    this.serialPortOptions = {
+      filters: [{
+        usbVendorId: 0x04D8,
+        usbProductId: 0xE83A
+      }, // Licensed for AkaDako
+      {
+        usbVendorId: 0x04D8,
+        usbProductId: 0x000A
+      }, // Dev board
+      {
+        usbVendorId: 0x04D9,
+        usbProductId: 0xB534
+      } // Use in the future
+      ]
+    }; // register to call scan()/connect()
 
     this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
     this.runtime.addListener(this.runtime.constructor.PERIPHERAL_CONNECTED, function (peripheral) {
@@ -14451,7 +14477,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      return this.board.requestPort(EXTENSION_ID);
+      return this.board.requestPort(EXTENSION_ID, this.serialPortOptions);
     }
   }, {
     key: "disconnectBoard",
@@ -14466,31 +14492,66 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return args.STATE === 'connected' === this.isConnected();
     }
     /**
-     * Whether the level of the connector is HIGHT as digital input.
+     * Update pin value as a digital input when the last update was too old.
+     * @param {number} pin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+
+  }, {
+    key: "updateDigitalInput",
+    value: function updateDigitalInput(pin) {
+      var _this2 = this;
+
+      if (!this.pins[pin]) {
+        this.pins[pin] = {
+          time: 0,
+          level: false
+        };
+      }
+
+      if (Date.now() - this.pins[pin].time > this.digitalReadInterval) {
+        return new Promise(function (resolve) {
+          _this2.board.digitalRead(pin, function (value) {
+            _this2.pins[pin].level = value !== 0;
+            resolve(_this2.pins[pin].level);
+          });
+        });
+      }
+
+      return new Promise.resolve(this.pins[pin].level);
+    }
+    /**
+     * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise} - a Promise which resolves boolean when the response was returned
+     * @returns {Promise} a Promise which resolves boolean when the response was returned
      */
 
   }, {
     key: "digitalIsHigh",
     value: function digitalIsHigh(args) {
-      var _this2 = this;
-
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.pinMode(pin, this.board.MODES.INPUT);
-      return new Promise(function (resolve) {
-        _this2.board.digitalRead(pin, function (value) {
-          resolve(value !== 0);
-        });
-      });
+      return this.updateDigitalInput(pin);
     }
+    /**
+     * Detect the edge as digital level of the connector for HAT block.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {boolean} args.LEVEL - level to detect edge
+     * @returns {boolean} is the level same as the current of the connector
+     */
+
   }, {
-    key: "digitalStateChanged",
-    value: function digitalStateChanged(args) {
-      console.log(args);
-      return false; // not implemented yet
+    key: "digitalLevelChanged",
+    value: function digitalLevelChanged(args) {
+      if (!this.isConnected()) return Promise.resolve(false);
+      var pin = parseInt(args.CONNECTOR, 10);
+      var rise = cast.toBoolean(args.LEVEL);
+      this.updateDigitalInput(pin); // update for the next call
+
+      return rise === this.pins[pin].level; // Do NOT return Promise for the hat execute correctly.
     }
     /**
      * Set the connector to the level as digital output.
@@ -14571,7 +14632,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this4 = this;
 
       console.log(args);
-      if (!this.isConnected()) return;
+      if (!this.isConnected()) return '';
       var address = Number(args.ADDRESS);
       var register = Number(args.REGISTER);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
@@ -14608,19 +14669,21 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "oneWireRead",
     value: function oneWireRead(args) {
       console.log(args);
-      if (!this.isConnected()) return;
+      if (!this.isConnected()) return '';
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      return this.board.oneWireRead(pin, length).catch(function (error) {
+      return this.board.oneWireRead(pin, length).then(function (readData) {
+        return numericArrayToString(readData);
+      }).catch(function (error) {
         console.log(error);
-        return error.message ? error.message : error;
+        return '';
       });
     }
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(args) {
       console.log(args);
-      if (!this.isConnected()) return;
+      if (!this.isConnected()) return '';
       var pin = parseInt(args.CONNECTOR, 10);
       var data = readAsNumericArray(args.DATA);
       var readLength = parseInt(cast.toNumber(args.LENGTH), 10);
@@ -14628,7 +14691,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         return numericArrayToString(readData);
       }).catch(function (error) {
         console.log(error);
-        return error.message ? error.message : error;
+        return '';
       });
     }
   }, {
@@ -14865,21 +14928,21 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, {
-          opcode: 'digitalStateChanged',
+          opcode: 'digitalLevelChanged',
           blockType: blockType.HAT,
           text: formatMessage({
-            id: 'g2s.digitalStateChanged',
-            default: 'When [CONNECTOR] is [STATE]',
-            description: 'catch event when the connector state was changed'
+            id: 'g2s.digitalLevelChanged',
+            default: 'When [CONNECTOR] is [LEVEL]',
+            description: 'catch pulse rise/fall of the connector'
           }),
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
               menu: 'digitalConnectorMenu'
             },
-            STATE: {
+            LEVEL: {
               type: argumentType.STRING,
-              menu: 'digitalStateMenu'
+              menu: 'digitalLevelMenu'
             }
           }
         }, {
@@ -15222,10 +15285,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             items: this.getDigitalConnectorMenu()
           },
           digitalLevelMenu: {
-            acceptReporters: true,
-            items: this.getDigitalLevelMenu()
-          },
-          digitalStateMenu: {
             acceptReporters: true,
             items: this.getDigitalLevelMenu()
           },
