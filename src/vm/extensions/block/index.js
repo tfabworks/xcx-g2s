@@ -38,13 +38,26 @@ const numericArrayToString = array => array.join(', ');
 
 const readAsNumericArray = stringExp => {
     if (typeof stringExp !== 'string') return [Number(stringExp)];
+    stringExp = stringExp.trim();
+    if (stringExp.length === 0) return [];
     stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
+    const array = [];
     if (stringExp.includes(',')) {
-        return stringExp.split(',')
-            .map(item => Number(item));
+        stringExp.split(',')
+            .forEach(numberString => {
+                numberString = numberString.trim();
+                // remove blank items
+                if (numberString.length !== 0){
+                    array.push(Number(numberString));
+                }
+            });
+    } else {
+        stringExp.split(/\s+/)
+            .forEach(item => {
+                array.push(Number(item));
+            });
     }
-    return stringExp.split(/\s+/)
-        .map(item => Number(item));
+    return array;
 };
 
 /**
