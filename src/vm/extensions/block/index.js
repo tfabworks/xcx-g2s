@@ -243,11 +243,12 @@ class ExtensionBlocks {
                     pin,
                     value => {
                         this.pins[pin].level = (value !== 0);
+                        this.pins[pin].time = Date.now();
                         resolve(this.pins[pin].level);
                     });
             });
         }
-        return new Promise.resolve(this.pins[pin].level);
+        return Promise.resolve(this.pins[pin].level);
     }
 
     /**
