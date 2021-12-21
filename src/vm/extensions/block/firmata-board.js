@@ -355,6 +355,13 @@ class FirmataBoard {
             });
     }
 
+    /**
+     * State of the all pins
+     */
+    get pins () {
+        return this.board.pins;
+    }
+
     get MODES () {
         return this.board.MODES;
     }

@@ -235,10 +235,16 @@ class ExtensionBlocks {
      */
     updateDigitalInput (pin) {
         if (!this.pins[pin]) {
-            this.pins[pin] = {time: 0, level: false};
+            this.pins[pin] = {};
+        }
+        if (!this.pins[pin].time) {
+            this.pins[pin].time = 0;
         }
         if ((Date.now() - this.pins[pin].time) > this.digitalReadInterval) {
             return new Promise(resolve => {
+                if (this.pins[pin].inputMode && this.board.pins[pin].mode !== this.pins[pin].inputMode) {
+                    this.board.pinMode(pin, this.pins[pin].inputMode);
+                }
                 this.board.digitalRead(
                     pin,
                     value => {
@@ -260,7 +266,6 @@ class ExtensionBlocks {
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
-        this.board.pinMode(pin, this.board.MODES.INPUT);
         return this.updateDigitalInput(pin);
     }
 
@@ -277,6 +282,24 @@ class ExtensionBlocks {
         const rise = Cast.toBoolean(args.LEVEL);
         this.updateDigitalInput(pin); // update for the next call
         return rise === this.pins[pin].level; // Do NOT return Promise for the hat execute correctly.
+    }
+
+    /**
+     * Set input bias of the connector.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.PIN - number of the pin
+     * @param {string} args.BIAS - input bias of the pin [none | pullUp]
+     * @returns {undefined} set send message then return immediately
+     */
+    inputBiasSet (args) {
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.PIN, 10);
+        const pullUp = args.BIAS === 'pullUp';
+        if (!this.pins[pin]) {
+            this.pins[pin] = {};
+        }
+        this.pins[pin].inputMode = (pullUp ? this.board.MODES.PULLUP : this.board.MODES.INPUT);
+        this.board.pinMode(pin, this.pins[pin].inputMode);
     }
 
     /**
@@ -647,6 +670,25 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'inputBiasSet',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.inputBiasSet',
+                        default: '[PIN] bias [BIAS]',
+                        description: 'set bias of the connector for g2s'
+                    }),
+                    arguments: {
+                        PIN: {
+                            type: ArgumentType.STRING,
+                            menu: 'inputPinsMenu'
+                        },
+                        BIAS: {
+                            type: ArgumentType.STRING,
+                            menu: 'inputBiasMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'digitalLevelSet',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -1010,6 +1052,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
                 },
+                inputBiasMenu: {
+                    acceptReporters: false,
+                    items: this.getInputBiasMenu()
+                },
                 digitalLevelMenu: {
                     acceptReporters: true,
                     items: this.getDigitalLevelMenu()
@@ -1017,6 +1063,10 @@ class ExtensionBlocks {
                 analogConnectorMenu: {
                     acceptReporters: false,
                     items: this.getAnalogConnectorMenu()
+                },
+                inputPinsMenu: {
+                    acceptReporters: true,
+                    items: this.getInputPinsMenu()
                 },
                 pwmConnectorMenu: {
                     acceptReporters: false,
@@ -1124,6 +1174,64 @@ class ExtensionBlocks {
             {
                 text: `${prefix}3`,
                 value: '2'
+            }
+        ];
+    }
+
+    getInputPinsMenu () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        const analogPrefix = formatMessage({
+            id: 'g2s.analogConnector.prefix',
+            default: 'Analog'
+        });
+        return [
+            {
+                text: `${digitalPrefix}1`,
+                value: '9'
+            },
+            {
+                text: `${digitalPrefix}2`,
+                value: '10'
+            },
+            {
+                text: `${digitalPrefix}3`,
+                value: '11'
+            },
+            {
+                text: `${analogPrefix}1`,
+                value: '14'
+            },
+            {
+                text: `${analogPrefix}2`,
+                value: '15'
+            },
+            {
+                text: `${analogPrefix}3`,
+                value: '16'
+            }
+        ];
+    }
+
+    getInputBiasMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.inputBiasMenu.none',
+                    default: 'none',
+                    description: 'label for none in input bias menu for g2s'
+                }),
+                value: 'none'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.inputBiasMenu.pullUp',
+                    default: 'pull up',
+                    description: 'label for pull up in input bias menu for g2s'
+                }),
+                value: 'pullUp'
             }
         ];
     }
