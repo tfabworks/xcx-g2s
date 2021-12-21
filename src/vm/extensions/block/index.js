@@ -448,8 +448,12 @@ class ExtensionBlocks {
 
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
-        const index = Number(args.INDEX);
-        if (isNaN(index) || array.length < index || index < 1) return NaN;
+        let index = Number(args.INDEX);
+        if (isNaN(index)) {
+            index = 0;
+        }
+        index = Math.min(array.length, Math.max(1, index));
+        index = Math.floor(index);
         return array[index - 1];
     }
 
