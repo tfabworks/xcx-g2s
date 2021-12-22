@@ -216,6 +216,11 @@ class ExtensionBlocks {
          */
         this.analogLevelGetWaitingTime = 100;
 
+        /**
+         * Waiting time for response of I2C reading in milliseconds.
+         */
+        this.i2cReadWaitingTime = 100;
+
     }
 
     /**
@@ -441,7 +446,7 @@ class ExtensionBlocks {
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        return new Promise(resolve => {
+        const request = new Promise(resolve => {
             this.board.i2cReadOnce(
                 address,
                 register,
@@ -450,9 +455,10 @@ class ExtensionBlocks {
                     resolve(numericArrayToString(data));
                 }
             );
-        })
+        });
+        return Promise.race([request, timeoutReject(this.i2cReadWaitingTime)])
             .catch(reason => {
-                console.error(reason);
+                console.log(`i2cReadOnce(${address}, ${register}, ${length}) was rejected by ${reason}`);
                 return '';
             });
     }
