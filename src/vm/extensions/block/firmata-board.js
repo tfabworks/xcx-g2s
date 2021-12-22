@@ -173,6 +173,9 @@ class FirmataBoard {
     }
 
     disconnect () {
+        if (this.board && this.port && this.port.isOpen) {
+            this.board.reset(); // notify disconnection to board
+        }
         this.releaseBoard();
     }
 
