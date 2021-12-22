@@ -351,9 +351,6 @@ class ExtensionBlocks {
         if (!this.isConnected()) return;
         const pin = parseInt(args.PIN, 10);
         const pullUp = args.BIAS === 'pullUp';
-        if (!this.pins[pin]) {
-            this.pins[pin] = {};
-        }
         this.pins[pin].inputMode = (pullUp ? this.board.MODES.PULLUP : this.board.MODES.INPUT);
         this.board.pinMode(pin, this.pins[pin].inputMode);
     }
@@ -593,8 +590,7 @@ class ExtensionBlocks {
         return this.board.neoPixelSetColor(index, [r, g, b]);
     }
 
-    neoPixelClear (args) {
-        if (DEBUG) console.log(args);
+    neoPixelClear () {
         if (!this.isConnected()) return Promise.resolve();
         return this.board.neoPixelClear();
     }
