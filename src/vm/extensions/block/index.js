@@ -10,6 +10,13 @@ import FirmataBoard from './firmata-board';
 
 export const DEBUG = true;
 
+/**
+ * Return a Promise which will reject after the delay time passed.
+ * @param {number} delay - waiting time to reject in milliseconds
+ * @returns {Promise<string>} Promise which will reject with reason after the delay.
+ */
+const timeoutReject = delay => new Promise((_, reject) => setTimeout(() => reject(`timeout ${delay}ms`), delay));
+
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
     let radix = 10;
@@ -148,8 +155,24 @@ class ExtensionBlocks {
 
         this.board = new FirmataBoard(runtime);
 
+        /**
+         * state holder of the all pins
+         */
         this.pins = [];
-        this.digitalReadInterval = 100;
+        [9, 10, 11, 14, 15, 16]
+            .forEach(pin => {
+                this.pins[pin] = {};
+            });
+
+        /**
+         * shortest interval time between digital input readings
+         */
+        this.digitalReadInterval = 20;
+
+        /**
+         * shortest interval time between analog input readings
+         */
+        this.analogReadInterval = 20;
 
         this.serialPortOptions = {
             filters: [
@@ -182,6 +205,17 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.neoPixelClear();
         });
+
+        /**
+         * Waiting time for response of digital input reading in milliseconds.
+         */
+        this.updateDigitalInputWaitingTime = 100;
+
+        /**
+         * Waiting time for response of analog input reading in milliseconds.
+         */
+        this.analogLevelGetWaitingTime = 100;
+
     }
 
     /**
@@ -234,27 +268,40 @@ class ExtensionBlocks {
      * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
      */
     updateDigitalInput (pin) {
-        if (!this.pins[pin]) {
-            this.pins[pin] = {};
+        if (typeof this.pins[pin].updateTime === 'undefined') {
+            this.pins[pin].updateTime = 0;
+            this.pins[pin].state = 'ready';
         }
-        if (!this.pins[pin].time) {
-            this.pins[pin].time = 0;
+        if (this.pins[pin].state !== 'ready') {
+            return Promise.resolve(this.pins[pin].value);
         }
-        if ((Date.now() - this.pins[pin].time) > this.digitalReadInterval) {
-            return new Promise(resolve => {
-                if (this.pins[pin].inputMode && this.board.pins[pin].mode !== this.pins[pin].inputMode) {
-                    this.board.pinMode(pin, this.pins[pin].inputMode);
+        if ((Date.now() - this.pins[pin].updateTime) > this.digitalReadInterval) {
+            this.pins[pin].state = 'digitalReading';
+            const request = new Promise(resolve => {
+                if (!Number.isInteger(this.pins[pin].inputMode)) {
+                    this.pins[pin].inputMode = this.board.MODES.INPUT;
                 }
+                this.board.pinMode(pin, this.pins[pin].inputMode);
                 this.board.digitalRead(
                     pin,
                     value => {
-                        this.pins[pin].level = (value !== 0);
-                        this.pins[pin].time = Date.now();
-                        resolve(this.pins[pin].level);
+                        this.pins[pin].value = (value !== 0);
+                        this.pins[pin].updateTime = Date.now();
+                        resolve(this.pins[pin].value);
                     });
             });
+            return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)])
+                .catch(reason => {
+                    console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                    this.pins[pin].value = false;
+                    return this.pins[pin].value;
+                })
+                .finally(() => {
+                    this.pins[pin].state = 'ready';
+                    return this.pins[pin].value;
+                });
         }
-        return Promise.resolve(this.pins[pin].level);
+        return Promise.resolve(this.pins[pin].value);
     }
 
     /**
@@ -277,11 +324,11 @@ class ExtensionBlocks {
      * @returns {boolean} is the level same as the current of the connector
      */
     digitalLevelChanged (args) {
-        if (!this.isConnected()) return Promise.resolve(false);
+        if (!this.isConnected()) return false;
         const pin = parseInt(args.CONNECTOR, 10);
         const rise = Cast.toBoolean(args.LEVEL);
         this.updateDigitalInput(pin); // update for the next call
-        return rise === this.pins[pin].level; // Do NOT return Promise for the hat execute correctly.
+        return rise === this.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
 
     /**
@@ -324,13 +371,36 @@ class ExtensionBlocks {
      */
     analogLevelGet (args) {
         if (!this.isConnected()) return Promise.resolve(0);
-        const pin = parseInt(args.CONNECTOR, 10);
-        this.board.pinMode(pin, this.board.MODES.ANALOG);
-        return new Promise(resolve => {
-            this.board.analogRead(pin, value => {
-                resolve(value);
+        const analogPin = parseInt(args.CONNECTOR, 10);
+        const pin = analogPin + 14; // GPIO pin number
+        if (!Number.isInteger(this.pins[pin].updateTime)) {
+            this.pins[pin].updateTime = 0;
+            this.pins[pin].state = 'ready';
+        }
+        if (this.pins[pin].state !== 'ready') {
+            return Promise.resolve(this.pins[pin].value);
+        }
+        if ((Date.now() - this.pins[pin].updateTime) > this.analogReadInterval) {
+            this.pins[pin].state = 'analogReading';
+            this.board.pinMode(analogPin, this.board.MODES.ANALOG);
+            const request = new Promise(resolve => {
+                this.board.analogRead(analogPin, value => {
+                    this.pins[pin].updateTime = Date.now();
+                    this.pins[pin].value = value;
+                    resolve(this.pins[pin].value);
+                });
             });
-        });
+            return Promise.race([request, timeoutReject(this.analogLevelGetWaitingTime)])
+                .catch(reason => {
+                    console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
+                    return this.pins[pin].value;
+                })
+                .finally(() => {
+                    this.pins[pin].state = 'ready';
+                    return this.pins[pin].value;
+                });
+        }
+        return Promise.resolve(this.pins[pin].value);
     }
 
     /**
