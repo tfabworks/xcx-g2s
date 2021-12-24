@@ -656,6 +656,11 @@ class ExtensionBlocks {
         }
     }
 
+    bitNot (args) {
+        const bits = integer64From(args.VALUE);
+        return bits.not().toString();
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -1136,6 +1141,21 @@ class ExtensionBlocks {
                             defaultValue: '0x03'
                         },
                         RIGHT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x01'
+                        }
+                    }
+                },
+                {
+                    opcode: 'bitNot',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.bitNot',
+                        default: 'bit NOT [VALUE]',
+                        description: 'bitwise NOT'
+                    }),
+                    arguments: {
+                        VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: '0x01'
                         }
