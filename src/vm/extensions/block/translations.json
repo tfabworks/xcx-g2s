@@ -34,7 +34,8 @@
     "g2s.lengthOfNumbers": "length of numbers [ARRAY]",
     "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+    "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+    "g2s.bitNot": "bit NOT [VALUE]"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -71,7 +72,8 @@
     "g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
     "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+    "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+    "g2s.bitNot": "bit NOT [VALUE]"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -108,6 +110,7 @@
     "g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
     "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-    "g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+    "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+    "g2s.bitNot": "bit NOT [VALUE]"
   }
 }
