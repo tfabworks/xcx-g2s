@@ -67,6 +67,41 @@ var entry = {
   translationMap: translations$1
 };
 
+function _arrayLikeToArray$2(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
+  }
+
+  return arr2;
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return _arrayLikeToArray$2(arr);
+}
+
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+
+function _unsupportedIterableToArray$2(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray$2(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$2(o, minLen);
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray$2(arr) || _nonIterableSpread();
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -741,6 +776,9 @@ var en = {
 	"g2s.digitalConnector.prefix": "Digital",
 	"g2s.digitalLevelMenu.low": "Low",
 	"g2s.digitalLevelMenu.high": "High",
+	"g2s.inputBiasSet": "[PIN] bias [BIAS]",
+	"g2s.inputBiasMenu.none": "none",
+	"g2s.inputBiasMenu.pullUp": "pull up",
 	"g2s.digitalIsHigh": "[CONNECTOR] is HIGH",
 	"g2s.digitalLevelChanged": "When [CONNECTOR] is [LEVEL]",
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
@@ -757,10 +795,12 @@ var en = {
 	"g2s.neoPixelShow": "NeoPixel show",
 	"g2s.neoPixelClear": "NeoPixel clear",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
+	"g2s.spliceNumbers": "[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]",
 	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
 	"g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-	"g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+	"g2s.bitNot": "bit NOT [VALUE]"
 };
 var ja = {
 	"g2s.name": "AkaDako",
@@ -775,6 +815,9 @@ var ja = {
 	"g2s.digitalConnector.prefix": "デジタル",
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
+	"g2s.inputBiasSet": "[PIN]を[BIAS]",
+	"g2s.inputBiasMenu.none": "プルアップしない",
+	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
@@ -791,10 +834,12 @@ var ja = {
 	"g2s.neoPixelShow": "NeoPixelを光らせる",
 	"g2s.neoPixelClear": "NeoPixelを消す",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
+	"g2s.spliceNumbers": "数列[ARRAY]の[INDEX]番目から[DELETE]個削除して[INSERT]を入れる",
 	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
 	"g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-	"g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+	"g2s.bitNot": "bit NOT [VALUE]"
 };
 var translations = {
 	en: en,
@@ -812,6 +857,9 @@ var translations = {
 	"g2s.digitalConnector.prefix": "デジタル",
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
+	"g2s.inputBiasSet": "[PIN]を[BIAS]",
+	"g2s.inputBiasMenu.none": "プルアップしない",
+	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]がハイである",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
@@ -828,10 +876,12 @@ var translations = {
 	"g2s.neoPixelShow": "NeoPixelをひからせる",
 	"g2s.neoPixelClear": "NeoPixelをけす",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
+	"g2s.spliceNumbers": "すうれつ[ARRAY]の[INDEX]ばんめから[DELETE]こさくじょして[INSERT]をいれる",
 	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
 	"g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
-	"g2s.g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]"
+	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
+	"g2s.bitNot": "bit NOT [VALUE]"
 }
 };
 
@@ -3031,41 +3081,6 @@ var runtime = {exports: {}};
 })(runtime);
 
 var regenerator = runtime.exports;
-
-function _arrayLikeToArray$2(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) {
-    arr2[i] = arr[i];
-  }
-
-  return arr2;
-}
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray$2(arr);
-}
-
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-}
-
-function _unsupportedIterableToArray$2(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray$2(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$2(o, minLen);
-}
-
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray$2(arr) || _nonIterableSpread();
-}
 
 function _assertThisInitialized(self) {
   if (self === void 0) {
@@ -6665,7 +6680,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "analogRead",
     value: function analogRead(pin, callback) {
       this.reportAnalogPin(pin, 1);
-      this.addListener("analog-read-".concat(pin), callback);
+      this.once("analog-read-".concat(pin), callback);
     }
     /**
      * Write a PWM value Asks the arduino to write an analog message.
@@ -6854,7 +6869,7 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
     key: "digitalRead",
     value: function digitalRead(pin, callback) {
       this.reportDigitalPin(pin, 1);
-      this.addListener("digital-read-".concat(pin), callback);
+      this.once("digital-read-".concat(pin), callback);
     }
     /**
      * Asks the arduino to tell us its capabilities
@@ -13831,26 +13846,54 @@ var FirmataBoard = /*#__PURE__*/function () {
       var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
         var _this = this;
 
-        var nativePort;
+        var nativePort, permittedPorts;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                if ('serial' in navigator) {
+                  _context.next = 3;
+                  break;
+                }
+
+                console.log('This browser does not support Web Serial API.');
+                return _context.abrupt("return", Promise.resolve('This browser does not support Web Serial API.'));
+
+              case 3:
                 if (!this.port) {
-                  _context.next = 2;
+                  _context.next = 5;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 2:
+              case 5:
                 this.state = 'portRequesting';
                 this.extensionId = extensionId;
-                _context.next = 6;
+                nativePort = null;
+                _context.next = 10;
+                return navigator.serial.getPorts();
+
+              case 10:
+                permittedPorts = _context.sent;
+
+                if (!(permittedPorts !== null && Array.isArray(permittedPorts) && permittedPorts.length > 0)) {
+                  _context.next = 15;
+                  break;
+                }
+
+                nativePort = permittedPorts[0];
+                _context.next = 18;
+                break;
+
+              case 15:
+                _context.next = 17;
                 return navigator.serial.requestPort(options);
 
-              case 6:
+              case 17:
                 nativePort = _context.sent;
+
+              case 18:
                 this.port = new lib$2(nativePort, {
                   baudRate: 57600,
                   // firmata: 57600
@@ -13881,12 +13924,6 @@ var FirmataBoard = /*#__PURE__*/function () {
                   }
                 });
 
-                {
-                  this.port.addListener('data', function (data) {
-                    console.log(data);
-                  });
-                }
-
                 return _context.abrupt("return", new Promise(function (resolve, reject) {
                   _this.port.open(function (error) {
                     if (error) {
@@ -13904,7 +13941,7 @@ var FirmataBoard = /*#__PURE__*/function () {
                   });
                 }));
 
-              case 16:
+              case 27:
               case "end":
                 return _context.stop();
             }
@@ -13981,6 +14018,10 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "disconnect",
     value: function disconnect() {
+      if (this.board && this.port && this.port.isOpen) {
+        this.board.reset(); // notify disconnection to board
+      }
+
       this.releaseBoard();
     }
     /**
@@ -14253,6 +14294,15 @@ var FirmataBoard = /*#__PURE__*/function () {
         });
       });
     }
+    /**
+     * State of the all pins
+     */
+
+  }, {
+    key: "pins",
+    get: function get() {
+      return this.board.pins;
+    }
   }, {
     key: "MODES",
     get: function get() {
@@ -14278,7 +14328,19 @@ var FirmataBoard = /*#__PURE__*/function () {
   return FirmataBoard;
 }();
 
-var DEBUG = true;
+/**
+ * Return a Promise which will reject after the delay time passed.
+ * @param {number} delay - waiting time to reject in milliseconds
+ * @returns {Promise<string>} Promise which will reject with reason after the delay.
+ */
+
+var timeoutReject = function timeoutReject(delay) {
+  return new Promise(function (_, reject) {
+    return setTimeout(function () {
+      return reject("timeout ".concat(delay, "ms"));
+    }, delay);
+  });
+};
 
 var integer64From = function integer64From(value, unsigned) {
   if (!value) return unsigned ? Long.UZERO : Long.ZERO;
@@ -14395,8 +14457,24 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
 
     this.board = new FirmataBoard(runtime);
+    /**
+     * state holder of the all pins
+     */
+
     this.pins = [];
-    this.digitalReadInterval = 100;
+    [9, 10, 11, 14, 15, 16].forEach(function (pin) {
+      _this.pins[pin] = {};
+    });
+    /**
+     * shortest interval time between digital input readings
+     */
+
+    this.digitalReadInterval = 20;
+    /**
+     * shortest interval time between analog input readings
+     */
+
+    this.analogReadInterval = 20;
     this.serialPortOptions = {
       filters: [{
         usbVendorId: 0x04D8,
@@ -14432,6 +14510,26 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     this.runtime.on('PROJECT_STOP_ALL', function () {
       _this.neoPixelClear();
     });
+    /**
+     * Waiting time for response of digital input reading in milliseconds.
+     */
+
+    this.updateDigitalInputWaitingTime = 100;
+    /**
+     * Waiting time for response of analog input reading in milliseconds.
+     */
+
+    this.analogLevelGetWaitingTime = 100;
+    /**
+     * Waiting time for response of I2C reading in milliseconds.
+     */
+
+    this.i2cReadWaitingTime = 100;
+    /**
+     * Waiting time for response of OneWire reading in milliseconds.
+     */
+
+    this.oneWireReadWaitingTime = 100;
   }
   /**
    * Called by the runtime when user wants to scan for a peripheral.
@@ -14445,27 +14543,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.connectBoard();
     }
     /**
-     * Called by the runtime when user wants to connect to a certain peripheral.
-     * @param {number} id - the id of the peripheral to connect to.
-     */
-
-  }, {
-    key: "connect",
-    value: function connect() {
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      console.log(args);
-    }
-    /**
      * Called by the runtime when user wants to cancel scanning or the peripheral was disconnected.
      */
 
   }, {
     key: "disconnect",
     value: function disconnect() {
-      console.log('disconnect');
       this.disconnectBoard();
     }
   }, {
@@ -14502,23 +14585,41 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function updateDigitalInput(pin) {
       var _this2 = this;
 
-      if (!this.pins[pin]) {
-        this.pins[pin] = {
-          time: 0,
-          level: false
-        };
+      if (typeof this.pins[pin].updateTime === 'undefined') {
+        this.pins[pin].updateTime = 0;
+        this.pins[pin].state = 'ready';
       }
 
-      if (Date.now() - this.pins[pin].time > this.digitalReadInterval) {
-        return new Promise(function (resolve) {
+      if (this.pins[pin].state !== 'ready') {
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      if (Date.now() - this.pins[pin].updateTime > this.digitalReadInterval) {
+        this.pins[pin].state = 'digitalReading';
+        var request = new Promise(function (resolve) {
+          if (!Number.isInteger(_this2.pins[pin].inputMode)) {
+            _this2.pins[pin].inputMode = _this2.board.MODES.INPUT;
+          }
+
+          _this2.board.pinMode(pin, _this2.pins[pin].inputMode);
+
           _this2.board.digitalRead(pin, function (value) {
-            _this2.pins[pin].level = value !== 0;
-            resolve(_this2.pins[pin].level);
+            _this2.pins[pin].value = value !== 0;
+            _this2.pins[pin].updateTime = Date.now();
+            resolve(_this2.pins[pin].value);
           });
+        });
+        return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
+          console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
+          _this2.pins[pin].value = false;
+          return _this2.pins[pin].value;
+        }).finally(function () {
+          _this2.pins[pin].state = 'ready';
+          return _this2.pins[pin].value;
         });
       }
 
-      return new Promise.resolve(this.pins[pin].level);
+      return Promise.resolve(this.pins[pin].value);
     }
     /**
      * Whether the current level of the connector is HIGHT as digital input.
@@ -14532,7 +14633,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function digitalIsHigh(args) {
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
-      this.board.pinMode(pin, this.board.MODES.INPUT);
       return this.updateDigitalInput(pin);
     }
     /**
@@ -14546,12 +14646,29 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "digitalLevelChanged",
     value: function digitalLevelChanged(args) {
-      if (!this.isConnected()) return Promise.resolve(false);
+      if (!this.isConnected()) return false;
       var pin = parseInt(args.CONNECTOR, 10);
       var rise = cast.toBoolean(args.LEVEL);
       this.updateDigitalInput(pin); // update for the next call
 
-      return rise === this.pins[pin].level; // Do NOT return Promise for the hat execute correctly.
+      return rise === this.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
+    }
+    /**
+     * Set input bias of the connector.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.PIN - number of the pin
+     * @param {string} args.BIAS - input bias of the pin [none | pullUp]
+     * @returns {undefined} set send message then return immediately
+     */
+
+  }, {
+    key: "inputBiasSet",
+    value: function inputBiasSet(args) {
+      if (!this.isConnected()) return;
+      var pin = parseInt(args.PIN, 10);
+      var pullUp = args.BIAS === 'pullUp';
+      this.pins[pin].inputMode = pullUp ? this.board.MODES.PULLUP : this.board.MODES.INPUT;
+      this.board.pinMode(pin, this.pins[pin].inputMode);
     }
     /**
      * Set the connector to the level as digital output.
@@ -14582,13 +14699,38 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this3 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
-      var pin = parseInt(args.CONNECTOR, 10);
-      this.board.pinMode(pin, this.board.MODES.ANALOG);
-      return new Promise(function (resolve) {
-        _this3.board.analogRead(pin, function (value) {
-          resolve(value);
+      var analogPin = parseInt(args.CONNECTOR, 10);
+      var pin = analogPin + 14; // GPIO pin number
+
+      if (!Number.isInteger(this.pins[pin].updateTime)) {
+        this.pins[pin].updateTime = 0;
+        this.pins[pin].state = 'ready';
+      }
+
+      if (this.pins[pin].state !== 'ready') {
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      if (Date.now() - this.pins[pin].updateTime > this.analogReadInterval) {
+        this.pins[pin].state = 'analogReading';
+        this.board.pinMode(analogPin, this.board.MODES.ANALOG);
+        var request = new Promise(function (resolve) {
+          _this3.board.analogRead(analogPin, function (value) {
+            _this3.pins[pin].updateTime = Date.now();
+            _this3.pins[pin].value = value;
+            resolve(_this3.pins[pin].value);
+          });
         });
-      });
+        return Promise.race([request, timeoutReject(this.analogLevelGetWaitingTime)]).catch(function (reason) {
+          console.log("analogRead(".concat(analogPin, ") was rejected by ").concat(reason));
+          return _this3.pins[pin].value;
+        }).finally(function () {
+          _this3.pins[pin].state = 'ready';
+          return _this3.pins[pin].value;
+        });
+      }
+
+      return Promise.resolve(this.pins[pin].value);
     }
     /**
      * Set the connector to power (%) as PWM.
@@ -14610,7 +14752,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "servoTurn",
     value: function servoTurn(args) {
-      console.log(args);
       var pin = parseInt(args.CONNECTOR, 10);
       var value = cast.toNumber(args.DEGREE);
       this.board.pinMode(pin, this.board.MODES.SERVO);
@@ -14619,7 +14760,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "i2cWrite",
     value: function i2cWrite(args) {
-      console.log(args);
       if (!this.isConnected()) return;
       var address = Number(args.ADDRESS);
       var register = Number(args.REGISTER);
@@ -14631,24 +14771,23 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function i2cReadOnce(args) {
       var _this4 = this;
 
-      console.log(args);
       if (!this.isConnected()) return '';
       var address = Number(args.ADDRESS);
       var register = Number(args.REGISTER);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      return new Promise(function (resolve) {
+      var request = new Promise(function (resolve) {
         _this4.board.i2cReadOnce(address, register, length, function (data) {
           resolve(numericArrayToString(data));
         });
-      }).catch(function (reason) {
-        console.error(reason);
+      });
+      return Promise.race([request, timeoutReject(this.i2cReadWaitingTime)]).catch(function (reason) {
+        console.log("i2cReadOnce(".concat(address, ", ").concat(register, ", ").concat(length, ") was rejected by ").concat(reason));
         return '';
       });
     }
   }, {
     key: "oneWireReset",
     value: function oneWireReset(args) {
-      console.log(args);
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       this.board.sendOneWireReset(pin);
@@ -14656,7 +14795,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(args) {
-      console.log(args);
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var data = readAsNumericArray(args.DATA);
@@ -14665,45 +14803,102 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         return error.message ? error.message : error;
       });
     }
+    /**
+     * Read on OneWire.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<string>} return a Promise which will resolve with read data
+     */
+
   }, {
     key: "oneWireRead",
-    value: function oneWireRead(args) {
-      console.log(args);
-      if (!this.isConnected()) return '';
+    value: function oneWireRead(args, util) {
+      var _this5 = this;
+
+      if (!this.isConnected()) return Promise.resolve('');
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      return this.board.oneWireRead(pin, length).then(function (readData) {
-        return numericArrayToString(readData);
-      }).catch(function (error) {
-        console.log(error);
+
+      if (!this.pins[pin].state) {
+        this.pins[pin] = {
+          state: 'ready',
+          value: ''
+        };
+      }
+
+      if (this.pins[pin].state !== 'ready') {
+        if (util) {
+          util.yield(); // re-try this call after a while.
+
+          return; // Do not return Promise.resolve() to re-try.
+        }
+
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      this.pins[pin].state = 'oneWireReading';
+      var request = this.board.oneWireRead(pin, length).then(function (readData) {
+        _this5.pins[pin].value = numericArrayToString(readData);
+        return _this5.pins[pin].value;
+      });
+      return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)]).catch(function (reason) {
+        console.log("oneWireRead(".concat(pin, ", ").concat(length, ") was rejected by ").concat(reason));
         return '';
+      }).finally(function () {
+        _this5.pins[pin].state = 'ready';
       });
     }
+    /**
+     * Write then read on OneWire.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<string>} return a Promise which will resolve with read data
+     */
+
   }, {
     key: "oneWireWriteAndRead",
-    value: function oneWireWriteAndRead(args) {
-      console.log(args);
-      if (!this.isConnected()) return '';
+    value: function oneWireWriteAndRead(args, util) {
+      var _this6 = this;
+
+      if (!this.isConnected()) return Promise.resolve('');
       var pin = parseInt(args.CONNECTOR, 10);
       var data = readAsNumericArray(args.DATA);
       var readLength = parseInt(cast.toNumber(args.LENGTH), 10);
-      return this.board.oneWireWriteAndRead(pin, data, readLength).then(function (readData) {
-        return numericArrayToString(readData);
-      }).catch(function (error) {
-        console.log(error);
-        return '';
+
+      if (!this.pins[pin].state) {
+        this.pins[pin] = {
+          state: 'ready',
+          value: ''
+        };
+      }
+
+      if (this.pins[pin].state !== 'ready') {
+        if (util) {
+          util.yield(); // re-try this call after a while.
+
+          return; // Do not return Promise.resolve() to re-try.
+        }
+
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      this.pins[pin].state = 'oneWireWriteAndReading';
+      var request = this.board.oneWireWriteAndRead(pin, data, readLength).then(function (readData) {
+        _this6.pins[pin].value = numericArrayToString(readData);
+        return _this6.pins[pin].value;
       });
-    }
-  }, {
-    key: "oneWireConfigure",
-    value: function oneWireConfigure(args) {
-      console.log(args);
-      return 'not implemented yet';
+      return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)]).catch(function (reason) {
+        console.log("oneWireWriteAndRead(".concat(pin, ", ").concat(data, ", ").concat(readLength, ") was rejected by ").concat(reason));
+        return '';
+      }).finally(function () {
+        _this6.pins[pin].state = 'ready';
+      });
     }
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(args) {
-      console.log(args);
       if (!this.isConnected()) return Promise.resolve();
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
@@ -14711,15 +14906,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
   }, {
     key: "neoPixelShow",
-    value: function neoPixelShow(args) {
-      console.log(args);
+    value: function neoPixelShow() {
       if (!this.isConnected()) return Promise.resolve();
       return this.board.neoPixelShow();
     }
   }, {
     key: "neoPixelSetColor",
     value: function neoPixelSetColor(args) {
-      console.log(args);
       if (!this.isConnected()) return Promise.resolve();
       var index = parseInt(cast.toNumber(args.POSITION), 10) - 1;
       var r = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.RED), 10)));
@@ -14729,8 +14922,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
   }, {
     key: "neoPixelClear",
-    value: function neoPixelClear(args) {
-      console.log(args);
+    value: function neoPixelClear() {
       if (!this.isConnected()) return Promise.resolve();
       return this.board.neoPixelClear();
     }
@@ -14739,8 +14931,37 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function numberAtIndex(args) {
       var array = readAsNumericArray(args.ARRAY);
       var index = Number(args.INDEX);
-      if (isNaN(index) || array.length < index || index < 1) return NaN;
+
+      if (isNaN(index)) {
+        index = 0;
+      }
+
+      index = Math.min(array.length, Math.max(1, index));
+      index = Math.floor(index);
       return array[index - 1];
+    }
+  }, {
+    key: "spliceNumbers",
+    value: function spliceNumbers(args) {
+      var array = readAsNumericArray(args.ARRAY);
+      var index = Number(args.INDEX);
+
+      if (isNaN(index)) {
+        index = 0;
+      }
+
+      index = Math.floor(index);
+      var deleteCount = Number(args.DELETE);
+
+      if (isNaN(deleteCount)) {
+        deleteCount = 0;
+      }
+
+      deleteCount = Math.min(array.length, Math.max(0, deleteCount));
+      deleteCount = Math.floor(deleteCount);
+      var newNumbers = readAsNumericArray(args.INSERT);
+      array.splice.apply(array, [index > 0 ? index - 1 : index, deleteCount].concat(_toConsumableArray(newNumbers)));
+      return numericArrayToString(array);
     }
   }, {
     key: "lengthOfNumbers",
@@ -14751,8 +14972,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "readBytesAs",
     value: function readBytesAs(args) {
-      console.log(args);
-
       try {
         var array = readAsNumericArray(args.ARRAY);
         var buffer = new Uint8Array(array).buffer;
@@ -14841,6 +15060,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (op === '^') {
         return left.xor(right).toString(10);
       }
+    }
+  }, {
+    key: "bitNot",
+    value: function bitNot(args) {
+      var bits = integer64From(args.VALUE);
+      return bits.not().toString();
     }
     /**
      * @returns {object} metadata for this extension and its blocks.
@@ -14943,6 +15168,24 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             LEVEL: {
               type: argumentType.STRING,
               menu: 'digitalLevelMenu'
+            }
+          }
+        }, {
+          opcode: 'inputBiasSet',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.inputBiasSet',
+            default: '[PIN] bias [BIAS]',
+            description: 'set bias of the connector for g2s'
+          }),
+          arguments: {
+            PIN: {
+              type: argumentType.STRING,
+              menu: 'inputPinsMenu'
+            },
+            BIAS: {
+              type: argumentType.STRING,
+              menu: 'inputBiasMenu'
             }
           }
         }, {
@@ -15195,6 +15438,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, {
+          opcode: 'spliceNumbers',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.spliceNumbers',
+            default: '[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]',
+            description: 'splice array'
+          }),
+          arguments: {
+            ARRAY: {
+              type: argumentType.STRING,
+              defaultValue: '1.0, 1E1, 0xFF'
+            },
+            INDEX: {
+              type: argumentType.NUMBER,
+              defaultValue: '1'
+            },
+            DELETE: {
+              type: argumentType.NUMBER,
+              defaultValue: '1'
+            },
+            INSERT: {
+              type: argumentType.STRING,
+              defaultValue: '-1, 0'
+            }
+          }
+        }, {
           opcode: 'lengthOfNumbers',
           blockType: blockType.REPORTER,
           text: formatMessage({
@@ -15274,6 +15543,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               defaultValue: '0x01'
             }
           }
+        }, {
+          opcode: 'bitNot',
+          blockType: blockType.REPORTER,
+          text: formatMessage({
+            id: 'g2s.bitNot',
+            default: 'bit NOT [VALUE]',
+            description: 'bitwise NOT'
+          }),
+          arguments: {
+            VALUE: {
+              type: argumentType.STRING,
+              defaultValue: '0x01'
+            }
+          }
         }],
         menus: {
           boardStateMenu: {
@@ -15284,6 +15567,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             acceptReporters: false,
             items: this.getDigitalConnectorMenu()
           },
+          inputBiasMenu: {
+            acceptReporters: false,
+            items: this.getInputBiasMenu()
+          },
           digitalLevelMenu: {
             acceptReporters: true,
             items: this.getDigitalLevelMenu()
@@ -15291,6 +15578,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           analogConnectorMenu: {
             acceptReporters: false,
             items: this.getAnalogConnectorMenu()
+          },
+          inputPinsMenu: {
+            acceptReporters: true,
+            items: this.getInputPinsMenu()
           },
           pwmConnectorMenu: {
             acceptReporters: false,
@@ -15392,6 +15683,56 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }];
     }
   }, {
+    key: "getInputPinsMenu",
+    value: function getInputPinsMenu() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      var analogPrefix = formatMessage({
+        id: 'g2s.analogConnector.prefix',
+        default: 'Analog'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "1"),
+        value: '9'
+      }, {
+        text: "".concat(digitalPrefix, "2"),
+        value: '10'
+      }, {
+        text: "".concat(digitalPrefix, "3"),
+        value: '11'
+      }, {
+        text: "".concat(analogPrefix, "1"),
+        value: '14'
+      }, {
+        text: "".concat(analogPrefix, "2"),
+        value: '15'
+      }, {
+        text: "".concat(analogPrefix, "3"),
+        value: '16'
+      }];
+    }
+  }, {
+    key: "getInputBiasMenu",
+    value: function getInputBiasMenu() {
+      return [{
+        text: formatMessage({
+          id: 'g2s.inputBiasMenu.none',
+          default: 'none',
+          description: 'label for none in input bias menu for g2s'
+        }),
+        value: 'none'
+      }, {
+        text: formatMessage({
+          id: 'g2s.inputBiasMenu.pullUp',
+          default: 'pull up',
+          description: 'label for pull up in input bias menu for g2s'
+        }),
+        value: 'pullUp'
+      }];
+    }
+  }, {
     key: "getOneWireDeviceMenu",
     value: function getOneWireDeviceMenu() {
       var prefix = formatMessage({
@@ -15458,4 +15799,4 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   return ExtensionBlocks;
 }();
 
-export { DEBUG, ExtensionBlocks as blockClass, entry };
+export { ExtensionBlocks as blockClass, entry };
