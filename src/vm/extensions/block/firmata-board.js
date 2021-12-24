@@ -86,10 +86,20 @@ class FirmataBoard {
     }
 
     async requestPort (extensionId, options) {
+        if (!('serial' in navigator)) {
+            console.log('This browser does not support Web Serial API.');
+            return Promise.resolve('This browser does not support Web Serial API.');
+        }
         if (this.port) return;
         this.state = 'portRequesting';
         this.extensionId = extensionId;
-        const nativePort = await navigator.serial.requestPort(options);
+        let nativePort = null;
+        const permittedPorts = await navigator.serial.getPorts();
+        if ((permittedPorts !== null) && (Array.isArray(permittedPorts)) && (permittedPorts.length > 0)) {
+            nativePort = permittedPorts[0];
+        } else {
+            nativePort = await navigator.serial.requestPort(options);
+        }
         this.port = new SerialPort(nativePort, {
             baudRate: 57600, // firmata: 57600
             autoOpen: false
