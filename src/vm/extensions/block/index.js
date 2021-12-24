@@ -580,6 +580,24 @@ class ExtensionBlocks {
         return array[index - 1];
     }
 
+    spliceNumbers (args) {
+        const array = readAsNumericArray(args.ARRAY);
+        let index = Number(args.INDEX);
+        if (isNaN(index)) {
+            index = 0;
+        }
+        index = Math.floor(index);
+        let deleteCount = Number(args.DELETE);
+        if (isNaN(deleteCount)) {
+            deleteCount = 0;
+        }
+        deleteCount = Math.min(array.length, Math.max(0, deleteCount));
+        deleteCount = Math.floor(deleteCount);
+        const newNumbers = readAsNumericArray(args.INSERT);
+        array.splice(((index > 0) ? index - 1 : index), deleteCount, ...newNumbers);
+        return numericArrayToString(array);
+    }
+
     lengthOfNumbers (args) {
         const array = readAsNumericArray(args.ARRAY);
         return array.length;
@@ -1059,6 +1077,33 @@ class ExtensionBlocks {
                         INDEX: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
+                        }
+                    }
+                },
+                {
+                    opcode: 'spliceNumbers',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.spliceNumbers',
+                        default: '[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]',
+                        description: 'splice array'
+                    }),
+                    arguments: {
+                        ARRAY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '1.0, 1E1, 0xFF'
+                        },
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        },
+                        DELETE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        },
+                        INSERT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '-1, 0'
                         }
                     }
                 },
