@@ -18,7 +18,7 @@ SerialPort.Binding = WSABinding;
 const FirmataClass = bindTransport(SerialPort);
 
 // eslint-disable-next-line prefer-const
-export let DEBUG = true;
+export let DEBUG = false;
 
 const neoPixelGammaTable = ((steps, gamma) => {
     const gammaTable = new Array(steps);

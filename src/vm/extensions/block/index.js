@@ -8,8 +8,6 @@ import Long from 'long';
 
 import FirmataBoard from './firmata-board';
 
-export const DEBUG = true;
-
 /**
  * Return a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -236,18 +234,9 @@ class ExtensionBlocks {
     }
 
     /**
-     * Called by the runtime when user wants to connect to a certain peripheral.
-     * @param {number} id - the id of the peripheral to connect to.
-     */
-    connect (...args) {
-        if (DEBUG) console.log(args);
-    }
-
-    /**
      * Called by the runtime when user wants to cancel scanning or the peripheral was disconnected.
      */
     disconnect () {
-        if (DEBUG) console.log('disconnect');
         this.disconnectBoard();
     }
 
@@ -425,7 +414,6 @@ class ExtensionBlocks {
     }
 
     servoTurn (args) {
-        if (DEBUG) console.log(args);
         const pin = parseInt(args.CONNECTOR, 10);
         const value = Cast.toNumber(args.DEGREE);
         this.board.pinMode(pin, this.board.MODES.SERVO);
@@ -433,7 +421,6 @@ class ExtensionBlocks {
     }
 
     i2cWrite (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
@@ -442,7 +429,6 @@ class ExtensionBlocks {
     }
 
     i2cReadOnce (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return '';
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
@@ -465,14 +451,12 @@ class ExtensionBlocks {
     }
 
     oneWireReset (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         this.board.sendOneWireReset(pin);
     }
 
     oneWireWrite (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
@@ -491,7 +475,6 @@ class ExtensionBlocks {
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
     oneWireRead (args, util) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return Promise.resolve('');
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
@@ -529,7 +512,6 @@ class ExtensionBlocks {
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
     oneWireWriteAndRead (args, util) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return Promise.resolve('');
         const pin = parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
@@ -561,27 +543,19 @@ class ExtensionBlocks {
     }
 
 
-    oneWireConfigure (args) {
-        if (DEBUG) console.log(args);
-        return 'not implemented yet';
-    }
-
     neoPixelConfigStrip (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return Promise.resolve();
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.neoPixelConfigStrip(pin, length);
     }
 
-    neoPixelShow (args) {
-        if (DEBUG) console.log(args);
+    neoPixelShow () {
         if (!this.isConnected()) return Promise.resolve();
         return this.board.neoPixelShow();
     }
 
     neoPixelSetColor (args) {
-        if (DEBUG) console.log(args);
         if (!this.isConnected()) return Promise.resolve();
         const index = parseInt(Cast.toNumber(args.POSITION), 10) - 1;
         const r = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.RED), 10)));
@@ -612,7 +586,6 @@ class ExtensionBlocks {
     }
 
     readBytesAs (args) {
-        if (DEBUG) console.log(args);
         try {
             const array = readAsNumericArray(args.ARRAY);
             const buffer = new Uint8Array(array).buffer;
