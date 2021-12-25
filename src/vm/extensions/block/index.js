@@ -229,7 +229,14 @@ class ExtensionBlocks {
     }
 
     connectBoard () {
-        return this.board.requestPort(EXTENSION_ID, this.serialPortOptions);
+        return this.board.requestPort(EXTENSION_ID, this.serialPortOptions)
+            .catch(reason => {
+                if (reason) {
+                    console.log(reason);
+                    return reason;
+                }
+                return 'fail to connect';
+            });
     }
 
     disconnectBoard () {
