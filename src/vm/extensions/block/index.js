@@ -183,23 +183,6 @@ class ExtensionBlocks {
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
-        this.runtime.addListener(this.runtime.constructor.PERIPHERAL_CONNECTED, peripheral => {
-            if (!peripheral) return;
-            if ((peripheral.name === this.board.name) &&
-                (peripheral.portInfo === this.board.portInfo)) {
-                // this.startBoardReporting();
-            }
-        });
-        this.runtime.addListener(this.runtime.constructor.PERIPHERAL_DISCONNECTED, peripheral => {
-            if (!peripheral) return;
-            if ((peripheral.name === this.board.name) &&
-                (peripheral.portInfo === this.board.portInfo)) {
-                this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
-                    message: `Scratch lost connection to`,
-                    extensionId: EXTENSION_ID
-                });
-            }
-        });
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.neoPixelClear();
         });
@@ -252,9 +235,6 @@ class ExtensionBlocks {
     disconnectBoard () {
         return this.board.disconnect();
     }
-
-    // startBoardReporting () {
-    // }
 
     boardStateChanged (args) {
         return (args.STATE === 'connected') === this.isConnected();
