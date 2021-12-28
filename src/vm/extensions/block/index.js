@@ -6,7 +6,8 @@ import blockIcon from './block-icon.png';
 
 import Long from 'long';
 
-import FirmataBoard from './firmata-board';
+import {FirmataConnector, getFirmataConnector} from './firmata-connector';
+
 
 /**
  * Return a Promise which will reject after the delay time passed.
@@ -151,7 +152,19 @@ class ExtensionBlocks {
             formatMessage = runtime.formatMessage;
         }
 
-        this.board = new FirmataBoard(runtime);
+        /**
+         * Current connected board object with firmata protocol
+         * @type {FirmataBoard}
+         */
+        this.board = null;
+
+        /**
+         * Manager of firmata boards
+         * @type {FirmataConnector}
+         */
+        this.firmataConnector = getFirmataConnector(runtime);
+        this.firmataConnector.addListener(FirmataConnector.BOARD_ADDED, () => this.updateBoard());
+        this.firmataConnector.addListener(FirmataConnector.BOARD_REMOVED, () => this.updateBoard());
 
         /**
          * state holder of the all pins
@@ -209,6 +222,14 @@ class ExtensionBlocks {
     }
 
     /**
+     * Update connected board
+     */
+    updateBoard () {
+        if (this.board && this.board.isConnected()) return;
+        this.board = this.firmataConnector.findBoard(this.serialPortOptions);
+    }
+
+    /**
      * Called by the runtime when user wants to scan for a peripheral.
      * @returns {Promise} - a Promise which resolves when a board was connected
      */
@@ -229,17 +250,26 @@ class ExtensionBlocks {
     }
 
     connectBoard () {
-        return this.board.requestPort(EXTENSION_ID, this.serialPortOptions)
+        if (this.board && this.board.isConnected()) return; // Already connected
+        return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions)
+            .then(connectedBoard => {
+                this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
+                    name: connectedBoard.name,
+                    path: connectedBoard.portInfo
+                });
+                return 'connected';
+            })
             .catch(reason => {
                 if (reason) {
                     console.log(reason);
                     return reason;
                 }
-                return 'fail to connect';
+                return `fail to connect port: ${JSON.stringify(this.serialPortOptions)}`;
             });
     }
 
     disconnectBoard () {
+        if (!this.board) return;
         return this.board.disconnect();
     }
 
