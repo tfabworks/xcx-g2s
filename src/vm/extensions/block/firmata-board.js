@@ -1,3 +1,4 @@
+import {EventEmitter} from 'events';
 import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
@@ -15,7 +16,7 @@ import {
 
 // Setup transport of Firmata.
 SerialPort.Binding = WSABinding;
-const FirmataClass = bindTransport(SerialPort);
+const Firmata = bindTransport(SerialPort);
 
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
@@ -47,13 +48,23 @@ const neoPixelColorValue = (colors, gammaTable) => {
     );
 };
 
-class FirmataBoard {
+class FirmataBoard extends EventEmitter {
 
     /**
-     * Construct a G2SBoard communication object.
+     * Event name for reporting that this board has been released.
+     * @const {string}
+     */
+    static get RELEASED () {
+        return 'RELEASED';
+    }
+
+    /**
+     * Construct a firmata board object.
      * @param {Runtime} runtime - the Scratch runtime
      */
     constructor (runtime) {
+        super();
+
         this.name = 'FirmataBoard';
 
         /**
@@ -64,11 +75,17 @@ class FirmataBoard {
         this.runtime = runtime;
 
         /**
+         * State of this board
+         * @type {string}
+         */
+        this.state = 'disconnect';
+
+        /**
          * The Firmata board for reading/writing peripheral data.
-         * @type {Board}
+         * @type {Firmata}
          * @private
          */
-        this.board = null;
+        this.firmata = null;
 
         /**
          * The serial port for transporting of Firmata.
@@ -85,12 +102,14 @@ class FirmataBoard {
         this.neoPixel = null;
     }
 
+    /**
+     * Open a port to connect a firmata board.
+     * @param {string} extensionId - ID of the extension which is requesting
+     * @param {object} options - serial port options
+     * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+     */
     async requestPort (extensionId, options) {
-        if (!('serial' in navigator)) {
-            console.log('This browser does not support Web Serial API.');
-            return Promise.resolve('This browser does not support Web Serial API.');
-        }
-        if (this.port) return;
+        if (this.port) return Promise.resolve(this); // already opened
         this.state = 'portRequesting';
         this.extensionId = extensionId;
         let nativePort = null;
@@ -105,25 +124,21 @@ class FirmataBoard {
             autoOpen: false
         });
         this.portInfo = this.port.path.getInfo();
-        this.board = new FirmataClass(this.port);
-        this.board.once('open', () => {
+        this.firmata = new Firmata(this.port);
+        this.firmata.once('open', () => {
             this.state = 'connect';
         });
-        this.board.once('close', () => {
+        this.firmata.once('close', () => {
             if (this.state === 'disconnect') return;
             this.releaseBoard();
         });
-        this.board.once('disconnect', error => {
+        this.firmata.once('disconnect', error => {
             if (this.state === 'disconnect') return;
             this.handleDisconnectError(error);
         });
-        this.board.once('error', error => {
+        this.firmata.once('error', error => {
             if (this.state === 'disconnect') return;
-            if (error) {
-                this.handleDisconnectError(error);
-            } else {
-                this.releaseBoard();
-            }
+            this.handleDisconnectError(error);
         });
         if (DEBUG) {
             this.port.addListener('data', data => {
@@ -137,25 +152,21 @@ class FirmataBoard {
                     reject(error);
                     return;
                 }
-                this.board.once('ready', () => {
+                this.firmata.once('ready', () => {
                     this.onBoarReady();
-                    resolve('connected');
+                    resolve(this);
                 });
             });
         });
     }
 
     onBoarReady () {
-        const firmInfo = this.board.firmware;
+        const firmInfo = this.firmata.firmware;
         console.log(
             `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor} on: ${JSON.stringify(this.portInfo)}`
         );
-        this.board.i2cConfig();
+        this.firmata.i2cConfig();
         this.state = 'ready';
-        this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-            name: this.name,
-            path: this.portInfo
-        });
     }
 
     isConnected () {
@@ -173,18 +184,16 @@ class FirmataBoard {
             this.port.close();
         }
         this.port = null;
-        this.board = null;
+        this.firmata = null;
         this.oneWireDevices = null;
         this.extensionId = null;
-        this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-            name: this.name,
-            path: this.portInfo
-        });
+        this.emit(FirmataBoard.RELEASED);
     }
 
     disconnect () {
-        if (this.board && this.port && this.port.isOpen) {
-            this.board.reset(); // notify disconnection to board
+        if (this.state === 'disconnect') return;
+        if (this.firmata && this.port && this.port.isOpen) {
+            this.firmata.reset(); // notify disconnection to board
         }
         this.releaseBoard();
     }
@@ -213,67 +222,67 @@ class FirmataBoard {
     }
 
     pinMode (pin, mode) {
-        return this.board.pinMode(pin, mode);
+        return this.firmata.pinMode(pin, mode);
     }
 
     digitalRead (pin, callback) {
-        return this.board.digitalRead(pin, callback);
+        return this.firmata.digitalRead(pin, callback);
     }
 
     reportDigitalPin (pin, value) {
-        return this.board.reportDigitalPin(pin, value);
+        return this.firmata.reportDigitalPin(pin, value);
     }
 
     digitalWrite (pin, value, enqueue) {
-        return this.board.digitalWrite(pin, value, enqueue);
+        return this.firmata.digitalWrite(pin, value, enqueue);
     }
 
     pwmWrite (pin, value) {
-        return this.board.pwmWrite(pin, value);
+        return this.firmata.pwmWrite(pin, value);
     }
 
     servoWrite (...args) {
-        return this.board.servoWrite(...args);
+        return this.firmata.servoWrite(...args);
     }
 
     analogRead (pin, callback) {
-        return this.board.analogRead(pin, callback);
+        return this.firmata.analogRead(pin, callback);
     }
 
     reportAnalogPin (pin, value) {
-        return this.board.reportAnalogPin(pin, value);
+        return this.firmata.reportAnalogPin(pin, value);
     }
 
     i2cWrite (address, registerOrData, inBytes) {
-        return this.board.i2cWrite(address, registerOrData, inBytes);
+        return this.firmata.i2cWrite(address, registerOrData, inBytes);
     }
 
     i2cRead (address, register, bytesToRead, callback) {
-        return this.board.i2cRead(address, register, bytesToRead, callback);
+        return this.firmata.i2cRead(address, register, bytesToRead, callback);
     }
 
     i2cStop (options) {
-        return this.board.i2cStop(options);
+        return this.firmata.i2cStop(options);
     }
 
     i2cReadOnce (address, register, bytesToRead, callback) {
-        return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+        return this.firmata.i2cReadOnce(address, register, bytesToRead, callback);
     }
 
     sendOneWireReset (pin) {
-        return this.board.sendOneWireReset(pin);
+        return this.firmata.sendOneWireReset(pin);
     }
 
     searchOneWireDevices (pin) {
         return new Promise((resolve, reject) => {
-            if (this.board.pins[pin].mode !== this.board.MODES.ONEWIRE) {
-                this.board.sendOneWireConfig(pin, true);
-                return this.board.sendOneWireSearch(pin, (error, founds) => {
+            if (this.firmata.pins[pin].mode !== this.firmata.MODES.ONEWIRE) {
+                this.firmata.sendOneWireConfig(pin, true);
+                return this.firmata.sendOneWireSearch(pin, (error, founds) => {
                     if (error) return reject(error);
                     if (founds.length < 1) return reject(new Error('no device'));
-                    this.board.pinMode(pin, this.board.MODES.ONEWIRE);
+                    this.firmata.pinMode(pin, this.firmata.MODES.ONEWIRE);
                     this.oneWireDevices = founds;
-                    this.board.sendOneWireDelay(pin, 1);
+                    this.firmata.sendOneWireDelay(pin, 1);
                     resolve(this.oneWireDevices);
                 });
             }
@@ -284,7 +293,7 @@ class FirmataBoard {
     oneWireWrite (pin, data) {
         return this.searchOneWireDevices(pin)
             .then(devices => {
-                this.board.sendOneWireWrite(pin, devices[0], data);
+                this.firmata.sendOneWireWrite(pin, devices[0], data);
             });
     }
 
@@ -292,7 +301,7 @@ class FirmataBoard {
         return this.searchOneWireDevices(pin)
             .then(devices =>
                 new Promise((resolve, reject) => {
-                    this.board.sendOneWireRead(pin, devices[0], length, (readError, data) => {
+                    this.firmata.sendOneWireRead(pin, devices[0], length, (readError, data) => {
                         if (readError) return reject(readError);
                         resolve(data);
                     });
@@ -303,10 +312,15 @@ class FirmataBoard {
         return this.searchOneWireDevices(pin)
             .then(devices =>
                 new Promise((resolve, reject) => {
-                    this.board.sendOneWireWriteAndRead(pin, devices[0], data, numBytesToRead, (readError, readData) => {
-                        if (readError) return reject(readError);
-                        resolve(readData);
-                    });
+                    this.firmata.sendOneWireWriteAndRead(
+                        pin,
+                        devices[0],
+                        data,
+                        numBytesToRead,
+                        (readError, readData) => {
+                            if (readError) return reject(readError);
+                            resolve(readData);
+                        });
                 }));
     }
 
@@ -372,23 +386,23 @@ class FirmataBoard {
      * State of the all pins
      */
     get pins () {
-        return this.board.pins;
+        return this.firmata.pins;
     }
 
     get MODES () {
-        return this.board.MODES;
+        return this.firmata.MODES;
     }
 
     get HIGH () {
-        return this.board.HIGH;
+        return this.firmata.HIGH;
     }
 
     get LOW () {
-        return this.board.LOW;
+        return this.firmata.LOW;
     }
 
     get RESOLUTION () {
-        return this.board.RESOLUTION;
+        return this.firmata.RESOLUTION;
     }
 }
 
