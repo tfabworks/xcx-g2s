@@ -14,6 +14,13 @@ import {
 } from './node-pixel-constants';
 
 
+/**
+ * Return a Promise which will reject after the delay time passed.
+ * @param {number} delay - waiting time to reject in milliseconds
+ * @returns {Promise<string>} Promise which will reject with reason after the delay.
+ */
+const timeoutReject = delay => new Promise((_, reject) => setTimeout(() => reject(`timeout ${delay}ms`), delay));
+
 // Setup transport of Firmata.
 SerialPort.Binding = WSABinding;
 const Firmata = bindTransport(SerialPort);
@@ -96,6 +103,26 @@ class FirmataBoard extends EventEmitter {
          * ID of the extension which requested to open port.
          */
         this.extensionId = null;
+
+        /**
+         * shortest interval time between digital input readings
+         */
+        this.digitalReadInterval = 20;
+
+        /**
+         * shortest interval time between analog input readings
+         */
+        this.analogReadInterval = 20;
+
+        /**
+         * Waiting time for response of digital input reading in milliseconds.
+         */
+        this.updateDigitalInputWaitingTime = 100;
+
+        /**
+         * Waiting time for response of analog input reading in milliseconds.
+         */
+        this.updateAnalogInputWaitingTime = 100;
 
         this.portInfo = null;
 
@@ -184,7 +211,6 @@ class FirmataBoard extends EventEmitter {
             this.port.close();
         }
         this.port = null;
-        this.firmata = null;
         this.oneWireDevices = null;
         this.extensionId = null;
         this.emit(FirmataBoard.RELEASED);
@@ -223,6 +249,87 @@ class FirmataBoard extends EventEmitter {
 
     pinMode (pin, mode) {
         return this.firmata.pinMode(pin, mode);
+    }
+
+    /**
+     * Update pin value as a digital input when the last update was too old.
+     * @param {number} pin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+    updateDigitalInput (pin) {
+        if (this.pins[pin].updating ||
+             (this.pins[pin].updateTime &&
+                ((Date.now() - this.pins[pin].updateTime) < this.digitalReadInterval))) {
+            return Promise.resolve(this.pins[pin].value);
+        }
+        this.pins[pin].updating = true;
+        const request = new Promise(resolve => {
+            if (this.pins[pin].inputBias !== this.firmata.MODES.PULLUP) {
+                this.pins[pin].inputBias = this.firmata.MODES.INPUT;
+            }
+            this.firmata.pinMode(pin, this.pins[pin].inputBias);
+            this.firmata.digitalRead(
+                pin,
+                value => {
+                    this.pins[pin].value = value;
+                    this.pins[pin].updateTime = Date.now();
+                    resolve(this.pins[pin].value);
+                });
+        });
+        return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)])
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                this.pins[pin].value = 0;
+                return this.pins[pin].value;
+            })
+            .finally(() => {
+                this.pins[pin].updating = false;
+            });
+    }
+
+    /**
+     * Set input bias of the connector.
+     * @param {number} pin - number of the pin
+     * @param {boolean} pullUp - input bias of the pin [none | pullUp]
+     * @returns {undefined} set send message then return immediately
+     */
+    setInputBias (pin, pullUp) {
+        this.pins[pin].inputBias = (pullUp ? this.MODES.PULLUP : this.MODES.INPUT);
+        this.pinMode(pin, this.pins[pin].inputBias);
+    }
+
+    /**
+     * Update pin value as a analog input when the last update was too old.
+     * @param {number} analogPin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+    updateAnalogInput (analogPin) {
+        const pin = this.firmata.analogPins[analogPin];
+        if (this.pins[pin].updating ||
+             (this.pins[pin].updateTime &&
+                ((Date.now() - this.pins[pin].updateTime) < this.analogReadInterval))) {
+            return Promise.resolve(this.pins[pin].value);
+        }
+        this.pins[pin].updating = true;
+        const request = new Promise(resolve => {
+            this.firmata.pinMode(analogPin, this.MODES.ANALOG);
+            this.firmata.analogRead(
+                analogPin,
+                value => {
+                    this.pins[pin].value = value;
+                    this.pins[pin].updateTime = Date.now();
+                    resolve(this.pins[pin].value);
+                });
+        });
+        return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)])
+            .catch(reason => {
+                console.log(`analogRead(${pin}) was rejected by ${reason}`);
+                this.pins[pin].value = 0;
+                return this.pins[pin].value;
+            })
+            .finally(() => {
+                this.pins[pin].updating = false;
+            });
     }
 
     digitalRead (pin, callback) {
