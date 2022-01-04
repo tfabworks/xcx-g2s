@@ -175,16 +175,6 @@ class ExtensionBlocks {
                 this.pins[pin] = {};
             });
 
-        /**
-         * shortest interval time between digital input readings
-         */
-        this.digitalReadInterval = 20;
-
-        /**
-         * shortest interval time between analog input readings
-         */
-        this.analogReadInterval = 20;
-
         this.serialPortOptions = {
             filters: [
                 {usbVendorId: 0x04D8, usbProductId: 0xE83A}, // Licensed for AkaDako
@@ -199,16 +189,6 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.neoPixelClear();
         });
-
-        /**
-         * Waiting time for response of digital input reading in milliseconds.
-         */
-        this.updateDigitalInputWaitingTime = 100;
-
-        /**
-         * Waiting time for response of analog input reading in milliseconds.
-         */
-        this.analogLevelGetWaitingTime = 100;
 
         /**
          * Waiting time for response of I2C reading in milliseconds.
@@ -278,48 +258,6 @@ class ExtensionBlocks {
     }
 
     /**
-     * Update pin value as a digital input when the last update was too old.
-     * @param {number} pin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
-     */
-    updateDigitalInput (pin) {
-        if (typeof this.pins[pin].updateTime === 'undefined') {
-            this.pins[pin].updateTime = 0;
-            this.pins[pin].state = 'ready';
-        }
-        if (this.pins[pin].state !== 'ready') {
-            return Promise.resolve(this.pins[pin].value);
-        }
-        if ((Date.now() - this.pins[pin].updateTime) > this.digitalReadInterval) {
-            this.pins[pin].state = 'digitalReading';
-            const request = new Promise(resolve => {
-                if (!Number.isInteger(this.pins[pin].inputMode)) {
-                    this.pins[pin].inputMode = this.board.MODES.INPUT;
-                }
-                this.board.pinMode(pin, this.pins[pin].inputMode);
-                this.board.digitalRead(
-                    pin,
-                    value => {
-                        this.pins[pin].value = (value !== 0);
-                        this.pins[pin].updateTime = Date.now();
-                        resolve(this.pins[pin].value);
-                    });
-            });
-            return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)])
-                .catch(reason => {
-                    console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                    this.pins[pin].value = false;
-                    return this.pins[pin].value;
-                })
-                .finally(() => {
-                    this.pins[pin].state = 'ready';
-                    return this.pins[pin].value;
-                });
-        }
-        return Promise.resolve(this.pins[pin].value);
-    }
-
-    /**
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
@@ -328,7 +266,7 @@ class ExtensionBlocks {
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
-        return this.updateDigitalInput(pin);
+        return this.board.updateDigitalInput(pin);
     }
 
     /**
@@ -342,8 +280,8 @@ class ExtensionBlocks {
         if (!this.isConnected()) return false;
         const pin = parseInt(args.CONNECTOR, 10);
         const rise = Cast.toBoolean(args.LEVEL);
-        this.updateDigitalInput(pin); // update for the next call
-        return rise === this.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
+        this.board.updateDigitalInput(pin); // update for the next call
+        return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
 
     /**
@@ -357,8 +295,7 @@ class ExtensionBlocks {
         if (!this.isConnected()) return;
         const pin = parseInt(args.PIN, 10);
         const pullUp = args.BIAS === 'pullUp';
-        this.pins[pin].inputMode = (pullUp ? this.board.MODES.PULLUP : this.board.MODES.INPUT);
-        this.board.pinMode(pin, this.pins[pin].inputMode);
+        this.board.setInputBias(pin, pullUp);
     }
 
     /**
@@ -384,35 +321,7 @@ class ExtensionBlocks {
     analogLevelGet (args) {
         if (!this.isConnected()) return Promise.resolve(0);
         const analogPin = parseInt(args.CONNECTOR, 10);
-        const pin = analogPin + 14; // GPIO pin number
-        if (!Number.isInteger(this.pins[pin].updateTime)) {
-            this.pins[pin].updateTime = 0;
-            this.pins[pin].state = 'ready';
-        }
-        if (this.pins[pin].state !== 'ready') {
-            return Promise.resolve(this.pins[pin].value);
-        }
-        if ((Date.now() - this.pins[pin].updateTime) > this.analogReadInterval) {
-            this.pins[pin].state = 'analogReading';
-            this.board.pinMode(analogPin, this.board.MODES.ANALOG);
-            const request = new Promise(resolve => {
-                this.board.analogRead(analogPin, value => {
-                    this.pins[pin].updateTime = Date.now();
-                    this.pins[pin].value = value;
-                    resolve(this.pins[pin].value);
-                });
-            });
-            return Promise.race([request, timeoutReject(this.analogLevelGetWaitingTime)])
-                .catch(reason => {
-                    console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                    return this.pins[pin].value;
-                })
-                .finally(() => {
-                    this.pins[pin].state = 'ready';
-                    return this.pins[pin].value;
-                });
-        }
-        return Promise.resolve(this.pins[pin].value);
+        return this.board.updateAnalogInput(analogPin);
     }
 
     /**
