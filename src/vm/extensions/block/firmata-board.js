@@ -278,9 +278,8 @@ class FirmataBoard extends EventEmitter {
         });
         return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)])
             .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
                 this.pins[pin].value = 0;
-                return this.pins[pin].value;
+                return Promise.reject(reason);
             })
             .finally(() => {
                 this.pins[pin].updating = false;
@@ -323,9 +322,8 @@ class FirmataBoard extends EventEmitter {
         });
         return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)])
             .catch(reason => {
-                console.log(`analogRead(${pin}) was rejected by ${reason}`);
                 this.pins[pin].value = 0;
-                return this.pins[pin].value;
+                return Promise.reject(reason);
             })
             .finally(() => {
                 this.pins[pin].updating = false;
