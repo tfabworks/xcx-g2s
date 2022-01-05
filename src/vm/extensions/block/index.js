@@ -266,7 +266,12 @@ class ExtensionBlocks {
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
-        return this.board.updateDigitalInput(pin);
+        return this.board.updateDigitalInput(pin)
+            .then(readData => !!readData)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return false;
+            });
     }
 
     /**
@@ -280,7 +285,10 @@ class ExtensionBlocks {
         if (!this.isConnected()) return false;
         const pin = parseInt(args.CONNECTOR, 10);
         const rise = Cast.toBoolean(args.LEVEL);
-        this.board.updateDigitalInput(pin); // update for the next call
+        this.board.updateDigitalInput(pin) // update for the next call
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+            });
         return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
 
@@ -321,7 +329,11 @@ class ExtensionBlocks {
     analogLevelGet (args) {
         if (!this.isConnected()) return Promise.resolve(0);
         const analogPin = parseInt(args.CONNECTOR, 10);
-        return this.board.updateAnalogInput(analogPin);
+        return this.board.updateAnalogInput(analogPin)
+            .catch(reason => {
+                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
+                return 0;
+            });
     }
 
     /**
