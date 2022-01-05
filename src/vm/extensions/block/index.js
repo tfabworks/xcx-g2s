@@ -194,11 +194,6 @@ class ExtensionBlocks {
          * Waiting time for response of I2C reading in milliseconds.
          */
         this.i2cReadWaitingTime = 100;
-
-        /**
-         * Waiting time for response of OneWire reading in milliseconds.
-         */
-        this.oneWireReadWaitingTime = 100;
     }
 
     /**
@@ -412,33 +407,15 @@ class ExtensionBlocks {
      * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
-    oneWireRead (args, util) {
+    oneWireRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        if (!this.pins[pin].state) {
-            this.pins[pin] = {state: 'ready', value: ''};
-        }
-        if (this.pins[pin].state !== 'ready') {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-                return; // Do not return Promise.resolve() to re-try.
-            }
-            return Promise.resolve(this.pins[pin].value);
-        }
-        this.pins[pin].state = 'oneWireReading';
-        const request = this.board.oneWireRead(pin, length)
-            .then(readData => {
-                this.pins[pin].value = numericArrayToString(readData);
-                return this.pins[pin].value;
-            });
-        return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)])
+        return this.board.oneWireRead(pin, length)
+            .then(readData => numericArrayToString(readData))
             .catch(reason => {
                 console.log(`oneWireRead(${pin}, ${length}) was rejected by ${reason}`);
                 return '';
-            })
-            .finally(() => {
-                this.pins[pin].state = 'ready';
             });
     }
 
@@ -449,34 +426,16 @@ class ExtensionBlocks {
      * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
-    oneWireWriteAndRead (args, util) {
+    oneWireWriteAndRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
         const pin = parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
         const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
-        if (!this.pins[pin].state) {
-            this.pins[pin] = {state: 'ready', value: ''};
-        }
-        if (this.pins[pin].state !== 'ready') {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-                return; // Do not return Promise.resolve() to re-try.
-            }
-            return Promise.resolve(this.pins[pin].value);
-        }
-        this.pins[pin].state = 'oneWireWriteAndReading';
-        const request = this.board.oneWireWriteAndRead(pin, data, readLength)
-            .then(readData => {
-                this.pins[pin].value = numericArrayToString(readData);
-                return this.pins[pin].value;
-            });
-        return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)])
+        return this.board.oneWireWriteAndRead(pin, data, readLength)
+            .then(readData => numericArrayToString(readData))
             .catch(reason => {
                 console.log(`oneWireWriteAndRead(${pin}, ${data}, ${readLength}) was rejected by ${reason}`);
                 return '';
-            })
-            .finally(() => {
-                this.pins[pin].state = 'ready';
             });
     }
 
