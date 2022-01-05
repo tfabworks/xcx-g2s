@@ -9,13 +9,6 @@ import Long from 'long';
 import {FirmataConnector, getFirmataConnector} from './firmata-connector';
 
 
-/**
- * Return a Promise which will reject after the delay time passed.
- * @param {number} delay - waiting time to reject in milliseconds
- * @returns {Promise<string>} Promise which will reject with reason after the delay.
- */
-const timeoutReject = delay => new Promise((_, reject) => setTimeout(() => reject(`timeout ${delay}ms`), delay));
-
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
     let radix = 10;
@@ -189,11 +182,6 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.neoPixelClear();
         });
-
-        /**
-         * Waiting time for response of I2C reading in milliseconds.
-         */
-        this.i2cReadWaitingTime = 100;
     }
 
     /**
@@ -366,17 +354,8 @@ class ExtensionBlocks {
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        const request = new Promise(resolve => {
-            this.board.i2cReadOnce(
-                address,
-                register,
-                length,
-                data => {
-                    resolve(numericArrayToString(data));
-                }
-            );
-        });
-        return Promise.race([request, timeoutReject(this.i2cReadWaitingTime)])
+        return this.board.i2cReadOnce(address, register, length)
+            .then(data => numericArrayToString(data))
             .catch(reason => {
                 console.log(`i2cReadOnce(${address}, ${register}, ${length}) was rejected by ${reason}`);
                 return '';

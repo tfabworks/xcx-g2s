@@ -125,6 +125,11 @@ class FirmataBoard extends EventEmitter {
         this.updateAnalogInputWaitingTime = 100;
 
         /**
+         * Waiting time for response of I2C reading in milliseconds.
+         */
+        this.i2cReadWaitingTime = 100;
+
+        /**
          * Waiting time for response of OneWire reading in milliseconds.
          */
         this.oneWireReadWaitingTime = 100;
@@ -367,16 +372,23 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.i2cWrite(address, registerOrData, inBytes);
     }
 
-    i2cRead (address, register, bytesToRead, callback) {
-        return this.firmata.i2cRead(address, register, bytesToRead, callback);
-    }
-
     i2cStop (options) {
         return this.firmata.i2cStop(options);
     }
 
-    i2cReadOnce (address, register, bytesToRead, callback) {
-        return this.firmata.i2cReadOnce(address, register, bytesToRead, callback);
+    i2cReadOnce (address, register, readLength, timeout) {
+        timeout = timeout ? timeout : this.i2cReadWaitingTime;
+        const request = new Promise(resolve => {
+            this.firmata.i2cReadOnce(
+                address,
+                register,
+                readLength,
+                data => {
+                    resolve(data);
+                }
+            );
+        });
+        return Promise.race([request, timeoutReject(timeout)]);
     }
 
     sendOneWireReset (pin) {
