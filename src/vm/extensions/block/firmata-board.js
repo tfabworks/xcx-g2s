@@ -124,6 +124,11 @@ class FirmataBoard extends EventEmitter {
          */
         this.updateAnalogInputWaitingTime = 100;
 
+        /**
+         * Waiting time for response of OneWire reading in milliseconds.
+         */
+        this.oneWireReadWaitingTime = 100;
+
         this.portInfo = null;
 
         this.neoPixel = null;
@@ -402,8 +407,9 @@ class FirmataBoard extends EventEmitter {
             });
     }
 
-    oneWireRead (pin, length) {
-        return this.searchOneWireDevices(pin)
+    oneWireRead (pin, length, timeout) {
+        timeout = timeout ? timeout : this.oneWireReadWaitingTime;
+        const request = this.searchOneWireDevices(pin)
             .then(devices =>
                 new Promise((resolve, reject) => {
                     this.firmata.sendOneWireRead(pin, devices[0], length, (readError, data) => {
@@ -411,22 +417,25 @@ class FirmataBoard extends EventEmitter {
                         resolve(data);
                     });
                 }));
+        return Promise.race([request, timeoutReject(timeout)]);
     }
 
-    oneWireWriteAndRead (pin, data, numBytesToRead) {
-        return this.searchOneWireDevices(pin)
+    oneWireWriteAndRead (pin, data, readLength, timeout) {
+        timeout = timeout ? timeout : this.oneWireReadWaitingTime;
+        const request = this.searchOneWireDevices(pin)
             .then(devices =>
                 new Promise((resolve, reject) => {
                     this.firmata.sendOneWireWriteAndRead(
                         pin,
                         devices[0],
                         data,
-                        numBytesToRead,
+                        readLength,
                         (readError, readData) => {
                             if (readError) return reject(readError);
                             resolve(readData);
                         });
                 }));
+        return Promise.race([request, timeoutReject(timeout)]);
     }
 
     neoPixelConfigStrip (pin, length) {
