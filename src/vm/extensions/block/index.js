@@ -7,7 +7,7 @@ import blockIcon from './block-icon.png';
 import Long from 'long';
 
 import {FirmataConnector, getFirmataConnector} from './firmata-connector';
-
+import VL53L0X from './vl53l0x';
 
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
@@ -152,6 +152,12 @@ class ExtensionBlocks {
         this.board = null;
 
         /**
+         * Distance sensor VL53L0X
+         * @type {VL53L0X}
+         */
+        this.vl53l0x = null;
+
+        /**
          * Manager of firmata boards
          * @type {FirmataConnector}
          */
@@ -189,7 +195,10 @@ class ExtensionBlocks {
      */
     updateBoard () {
         if (this.board && this.board.isConnected()) return;
+        const prev = this.board;
         this.board = this.firmataConnector.findBoard(this.serialPortOptions);
+        if (prev === this.board) return;
+        this.vl53l0x = null;
     }
 
     /**
@@ -443,6 +452,29 @@ class ExtensionBlocks {
     neoPixelClear () {
         if (!this.isConnected()) return Promise.resolve();
         return this.board.neoPixelClear();
+    }
+
+    async measureDistanceVL53L () {
+        if (!this.isConnected()) return 0;
+        if (!this.vl53l0x) {
+            let newSensor = new VL53L0X(this.board);
+            const found = await newSensor.init(true);
+            if (!found) return 0;
+            await newSensor.startContinuous()
+                .catch(reason => {
+                    console.log(`fail to VL53L0X.startContinuous() by ${reason}`);
+                    newSensor = null;
+                });
+            if (!newSensor) return 0;
+            this.vl53l0x = newSensor;
+        }
+        const distance = await this.vl53l0x.readRangeContinuousMillimeters()
+            .catch(reason => {
+                console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
+                this.vl53l0x = null;
+                return 0;
+            });
+        return distance;
     }
 
     numberAtIndex (args) {
@@ -932,6 +964,20 @@ class ExtensionBlocks {
                         id: 'g2s.neoPixelClear',
                         default: 'NeoPixel clear',
                         description: 'clear NeoPixel'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'measureDistance',
+                    func: 'measureDistanceVL53L',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.measureDistance',
+                        default: 'distance (mm)',
+                        description: 'report distance'
                     }),
                     arguments: {
                     }
