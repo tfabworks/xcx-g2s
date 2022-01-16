@@ -8,6 +8,7 @@ import Long from 'long';
 
 import {FirmataConnector, getFirmataConnector} from './firmata-connector';
 import VL53L0X from './vl53l0x';
+import ADXL345 from './adxl345';
 
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
@@ -199,6 +200,7 @@ class ExtensionBlocks {
         this.board = this.firmataConnector.findBoard(this.serialPortOptions);
         if (prev === this.board) return;
         this.vl53l0x = null;
+        this.adxl345 = null;
     }
 
     /**
@@ -475,6 +477,45 @@ class ExtensionBlocks {
                 return 0;
             });
         return distance;
+    }
+
+    /**
+     * Get acceleration for the axis by ADXL345
+     * @param {object} args - the block's arguments.
+     * @param {number} args.AXIS - axis to get
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+    async getAccelerationADXL345 (args) {
+        if (!this.isConnected()) return Promise.resolve(0);
+        const axis = args.AXIS;
+        if (!this.adxl345) {
+            const newSensor = new ADXL345(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return Promise.resolve(0);
+            }
+            this.adxl345 = newSensor;
+        }
+        return this.adxl345.getAcceleration()
+            .then(acceleration => {
+                if (axis === 'absolute') {
+                    return Math.round(
+                        Math.sqrt(
+                            (acceleration.x ** 2) +
+                            (acceleration.y ** 2) +
+                            (acceleration.z ** 2)
+                        ) * 100) / 100;
+                }
+                return acceleration[axis];
+            })
+            .catch(reason => {
+                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
+                this.adxl345 = null;
+                return 0;
+            });
     }
 
     numberAtIndex (args) {
@@ -984,6 +1025,24 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'getAcceleration',
+                    func: 'getAccelerationADXL345',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getAcceleration',
+                        default: 'acceleration [AXIS] (m/s^2)',
+                        description: 'report acceleration'
+                    }),
+                    arguments: {
+                        AXIS: {
+                            type: ArgumentType.STRING,
+                            menu: 'accelerationAxisMenu'
+                        }
+                    }
+                },
+                '---',
+                {
                     opcode: 'numberAtIndex',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
@@ -1161,6 +1220,10 @@ class ExtensionBlocks {
                 oneWireDeviceMenu: {
                     acceptReporters: false,
                     items: this.getOneWireDeviceMenu()
+                },
+                accelerationAxisMenu: {
+                    acceptReporters: false,
+                    items: this.getAccelerationAxisMenu()
                 },
                 bytesTypeMenu: {
                     acceptReporters: false,
@@ -1343,6 +1406,39 @@ class ExtensionBlocks {
             {
                 text: `${prefix}4`,
                 value: '4'
+            }
+        ];
+    }
+
+    getAccelerationAxisMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.accelerationAxisMenu.x',
+                    default: 'x'
+                }),
+                value: 'x'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.accelerationAxisMenu.y',
+                    default: 'y'
+                }),
+                value: 'y'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.accelerationAxisMenu.z',
+                    default: 'z'
+                }),
+                value: 'z'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.accelerationAxisMenu.absolute',
+                    default: 'absolute'
+                }),
+                value: 'absolute'
             }
         ];
     }
