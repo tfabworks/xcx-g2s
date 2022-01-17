@@ -315,7 +315,7 @@ class ExtensionBlocks {
     }
 
     /**
-     * The level of the connector as analog input.
+     * The level (0...100) of the connector as analog input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
@@ -324,6 +324,7 @@ class ExtensionBlocks {
         if (!this.isConnected()) return Promise.resolve(0);
         const analogPin = parseInt(args.CONNECTOR, 10);
         return this.board.updateAnalogInput(analogPin)
+            .then(raw => Math.round((raw / 1023) * 1000) / 10)
             .catch(reason => {
                 console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
                 return 0;
