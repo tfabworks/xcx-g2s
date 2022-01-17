@@ -1217,10 +1217,6 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
                 },
-                oneWireDeviceMenu: {
-                    acceptReporters: false,
-                    items: this.getOneWireDeviceMenu()
-                },
                 accelerationAxisMenu: {
                     acceptReporters: false,
                     items: this.getAccelerationAxisMenu()
@@ -1381,31 +1377,6 @@ class ExtensionBlocks {
                     description: 'label for pull up in input bias menu for g2s'
                 }),
                 value: 'pullUp'
-            }
-        ];
-    }
-
-    getOneWireDeviceMenu () {
-        const prefix = formatMessage({
-            id: 'g2s.oneWireDevice.prefix',
-            default: 'Device'
-        });
-        return [
-            {
-                text: `${prefix}1`,
-                value: '1'
-            },
-            {
-                text: `${prefix}2`,
-                value: '2'
-            },
-            {
-                text: `${prefix}3`,
-                value: '3'
-            },
-            {
-                text: `${prefix}4`,
-                value: '4'
             }
         ];
     }
