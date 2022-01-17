@@ -102,6 +102,42 @@ function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray$2(arr) || _nonIterableSpread();
 }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -138,6 +174,744 @@ function getAugmentedNamespace(n) {
 	});
 	return a;
 }
+
+function _typeof$1(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof$1 = function _typeof(obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof$1 = function _typeof(obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof$1(obj);
+}
+
+var runtime = {exports: {}};
+
+(function (module) {
+  var runtime = function (exports) {
+
+    var Op = Object.prototype;
+    var hasOwn = Op.hasOwnProperty;
+    var undefined$1; // More compressible than void 0.
+
+    var $Symbol = typeof Symbol === "function" ? Symbol : {};
+    var iteratorSymbol = $Symbol.iterator || "@@iterator";
+    var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+    var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+    function define(obj, key, value) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+      return obj[key];
+    }
+
+    try {
+      // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+      define({}, "");
+    } catch (err) {
+      define = function define(obj, key, value) {
+        return obj[key] = value;
+      };
+    }
+
+    function wrap(innerFn, outerFn, self, tryLocsList) {
+      // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+      var generator = Object.create(protoGenerator.prototype);
+      var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
+      // .throw, and .return methods.
+
+      generator._invoke = makeInvokeMethod(innerFn, self, context);
+      return generator;
+    }
+
+    exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
+    // record like context.tryEntries[i].completion. This interface could
+    // have been (and was previously) designed to take a closure to be
+    // invoked without arguments, but in all the cases we care about we
+    // already have an existing method we want to call, so there's no need
+    // to create a new function object. We can even get away with assuming
+    // the method takes exactly one argument, since that happens to be true
+    // in every case, so we don't have to touch the arguments object. The
+    // only additional allocation required is the completion record, which
+    // has a stable shape and so hopefully should be cheap to allocate.
+
+    function tryCatch(fn, obj, arg) {
+      try {
+        return {
+          type: "normal",
+          arg: fn.call(obj, arg)
+        };
+      } catch (err) {
+        return {
+          type: "throw",
+          arg: err
+        };
+      }
+    }
+
+    var GenStateSuspendedStart = "suspendedStart";
+    var GenStateSuspendedYield = "suspendedYield";
+    var GenStateExecuting = "executing";
+    var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
+    // breaking out of the dispatch switch statement.
+
+    var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
+    // .constructor.prototype properties for functions that return Generator
+    // objects. For full spec compliance, you may wish to configure your
+    // minifier not to mangle the names of these two functions.
+
+    function Generator() {}
+
+    function GeneratorFunction() {}
+
+    function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
+    // don't natively support it.
+
+
+    var IteratorPrototype = {};
+
+    IteratorPrototype[iteratorSymbol] = function () {
+      return this;
+    };
+
+    var getProto = Object.getPrototypeOf;
+    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+
+    if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+      // This environment has a native %IteratorPrototype%; use it instead
+      // of the polyfill.
+      IteratorPrototype = NativeIteratorPrototype;
+    }
+
+    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+    GeneratorFunctionPrototype.constructor = GeneratorFunction;
+    GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
+    // Iterator interface in terms of a single ._invoke method.
+
+    function defineIteratorMethods(prototype) {
+      ["next", "throw", "return"].forEach(function (method) {
+        define(prototype, method, function (arg) {
+          return this._invoke(method, arg);
+        });
+      });
+    }
+
+    exports.isGeneratorFunction = function (genFun) {
+      var ctor = typeof genFun === "function" && genFun.constructor;
+      return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
+      // do is to check its .name property.
+      (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
+    };
+
+    exports.mark = function (genFun) {
+      if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+      } else {
+        genFun.__proto__ = GeneratorFunctionPrototype;
+        define(genFun, toStringTagSymbol, "GeneratorFunction");
+      }
+
+      genFun.prototype = Object.create(Gp);
+      return genFun;
+    }; // Within the body of any async function, `await x` is transformed to
+    // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+    // `hasOwn.call(value, "__await")` to determine if the yielded value is
+    // meant to be awaited.
+
+
+    exports.awrap = function (arg) {
+      return {
+        __await: arg
+      };
+    };
+
+    function AsyncIterator(generator, PromiseImpl) {
+      function invoke(method, arg, resolve, reject) {
+        var record = tryCatch(generator[method], generator, arg);
+
+        if (record.type === "throw") {
+          reject(record.arg);
+        } else {
+          var result = record.arg;
+          var value = result.value;
+
+          if (value && _typeof$1(value) === "object" && hasOwn.call(value, "__await")) {
+            return PromiseImpl.resolve(value.__await).then(function (value) {
+              invoke("next", value, resolve, reject);
+            }, function (err) {
+              invoke("throw", err, resolve, reject);
+            });
+          }
+
+          return PromiseImpl.resolve(value).then(function (unwrapped) {
+            // When a yielded Promise is resolved, its final value becomes
+            // the .value of the Promise<{value,done}> result for the
+            // current iteration.
+            result.value = unwrapped;
+            resolve(result);
+          }, function (error) {
+            // If a rejected Promise was yielded, throw the rejection back
+            // into the async generator function so it can be handled there.
+            return invoke("throw", error, resolve, reject);
+          });
+        }
+      }
+
+      var previousPromise;
+
+      function enqueue(method, arg) {
+        function callInvokeWithMethodAndArg() {
+          return new PromiseImpl(function (resolve, reject) {
+            invoke(method, arg, resolve, reject);
+          });
+        }
+
+        return previousPromise = // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
+        // invocations of the iterator.
+        callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+      } // Define the unified helper method that is used to implement .next,
+      // .throw, and .return (see defineIteratorMethods).
+
+
+      this._invoke = enqueue;
+    }
+
+    defineIteratorMethods(AsyncIterator.prototype);
+
+    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+      return this;
+    };
+
+    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
+    // AsyncIterator objects; they just return a Promise for the value of
+    // the final result produced by the iterator.
+
+    exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+      if (PromiseImpl === void 0) PromiseImpl = Promise;
+      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+      return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function (result) {
+        return result.done ? result.value : iter.next();
+      });
+    };
+
+    function makeInvokeMethod(innerFn, self, context) {
+      var state = GenStateSuspendedStart;
+      return function invoke(method, arg) {
+        if (state === GenStateExecuting) {
+          throw new Error("Generator is already running");
+        }
+
+        if (state === GenStateCompleted) {
+          if (method === "throw") {
+            throw arg;
+          } // Be forgiving, per 25.3.3.3.3 of the spec:
+          // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+
+
+          return doneResult();
+        }
+
+        context.method = method;
+        context.arg = arg;
+
+        while (true) {
+          var delegate = context.delegate;
+
+          if (delegate) {
+            var delegateResult = maybeInvokeDelegate(delegate, context);
+
+            if (delegateResult) {
+              if (delegateResult === ContinueSentinel) continue;
+              return delegateResult;
+            }
+          }
+
+          if (context.method === "next") {
+            // Setting context._sent for legacy support of Babel's
+            // function.sent implementation.
+            context.sent = context._sent = context.arg;
+          } else if (context.method === "throw") {
+            if (state === GenStateSuspendedStart) {
+              state = GenStateCompleted;
+              throw context.arg;
+            }
+
+            context.dispatchException(context.arg);
+          } else if (context.method === "return") {
+            context.abrupt("return", context.arg);
+          }
+
+          state = GenStateExecuting;
+          var record = tryCatch(innerFn, self, context);
+
+          if (record.type === "normal") {
+            // If an exception is thrown from innerFn, we leave state ===
+            // GenStateExecuting and loop back for another invocation.
+            state = context.done ? GenStateCompleted : GenStateSuspendedYield;
+
+            if (record.arg === ContinueSentinel) {
+              continue;
+            }
+
+            return {
+              value: record.arg,
+              done: context.done
+            };
+          } else if (record.type === "throw") {
+            state = GenStateCompleted; // Dispatch the exception by looping back around to the
+            // context.dispatchException(context.arg) call above.
+
+            context.method = "throw";
+            context.arg = record.arg;
+          }
+        }
+      };
+    } // Call delegate.iterator[context.method](context.arg) and handle the
+    // result, either by returning a { value, done } result from the
+    // delegate iterator, or by modifying context.method and context.arg,
+    // setting context.delegate to null, and returning the ContinueSentinel.
+
+
+    function maybeInvokeDelegate(delegate, context) {
+      var method = delegate.iterator[context.method];
+
+      if (method === undefined$1) {
+        // A .throw or .return when the delegate iterator has no .throw
+        // method always terminates the yield* loop.
+        context.delegate = null;
+
+        if (context.method === "throw") {
+          // Note: ["return"] must be used for ES3 parsing compatibility.
+          if (delegate.iterator["return"]) {
+            // If the delegate iterator has a return method, give it a
+            // chance to clean up.
+            context.method = "return";
+            context.arg = undefined$1;
+            maybeInvokeDelegate(delegate, context);
+
+            if (context.method === "throw") {
+              // If maybeInvokeDelegate(context) changed context.method from
+              // "return" to "throw", let that override the TypeError below.
+              return ContinueSentinel;
+            }
+          }
+
+          context.method = "throw";
+          context.arg = new TypeError("The iterator does not provide a 'throw' method");
+        }
+
+        return ContinueSentinel;
+      }
+
+      var record = tryCatch(method, delegate.iterator, context.arg);
+
+      if (record.type === "throw") {
+        context.method = "throw";
+        context.arg = record.arg;
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      var info = record.arg;
+
+      if (!info) {
+        context.method = "throw";
+        context.arg = new TypeError("iterator result is not an object");
+        context.delegate = null;
+        return ContinueSentinel;
+      }
+
+      if (info.done) {
+        // Assign the result of the finished delegate to the temporary
+        // variable specified by delegate.resultName (see delegateYield).
+        context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
+
+        context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
+        // exception, let the outer generator proceed normally. If
+        // context.method was "next", forget context.arg since it has been
+        // "consumed" by the delegate iterator. If context.method was
+        // "return", allow the original .return call to continue in the
+        // outer generator.
+
+        if (context.method !== "return") {
+          context.method = "next";
+          context.arg = undefined$1;
+        }
+      } else {
+        // Re-yield the result returned by the delegate method.
+        return info;
+      } // The delegate iterator is finished, so forget it and continue with
+      // the outer generator.
+
+
+      context.delegate = null;
+      return ContinueSentinel;
+    } // Define Generator.prototype.{next,throw,return} in terms of the
+    // unified ._invoke helper method.
+
+
+    defineIteratorMethods(Gp);
+    define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
+    // @@iterator function is called on it. Some browsers' implementations of the
+    // iterator prototype chain incorrectly implement this, causing the Generator
+    // object to not be returned from this call. This ensures that doesn't happen.
+    // See https://github.com/facebook/regenerator/issues/274 for more details.
+
+    Gp[iteratorSymbol] = function () {
+      return this;
+    };
+
+    Gp.toString = function () {
+      return "[object Generator]";
+    };
+
+    function pushTryEntry(locs) {
+      var entry = {
+        tryLoc: locs[0]
+      };
+
+      if (1 in locs) {
+        entry.catchLoc = locs[1];
+      }
+
+      if (2 in locs) {
+        entry.finallyLoc = locs[2];
+        entry.afterLoc = locs[3];
+      }
+
+      this.tryEntries.push(entry);
+    }
+
+    function resetTryEntry(entry) {
+      var record = entry.completion || {};
+      record.type = "normal";
+      delete record.arg;
+      entry.completion = record;
+    }
+
+    function Context(tryLocsList) {
+      // The root entry object (effectively a try statement without a catch
+      // or a finally block) gives us a place to store values thrown from
+      // locations where there is no enclosing try statement.
+      this.tryEntries = [{
+        tryLoc: "root"
+      }];
+      tryLocsList.forEach(pushTryEntry, this);
+      this.reset(true);
+    }
+
+    exports.keys = function (object) {
+      var keys = [];
+
+      for (var key in object) {
+        keys.push(key);
+      }
+
+      keys.reverse(); // Rather than returning an object with a next method, we keep
+      // things simple and return the next function itself.
+
+      return function next() {
+        while (keys.length) {
+          var key = keys.pop();
+
+          if (key in object) {
+            next.value = key;
+            next.done = false;
+            return next;
+          }
+        } // To avoid creating an additional object, we just hang the .value
+        // and .done properties off the next function object itself. This
+        // also ensures that the minifier will not anonymize the function.
+
+
+        next.done = true;
+        return next;
+      };
+    };
+
+    function values(iterable) {
+      if (iterable) {
+        var iteratorMethod = iterable[iteratorSymbol];
+
+        if (iteratorMethod) {
+          return iteratorMethod.call(iterable);
+        }
+
+        if (typeof iterable.next === "function") {
+          return iterable;
+        }
+
+        if (!isNaN(iterable.length)) {
+          var i = -1,
+              next = function next() {
+            while (++i < iterable.length) {
+              if (hasOwn.call(iterable, i)) {
+                next.value = iterable[i];
+                next.done = false;
+                return next;
+              }
+            }
+
+            next.value = undefined$1;
+            next.done = true;
+            return next;
+          };
+
+          return next.next = next;
+        }
+      } // Return an iterator with no values.
+
+
+      return {
+        next: doneResult
+      };
+    }
+
+    exports.values = values;
+
+    function doneResult() {
+      return {
+        value: undefined$1,
+        done: true
+      };
+    }
+
+    Context.prototype = {
+      constructor: Context,
+      reset: function reset(skipTempReset) {
+        this.prev = 0;
+        this.next = 0; // Resetting context._sent for legacy support of Babel's
+        // function.sent implementation.
+
+        this.sent = this._sent = undefined$1;
+        this.done = false;
+        this.delegate = null;
+        this.method = "next";
+        this.arg = undefined$1;
+        this.tryEntries.forEach(resetTryEntry);
+
+        if (!skipTempReset) {
+          for (var name in this) {
+            // Not sure about the optimal order of these conditions:
+            if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
+              this[name] = undefined$1;
+            }
+          }
+        }
+      },
+      stop: function stop() {
+        this.done = true;
+        var rootEntry = this.tryEntries[0];
+        var rootRecord = rootEntry.completion;
+
+        if (rootRecord.type === "throw") {
+          throw rootRecord.arg;
+        }
+
+        return this.rval;
+      },
+      dispatchException: function dispatchException(exception) {
+        if (this.done) {
+          throw exception;
+        }
+
+        var context = this;
+
+        function handle(loc, caught) {
+          record.type = "throw";
+          record.arg = exception;
+          context.next = loc;
+
+          if (caught) {
+            // If the dispatched exception was caught by a catch block,
+            // then let that catch block handle the exception normally.
+            context.method = "next";
+            context.arg = undefined$1;
+          }
+
+          return !!caught;
+        }
+
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+          var record = entry.completion;
+
+          if (entry.tryLoc === "root") {
+            // Exception thrown outside of any try block that could handle
+            // it, so set the completion value of the entire function to
+            // throw the exception.
+            return handle("end");
+          }
+
+          if (entry.tryLoc <= this.prev) {
+            var hasCatch = hasOwn.call(entry, "catchLoc");
+            var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+            if (hasCatch && hasFinally) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              } else if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else if (hasCatch) {
+              if (this.prev < entry.catchLoc) {
+                return handle(entry.catchLoc, true);
+              }
+            } else if (hasFinally) {
+              if (this.prev < entry.finallyLoc) {
+                return handle(entry.finallyLoc);
+              }
+            } else {
+              throw new Error("try statement without catch or finally");
+            }
+          }
+        }
+      },
+      abrupt: function abrupt(type, arg) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+            var finallyEntry = entry;
+            break;
+          }
+        }
+
+        if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
+          // Ignore the finally entry if control is not jumping to a
+          // location outside the try/catch block.
+          finallyEntry = null;
+        }
+
+        var record = finallyEntry ? finallyEntry.completion : {};
+        record.type = type;
+        record.arg = arg;
+
+        if (finallyEntry) {
+          this.method = "next";
+          this.next = finallyEntry.finallyLoc;
+          return ContinueSentinel;
+        }
+
+        return this.complete(record);
+      },
+      complete: function complete(record, afterLoc) {
+        if (record.type === "throw") {
+          throw record.arg;
+        }
+
+        if (record.type === "break" || record.type === "continue") {
+          this.next = record.arg;
+        } else if (record.type === "return") {
+          this.rval = this.arg = record.arg;
+          this.method = "return";
+          this.next = "end";
+        } else if (record.type === "normal" && afterLoc) {
+          this.next = afterLoc;
+        }
+
+        return ContinueSentinel;
+      },
+      finish: function finish(finallyLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.finallyLoc === finallyLoc) {
+            this.complete(entry.completion, entry.afterLoc);
+            resetTryEntry(entry);
+            return ContinueSentinel;
+          }
+        }
+      },
+      "catch": function _catch(tryLoc) {
+        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+          var entry = this.tryEntries[i];
+
+          if (entry.tryLoc === tryLoc) {
+            var record = entry.completion;
+
+            if (record.type === "throw") {
+              var thrown = record.arg;
+              resetTryEntry(entry);
+            }
+
+            return thrown;
+          }
+        } // The context.catch method must only be called with a location
+        // argument that corresponds to a known catch block.
+
+
+        throw new Error("illegal catch attempt");
+      },
+      delegateYield: function delegateYield(iterable, resultName, nextLoc) {
+        this.delegate = {
+          iterator: values(iterable),
+          resultName: resultName,
+          nextLoc: nextLoc
+        };
+
+        if (this.method === "next") {
+          // Deliberately forget the last sent value so that we don't
+          // accidentally pass it on to the delegate.
+          this.arg = undefined$1;
+        }
+
+        return ContinueSentinel;
+      }
+    }; // Regardless of whether this script is executing as a CommonJS module
+    // or not, return the runtime object so that we can declare the variable
+    // regeneratorRuntime in the outer scope, which allows this module to be
+    // injected easily by `bin/regenerator --include-runtime script.js`.
+
+    return exports;
+  }( // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+  module.exports );
+
+  try {
+    regeneratorRuntime = runtime;
+  } catch (accidentalStrictMode) {
+    // This module should not be running in strict mode, so the above
+    // assignment should always work unless something is misconfigured. Just
+    // in case runtime.js accidentally runs in strict mode, we can escape
+    // strict mode using a global Function call. This could conceivably fail
+    // if a Content Security Policy forbids using Function, but in that case
+    // the proper solution is to fix the accidental strict mode problem. If
+    // you've misconfigured your bundler to force strict mode and applied a
+    // CSP to forbid Function, and you're not willing to fix either of those
+    // problems, please detail your unique predicament in a GitHub issue.
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+})(runtime);
+
+var regenerator = runtime.exports;
 
 /**
  * Types of block
@@ -794,6 +1568,12 @@ var en = {
 	"g2s.neoPixelSetColor": "NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]",
 	"g2s.neoPixelShow": "NeoPixel show",
 	"g2s.neoPixelClear": "NeoPixel clear",
+	"g2s.measureDistance": "distance (mm)",
+	"g2s.getAcceleration": "acceleration [AXIS] (m/s^2)",
+	"g2s.accelerationAxisMenu.x": "x",
+	"g2s.accelerationAxisMenu.y": "y",
+	"g2s.accelerationAxisMenu.z": "z",
+	"g2s.accelerationAxisMenu.absolute": "absolute",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
 	"g2s.spliceNumbers": "[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]",
 	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
@@ -833,6 +1613,12 @@ var ja = {
 	"g2s.neoPixelSetColor": "NeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
 	"g2s.neoPixelShow": "NeoPixelを光らせる",
 	"g2s.neoPixelClear": "NeoPixelを消す",
+	"g2s.measureDistance": "距離(mm)",
+	"g2s.getAcceleration": "加速度[AXIS](m/s^2)",
+	"g2s.accelerationAxisMenu.x": "x",
+	"g2s.accelerationAxisMenu.y": "y",
+	"g2s.accelerationAxisMenu.z": "z",
+	"g2s.accelerationAxisMenu.absolute": "絶対値",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
 	"g2s.spliceNumbers": "数列[ARRAY]の[INDEX]番目から[DELETE]個削除して[INSERT]を入れる",
 	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
@@ -875,6 +1661,12 @@ var translations = {
 	"g2s.neoPixelSetColor": "NeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
 	"g2s.neoPixelShow": "NeoPixelをひからせる",
 	"g2s.neoPixelClear": "NeoPixelをけす",
+	"g2s.measureDistance": "きょり(mm)",
+	"g2s.getAcceleration": "かそくど[AXIS](m/s^2)",
+	"g2s.accelerationAxisMenu.x": "x",
+	"g2s.accelerationAxisMenu.y": "y",
+	"g2s.accelerationAxisMenu.z": "z",
+	"g2s.accelerationAxisMenu.absolute": "ぜったいち",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
 	"g2s.spliceNumbers": "すうれつ[ARRAY]の[INDEX]ばんめから[DELETE]こさくじょして[INSERT]をいれる",
 	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
@@ -2308,788 +3100,6 @@ Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
   return new Long(bytes[4] << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7], bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3], unsigned);
 };
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-        args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-
-      _next(undefined);
-    });
-  };
-}
-
-function _typeof$1(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof$1 = function _typeof(obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof$1 = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof$1(obj);
-}
-
-var runtime = {exports: {}};
-
-(function (module) {
-  var runtime = function (exports) {
-
-    var Op = Object.prototype;
-    var hasOwn = Op.hasOwnProperty;
-    var undefined$1; // More compressible than void 0.
-
-    var $Symbol = typeof Symbol === "function" ? Symbol : {};
-    var iteratorSymbol = $Symbol.iterator || "@@iterator";
-    var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-    var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-    function define(obj, key, value) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-      return obj[key];
-    }
-
-    try {
-      // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-      define({}, "");
-    } catch (err) {
-      define = function define(obj, key, value) {
-        return obj[key] = value;
-      };
-    }
-
-    function wrap(innerFn, outerFn, self, tryLocsList) {
-      // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-      var generator = Object.create(protoGenerator.prototype);
-      var context = new Context(tryLocsList || []); // The ._invoke method unifies the implementations of the .next,
-      // .throw, and .return methods.
-
-      generator._invoke = makeInvokeMethod(innerFn, self, context);
-      return generator;
-    }
-
-    exports.wrap = wrap; // Try/catch helper to minimize deoptimizations. Returns a completion
-    // record like context.tryEntries[i].completion. This interface could
-    // have been (and was previously) designed to take a closure to be
-    // invoked without arguments, but in all the cases we care about we
-    // already have an existing method we want to call, so there's no need
-    // to create a new function object. We can even get away with assuming
-    // the method takes exactly one argument, since that happens to be true
-    // in every case, so we don't have to touch the arguments object. The
-    // only additional allocation required is the completion record, which
-    // has a stable shape and so hopefully should be cheap to allocate.
-
-    function tryCatch(fn, obj, arg) {
-      try {
-        return {
-          type: "normal",
-          arg: fn.call(obj, arg)
-        };
-      } catch (err) {
-        return {
-          type: "throw",
-          arg: err
-        };
-      }
-    }
-
-    var GenStateSuspendedStart = "suspendedStart";
-    var GenStateSuspendedYield = "suspendedYield";
-    var GenStateExecuting = "executing";
-    var GenStateCompleted = "completed"; // Returning this object from the innerFn has the same effect as
-    // breaking out of the dispatch switch statement.
-
-    var ContinueSentinel = {}; // Dummy constructor functions that we use as the .constructor and
-    // .constructor.prototype properties for functions that return Generator
-    // objects. For full spec compliance, you may wish to configure your
-    // minifier not to mangle the names of these two functions.
-
-    function Generator() {}
-
-    function GeneratorFunction() {}
-
-    function GeneratorFunctionPrototype() {} // This is a polyfill for %IteratorPrototype% for environments that
-    // don't natively support it.
-
-
-    var IteratorPrototype = {};
-
-    IteratorPrototype[iteratorSymbol] = function () {
-      return this;
-    };
-
-    var getProto = Object.getPrototypeOf;
-    var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-
-    if (NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-      // This environment has a native %IteratorPrototype%; use it instead
-      // of the polyfill.
-      IteratorPrototype = NativeIteratorPrototype;
-    }
-
-    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
-    GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-    GeneratorFunctionPrototype.constructor = GeneratorFunction;
-    GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"); // Helper for defining the .next, .throw, and .return methods of the
-    // Iterator interface in terms of a single ._invoke method.
-
-    function defineIteratorMethods(prototype) {
-      ["next", "throw", "return"].forEach(function (method) {
-        define(prototype, method, function (arg) {
-          return this._invoke(method, arg);
-        });
-      });
-    }
-
-    exports.isGeneratorFunction = function (genFun) {
-      var ctor = typeof genFun === "function" && genFun.constructor;
-      return ctor ? ctor === GeneratorFunction || // For the native GeneratorFunction constructor, the best we can
-      // do is to check its .name property.
-      (ctor.displayName || ctor.name) === "GeneratorFunction" : false;
-    };
-
-    exports.mark = function (genFun) {
-      if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-      } else {
-        genFun.__proto__ = GeneratorFunctionPrototype;
-        define(genFun, toStringTagSymbol, "GeneratorFunction");
-      }
-
-      genFun.prototype = Object.create(Gp);
-      return genFun;
-    }; // Within the body of any async function, `await x` is transformed to
-    // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-    // `hasOwn.call(value, "__await")` to determine if the yielded value is
-    // meant to be awaited.
-
-
-    exports.awrap = function (arg) {
-      return {
-        __await: arg
-      };
-    };
-
-    function AsyncIterator(generator, PromiseImpl) {
-      function invoke(method, arg, resolve, reject) {
-        var record = tryCatch(generator[method], generator, arg);
-
-        if (record.type === "throw") {
-          reject(record.arg);
-        } else {
-          var result = record.arg;
-          var value = result.value;
-
-          if (value && _typeof$1(value) === "object" && hasOwn.call(value, "__await")) {
-            return PromiseImpl.resolve(value.__await).then(function (value) {
-              invoke("next", value, resolve, reject);
-            }, function (err) {
-              invoke("throw", err, resolve, reject);
-            });
-          }
-
-          return PromiseImpl.resolve(value).then(function (unwrapped) {
-            // When a yielded Promise is resolved, its final value becomes
-            // the .value of the Promise<{value,done}> result for the
-            // current iteration.
-            result.value = unwrapped;
-            resolve(result);
-          }, function (error) {
-            // If a rejected Promise was yielded, throw the rejection back
-            // into the async generator function so it can be handled there.
-            return invoke("throw", error, resolve, reject);
-          });
-        }
-      }
-
-      var previousPromise;
-
-      function enqueue(method, arg) {
-        function callInvokeWithMethodAndArg() {
-          return new PromiseImpl(function (resolve, reject) {
-            invoke(method, arg, resolve, reject);
-          });
-        }
-
-        return previousPromise = // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, // Avoid propagating failures to Promises returned by later
-        // invocations of the iterator.
-        callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
-      } // Define the unified helper method that is used to implement .next,
-      // .throw, and .return (see defineIteratorMethods).
-
-
-      this._invoke = enqueue;
-    }
-
-    defineIteratorMethods(AsyncIterator.prototype);
-
-    AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-      return this;
-    };
-
-    exports.AsyncIterator = AsyncIterator; // Note that simple async functions are implemented on top of
-    // AsyncIterator objects; they just return a Promise for the value of
-    // the final result produced by the iterator.
-
-    exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-      if (PromiseImpl === void 0) PromiseImpl = Promise;
-      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
-      return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function (result) {
-        return result.done ? result.value : iter.next();
-      });
-    };
-
-    function makeInvokeMethod(innerFn, self, context) {
-      var state = GenStateSuspendedStart;
-      return function invoke(method, arg) {
-        if (state === GenStateExecuting) {
-          throw new Error("Generator is already running");
-        }
-
-        if (state === GenStateCompleted) {
-          if (method === "throw") {
-            throw arg;
-          } // Be forgiving, per 25.3.3.3.3 of the spec:
-          // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-
-
-          return doneResult();
-        }
-
-        context.method = method;
-        context.arg = arg;
-
-        while (true) {
-          var delegate = context.delegate;
-
-          if (delegate) {
-            var delegateResult = maybeInvokeDelegate(delegate, context);
-
-            if (delegateResult) {
-              if (delegateResult === ContinueSentinel) continue;
-              return delegateResult;
-            }
-          }
-
-          if (context.method === "next") {
-            // Setting context._sent for legacy support of Babel's
-            // function.sent implementation.
-            context.sent = context._sent = context.arg;
-          } else if (context.method === "throw") {
-            if (state === GenStateSuspendedStart) {
-              state = GenStateCompleted;
-              throw context.arg;
-            }
-
-            context.dispatchException(context.arg);
-          } else if (context.method === "return") {
-            context.abrupt("return", context.arg);
-          }
-
-          state = GenStateExecuting;
-          var record = tryCatch(innerFn, self, context);
-
-          if (record.type === "normal") {
-            // If an exception is thrown from innerFn, we leave state ===
-            // GenStateExecuting and loop back for another invocation.
-            state = context.done ? GenStateCompleted : GenStateSuspendedYield;
-
-            if (record.arg === ContinueSentinel) {
-              continue;
-            }
-
-            return {
-              value: record.arg,
-              done: context.done
-            };
-          } else if (record.type === "throw") {
-            state = GenStateCompleted; // Dispatch the exception by looping back around to the
-            // context.dispatchException(context.arg) call above.
-
-            context.method = "throw";
-            context.arg = record.arg;
-          }
-        }
-      };
-    } // Call delegate.iterator[context.method](context.arg) and handle the
-    // result, either by returning a { value, done } result from the
-    // delegate iterator, or by modifying context.method and context.arg,
-    // setting context.delegate to null, and returning the ContinueSentinel.
-
-
-    function maybeInvokeDelegate(delegate, context) {
-      var method = delegate.iterator[context.method];
-
-      if (method === undefined$1) {
-        // A .throw or .return when the delegate iterator has no .throw
-        // method always terminates the yield* loop.
-        context.delegate = null;
-
-        if (context.method === "throw") {
-          // Note: ["return"] must be used for ES3 parsing compatibility.
-          if (delegate.iterator["return"]) {
-            // If the delegate iterator has a return method, give it a
-            // chance to clean up.
-            context.method = "return";
-            context.arg = undefined$1;
-            maybeInvokeDelegate(delegate, context);
-
-            if (context.method === "throw") {
-              // If maybeInvokeDelegate(context) changed context.method from
-              // "return" to "throw", let that override the TypeError below.
-              return ContinueSentinel;
-            }
-          }
-
-          context.method = "throw";
-          context.arg = new TypeError("The iterator does not provide a 'throw' method");
-        }
-
-        return ContinueSentinel;
-      }
-
-      var record = tryCatch(method, delegate.iterator, context.arg);
-
-      if (record.type === "throw") {
-        context.method = "throw";
-        context.arg = record.arg;
-        context.delegate = null;
-        return ContinueSentinel;
-      }
-
-      var info = record.arg;
-
-      if (!info) {
-        context.method = "throw";
-        context.arg = new TypeError("iterator result is not an object");
-        context.delegate = null;
-        return ContinueSentinel;
-      }
-
-      if (info.done) {
-        // Assign the result of the finished delegate to the temporary
-        // variable specified by delegate.resultName (see delegateYield).
-        context[delegate.resultName] = info.value; // Resume execution at the desired location (see delegateYield).
-
-        context.next = delegate.nextLoc; // If context.method was "throw" but the delegate handled the
-        // exception, let the outer generator proceed normally. If
-        // context.method was "next", forget context.arg since it has been
-        // "consumed" by the delegate iterator. If context.method was
-        // "return", allow the original .return call to continue in the
-        // outer generator.
-
-        if (context.method !== "return") {
-          context.method = "next";
-          context.arg = undefined$1;
-        }
-      } else {
-        // Re-yield the result returned by the delegate method.
-        return info;
-      } // The delegate iterator is finished, so forget it and continue with
-      // the outer generator.
-
-
-      context.delegate = null;
-      return ContinueSentinel;
-    } // Define Generator.prototype.{next,throw,return} in terms of the
-    // unified ._invoke helper method.
-
-
-    defineIteratorMethods(Gp);
-    define(Gp, toStringTagSymbol, "Generator"); // A Generator should always return itself as the iterator object when the
-    // @@iterator function is called on it. Some browsers' implementations of the
-    // iterator prototype chain incorrectly implement this, causing the Generator
-    // object to not be returned from this call. This ensures that doesn't happen.
-    // See https://github.com/facebook/regenerator/issues/274 for more details.
-
-    Gp[iteratorSymbol] = function () {
-      return this;
-    };
-
-    Gp.toString = function () {
-      return "[object Generator]";
-    };
-
-    function pushTryEntry(locs) {
-      var entry = {
-        tryLoc: locs[0]
-      };
-
-      if (1 in locs) {
-        entry.catchLoc = locs[1];
-      }
-
-      if (2 in locs) {
-        entry.finallyLoc = locs[2];
-        entry.afterLoc = locs[3];
-      }
-
-      this.tryEntries.push(entry);
-    }
-
-    function resetTryEntry(entry) {
-      var record = entry.completion || {};
-      record.type = "normal";
-      delete record.arg;
-      entry.completion = record;
-    }
-
-    function Context(tryLocsList) {
-      // The root entry object (effectively a try statement without a catch
-      // or a finally block) gives us a place to store values thrown from
-      // locations where there is no enclosing try statement.
-      this.tryEntries = [{
-        tryLoc: "root"
-      }];
-      tryLocsList.forEach(pushTryEntry, this);
-      this.reset(true);
-    }
-
-    exports.keys = function (object) {
-      var keys = [];
-
-      for (var key in object) {
-        keys.push(key);
-      }
-
-      keys.reverse(); // Rather than returning an object with a next method, we keep
-      // things simple and return the next function itself.
-
-      return function next() {
-        while (keys.length) {
-          var key = keys.pop();
-
-          if (key in object) {
-            next.value = key;
-            next.done = false;
-            return next;
-          }
-        } // To avoid creating an additional object, we just hang the .value
-        // and .done properties off the next function object itself. This
-        // also ensures that the minifier will not anonymize the function.
-
-
-        next.done = true;
-        return next;
-      };
-    };
-
-    function values(iterable) {
-      if (iterable) {
-        var iteratorMethod = iterable[iteratorSymbol];
-
-        if (iteratorMethod) {
-          return iteratorMethod.call(iterable);
-        }
-
-        if (typeof iterable.next === "function") {
-          return iterable;
-        }
-
-        if (!isNaN(iterable.length)) {
-          var i = -1,
-              next = function next() {
-            while (++i < iterable.length) {
-              if (hasOwn.call(iterable, i)) {
-                next.value = iterable[i];
-                next.done = false;
-                return next;
-              }
-            }
-
-            next.value = undefined$1;
-            next.done = true;
-            return next;
-          };
-
-          return next.next = next;
-        }
-      } // Return an iterator with no values.
-
-
-      return {
-        next: doneResult
-      };
-    }
-
-    exports.values = values;
-
-    function doneResult() {
-      return {
-        value: undefined$1,
-        done: true
-      };
-    }
-
-    Context.prototype = {
-      constructor: Context,
-      reset: function reset(skipTempReset) {
-        this.prev = 0;
-        this.next = 0; // Resetting context._sent for legacy support of Babel's
-        // function.sent implementation.
-
-        this.sent = this._sent = undefined$1;
-        this.done = false;
-        this.delegate = null;
-        this.method = "next";
-        this.arg = undefined$1;
-        this.tryEntries.forEach(resetTryEntry);
-
-        if (!skipTempReset) {
-          for (var name in this) {
-            // Not sure about the optimal order of these conditions:
-            if (name.charAt(0) === "t" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {
-              this[name] = undefined$1;
-            }
-          }
-        }
-      },
-      stop: function stop() {
-        this.done = true;
-        var rootEntry = this.tryEntries[0];
-        var rootRecord = rootEntry.completion;
-
-        if (rootRecord.type === "throw") {
-          throw rootRecord.arg;
-        }
-
-        return this.rval;
-      },
-      dispatchException: function dispatchException(exception) {
-        if (this.done) {
-          throw exception;
-        }
-
-        var context = this;
-
-        function handle(loc, caught) {
-          record.type = "throw";
-          record.arg = exception;
-          context.next = loc;
-
-          if (caught) {
-            // If the dispatched exception was caught by a catch block,
-            // then let that catch block handle the exception normally.
-            context.method = "next";
-            context.arg = undefined$1;
-          }
-
-          return !!caught;
-        }
-
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-          var record = entry.completion;
-
-          if (entry.tryLoc === "root") {
-            // Exception thrown outside of any try block that could handle
-            // it, so set the completion value of the entire function to
-            // throw the exception.
-            return handle("end");
-          }
-
-          if (entry.tryLoc <= this.prev) {
-            var hasCatch = hasOwn.call(entry, "catchLoc");
-            var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-            if (hasCatch && hasFinally) {
-              if (this.prev < entry.catchLoc) {
-                return handle(entry.catchLoc, true);
-              } else if (this.prev < entry.finallyLoc) {
-                return handle(entry.finallyLoc);
-              }
-            } else if (hasCatch) {
-              if (this.prev < entry.catchLoc) {
-                return handle(entry.catchLoc, true);
-              }
-            } else if (hasFinally) {
-              if (this.prev < entry.finallyLoc) {
-                return handle(entry.finallyLoc);
-              }
-            } else {
-              throw new Error("try statement without catch or finally");
-            }
-          }
-        }
-      },
-      abrupt: function abrupt(type, arg) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
-            var finallyEntry = entry;
-            break;
-          }
-        }
-
-        if (finallyEntry && (type === "break" || type === "continue") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {
-          // Ignore the finally entry if control is not jumping to a
-          // location outside the try/catch block.
-          finallyEntry = null;
-        }
-
-        var record = finallyEntry ? finallyEntry.completion : {};
-        record.type = type;
-        record.arg = arg;
-
-        if (finallyEntry) {
-          this.method = "next";
-          this.next = finallyEntry.finallyLoc;
-          return ContinueSentinel;
-        }
-
-        return this.complete(record);
-      },
-      complete: function complete(record, afterLoc) {
-        if (record.type === "throw") {
-          throw record.arg;
-        }
-
-        if (record.type === "break" || record.type === "continue") {
-          this.next = record.arg;
-        } else if (record.type === "return") {
-          this.rval = this.arg = record.arg;
-          this.method = "return";
-          this.next = "end";
-        } else if (record.type === "normal" && afterLoc) {
-          this.next = afterLoc;
-        }
-
-        return ContinueSentinel;
-      },
-      finish: function finish(finallyLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.finallyLoc === finallyLoc) {
-            this.complete(entry.completion, entry.afterLoc);
-            resetTryEntry(entry);
-            return ContinueSentinel;
-          }
-        }
-      },
-      "catch": function _catch(tryLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc === tryLoc) {
-            var record = entry.completion;
-
-            if (record.type === "throw") {
-              var thrown = record.arg;
-              resetTryEntry(entry);
-            }
-
-            return thrown;
-          }
-        } // The context.catch method must only be called with a location
-        // argument that corresponds to a known catch block.
-
-
-        throw new Error("illegal catch attempt");
-      },
-      delegateYield: function delegateYield(iterable, resultName, nextLoc) {
-        this.delegate = {
-          iterator: values(iterable),
-          resultName: resultName,
-          nextLoc: nextLoc
-        };
-
-        if (this.method === "next") {
-          // Deliberately forget the last sent value so that we don't
-          // accidentally pass it on to the delegate.
-          this.arg = undefined$1;
-        }
-
-        return ContinueSentinel;
-      }
-    }; // Regardless of whether this script is executing as a CommonJS module
-    // or not, return the runtime object so that we can declare the variable
-    // regeneratorRuntime in the outer scope, which allows this module to be
-    // injected easily by `bin/regenerator --include-runtime script.js`.
-
-    return exports;
-  }( // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-  module.exports );
-
-  try {
-    regeneratorRuntime = runtime;
-  } catch (accidentalStrictMode) {
-    // This module should not be running in strict mode, so the above
-    // assignment should always work unless something is misconfigured. Just
-    // in case runtime.js accidentally runs in strict mode, we can escape
-    // strict mode using a global Function call. This could conceivably fail
-    // if a Content Security Policy forbids using Function, but in that case
-    // the proper solution is to fix the accidental strict mode problem. If
-    // you've misconfigured your bundler to force strict mode and applied a
-    // CSP to forbid Function, and you're not willing to fix either of those
-    // problems, please detail your unique predicament in a GitHub issue.
-    Function("r", "regeneratorRuntime = r")(runtime);
-  }
-})(runtime);
-
-var regenerator = runtime.exports;
-
-function _assertThisInitialized(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return self;
-}
-
 function _setPrototypeOf(o, p) {
   _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
     o.__proto__ = p;
@@ -3114,6 +3124,14 @@ function _inherits(subClass, superClass) {
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
 
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
 function _possibleConstructorReturn(self, call) {
   if (call && (_typeof$1(call) === "object" || typeof call === "function")) {
     return call;
@@ -3128,6 +3146,454 @@ function _getPrototypeOf(o) {
   };
   return _getPrototypeOf(o);
 }
+
+var domain; // This constructor is used to store event handlers. Instantiating this is
+// faster than explicitly calling `Object.create(null)` to get a "clean" empty
+// object (tested with v8 v4.9).
+
+function EventHandlers() {}
+
+EventHandlers.prototype = Object.create(null);
+
+function EventEmitter$1() {
+  EventEmitter$1.init.call(this);
+}
+// require('events') === require('events').EventEmitter
+
+EventEmitter$1.EventEmitter = EventEmitter$1;
+EventEmitter$1.usingDomains = false;
+EventEmitter$1.prototype.domain = undefined;
+EventEmitter$1.prototype._events = undefined;
+EventEmitter$1.prototype._maxListeners = undefined; // By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+
+EventEmitter$1.defaultMaxListeners = 10;
+
+EventEmitter$1.init = function () {
+  this.domain = null;
+
+  if (EventEmitter$1.usingDomains) {
+    // if there is an active domain, then attach to it.
+    if (domain.active ) ;
+  }
+
+  if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
+    this._events = new EventHandlers();
+    this._eventsCount = 0;
+  }
+
+  this._maxListeners = this._maxListeners || undefined;
+}; // Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+
+
+EventEmitter$1.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+function $getMaxListeners(that) {
+  if (that._maxListeners === undefined) return EventEmitter$1.defaultMaxListeners;
+  return that._maxListeners;
+}
+
+EventEmitter$1.prototype.getMaxListeners = function getMaxListeners() {
+  return $getMaxListeners(this);
+}; // These standalone emit* functions are used to optimize calling of event
+// handlers for fast cases because emit() itself often has a variable number of
+// arguments and can be deoptimized because of that. These functions always have
+// the same number of arguments and thus do not get deoptimized, so the code
+// inside them can execute faster.
+
+
+function emitNone(handler, isFn, self) {
+  if (isFn) handler.call(self);else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+
+    for (var i = 0; i < len; ++i) {
+      listeners[i].call(self);
+    }
+  }
+}
+
+function emitOne(handler, isFn, self, arg1) {
+  if (isFn) handler.call(self, arg1);else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+
+    for (var i = 0; i < len; ++i) {
+      listeners[i].call(self, arg1);
+    }
+  }
+}
+
+function emitTwo(handler, isFn, self, arg1, arg2) {
+  if (isFn) handler.call(self, arg1, arg2);else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+
+    for (var i = 0; i < len; ++i) {
+      listeners[i].call(self, arg1, arg2);
+    }
+  }
+}
+
+function emitThree(handler, isFn, self, arg1, arg2, arg3) {
+  if (isFn) handler.call(self, arg1, arg2, arg3);else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+
+    for (var i = 0; i < len; ++i) {
+      listeners[i].call(self, arg1, arg2, arg3);
+    }
+  }
+}
+
+function emitMany(handler, isFn, self, args) {
+  if (isFn) handler.apply(self, args);else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+
+    for (var i = 0; i < len; ++i) {
+      listeners[i].apply(self, args);
+    }
+  }
+}
+
+EventEmitter$1.prototype.emit = function emit(type) {
+  var er, handler, len, args, i, events, domain;
+  var doError = type === 'error';
+  events = this._events;
+  if (events) doError = doError && events.error == null;else if (!doError) return false;
+  domain = this.domain; // If there is no 'error' event listener then throw.
+
+  if (doError) {
+    er = arguments[1];
+
+    if (domain) {
+      if (!er) er = new Error('Uncaught, unspecified "error" event');
+      er.domainEmitter = this;
+      er.domain = domain;
+      er.domainThrown = false;
+      domain.emit('error', er);
+    } else if (er instanceof Error) {
+      throw er; // Unhandled 'error' event
+    } else {
+      // At least give some kind of context to the user
+      var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+      err.context = er;
+      throw err;
+    }
+
+    return false;
+  }
+
+  handler = events[type];
+  if (!handler) return false;
+  var isFn = typeof handler === 'function';
+  len = arguments.length;
+
+  switch (len) {
+    // fast cases
+    case 1:
+      emitNone(handler, isFn, this);
+      break;
+
+    case 2:
+      emitOne(handler, isFn, this, arguments[1]);
+      break;
+
+    case 3:
+      emitTwo(handler, isFn, this, arguments[1], arguments[2]);
+      break;
+
+    case 4:
+      emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
+      break;
+    // slower
+
+    default:
+      args = new Array(len - 1);
+
+      for (i = 1; i < len; i++) {
+        args[i - 1] = arguments[i];
+      }
+
+      emitMany(handler, isFn, this, args);
+  }
+  return true;
+};
+
+function _addListener(target, type, listener, prepend) {
+  var m;
+  var events;
+  var existing;
+  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+  events = target._events;
+
+  if (!events) {
+    events = target._events = new EventHandlers();
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener) {
+      target.emit('newListener', type, listener.listener ? listener.listener : listener); // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+
+      events = target._events;
+    }
+
+    existing = events[type];
+  }
+
+  if (!existing) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] = prepend ? [listener, existing] : [existing, listener];
+    } else {
+      // If we've already got an array, just append.
+      if (prepend) {
+        existing.unshift(listener);
+      } else {
+        existing.push(listener);
+      }
+    } // Check for listener leak
+
+
+    if (!existing.warned) {
+      m = $getMaxListeners(target);
+
+      if (m && m > 0 && existing.length > m) {
+        existing.warned = true;
+        var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + type + ' listeners added. ' + 'Use emitter.setMaxListeners() to increase limit');
+        w.name = 'MaxListenersExceededWarning';
+        w.emitter = target;
+        w.type = type;
+        w.count = existing.length;
+        emitWarning(w);
+      }
+    }
+  }
+
+  return target;
+}
+
+function emitWarning(e) {
+  typeof console.warn === 'function' ? console.warn(e) : console.log(e);
+}
+
+EventEmitter$1.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
+};
+
+EventEmitter$1.prototype.on = EventEmitter$1.prototype.addListener;
+
+EventEmitter$1.prototype.prependListener = function prependListener(type, listener) {
+  return _addListener(this, type, listener, true);
+};
+
+function _onceWrap(target, type, listener) {
+  var fired = false;
+
+  function g() {
+    target.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(target, arguments);
+    }
+  }
+
+  g.listener = listener;
+  return g;
+}
+
+EventEmitter$1.prototype.once = function once(type, listener) {
+  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+  this.on(type, _onceWrap(this, type, listener));
+  return this;
+};
+
+EventEmitter$1.prototype.prependOnceListener = function prependOnceListener(type, listener) {
+  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+  this.prependListener(type, _onceWrap(this, type, listener));
+  return this;
+}; // emits a 'removeListener' event iff the listener was removed
+
+
+EventEmitter$1.prototype.removeListener = function removeListener(type, listener) {
+  var list, events, position, i, originalListener;
+  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+  events = this._events;
+  if (!events) return this;
+  list = events[type];
+  if (!list) return this;
+
+  if (list === listener || list.listener && list.listener === listener) {
+    if (--this._eventsCount === 0) this._events = new EventHandlers();else {
+      delete events[type];
+      if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
+    }
+  } else if (typeof list !== 'function') {
+    position = -1;
+
+    for (i = list.length; i-- > 0;) {
+      if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+        originalListener = list[i].listener;
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0) return this;
+
+    if (list.length === 1) {
+      list[0] = undefined;
+
+      if (--this._eventsCount === 0) {
+        this._events = new EventHandlers();
+        return this;
+      } else {
+        delete events[type];
+      }
+    } else {
+      spliceOne(list, position);
+    }
+
+    if (events.removeListener) this.emit('removeListener', type, originalListener || listener);
+  }
+
+  return this;
+};
+
+EventEmitter$1.prototype.removeAllListeners = function removeAllListeners(type) {
+  var listeners, events;
+  events = this._events;
+  if (!events) return this; // not listening for removeListener, no need to emit
+
+  if (!events.removeListener) {
+    if (arguments.length === 0) {
+      this._events = new EventHandlers();
+      this._eventsCount = 0;
+    } else if (events[type]) {
+      if (--this._eventsCount === 0) this._events = new EventHandlers();else delete events[type];
+    }
+
+    return this;
+  } // emit removeListener for all listeners on all events
+
+
+  if (arguments.length === 0) {
+    var keys = Object.keys(events);
+
+    for (var i = 0, key; i < keys.length; ++i) {
+      key = keys[i];
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+
+    this.removeAllListeners('removeListener');
+    this._events = new EventHandlers();
+    this._eventsCount = 0;
+    return this;
+  }
+
+  listeners = events[type];
+
+  if (typeof listeners === 'function') {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    do {
+      this.removeListener(type, listeners[listeners.length - 1]);
+    } while (listeners[0]);
+  }
+
+  return this;
+};
+
+EventEmitter$1.prototype.listeners = function listeners(type) {
+  var evlistener;
+  var ret;
+  var events = this._events;
+  if (!events) ret = [];else {
+    evlistener = events[type];
+    if (!evlistener) ret = [];else if (typeof evlistener === 'function') ret = [evlistener.listener || evlistener];else ret = unwrapListeners(evlistener);
+  }
+  return ret;
+};
+
+EventEmitter$1.listenerCount = function (emitter, type) {
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount$1.call(emitter, type);
+  }
+};
+
+EventEmitter$1.prototype.listenerCount = listenerCount$1;
+
+function listenerCount$1(type) {
+  var events = this._events;
+
+  if (events) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
+}
+
+EventEmitter$1.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
+}; // About 1.5x faster than the two-arg version of Array#splice().
+
+
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) {
+    list[i] = list[k];
+  }
+
+  list.pop();
+}
+
+function arrayClone(arr, i) {
+  var copy = new Array(i);
+
+  while (i--) {
+    copy[i] = arr[i];
+  }
+
+  return copy;
+}
+
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+
+  return ret;
+}
+
+var events = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': EventEmitter$1,
+  EventEmitter: EventEmitter$1
+});
 
 function _defineProperty(obj, key, value) {
   if (key in obj) {
@@ -5405,454 +5871,6 @@ var process = {
   uptime: uptime
 };
 
-var domain; // This constructor is used to store event handlers. Instantiating this is
-// faster than explicitly calling `Object.create(null)` to get a "clean" empty
-// object (tested with v8 v4.9).
-
-function EventHandlers() {}
-
-EventHandlers.prototype = Object.create(null);
-
-function EventEmitter$1() {
-  EventEmitter$1.init.call(this);
-}
-// require('events') === require('events').EventEmitter
-
-EventEmitter$1.EventEmitter = EventEmitter$1;
-EventEmitter$1.usingDomains = false;
-EventEmitter$1.prototype.domain = undefined;
-EventEmitter$1.prototype._events = undefined;
-EventEmitter$1.prototype._maxListeners = undefined; // By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-
-EventEmitter$1.defaultMaxListeners = 10;
-
-EventEmitter$1.init = function () {
-  this.domain = null;
-
-  if (EventEmitter$1.usingDomains) {
-    // if there is an active domain, then attach to it.
-    if (domain.active ) ;
-  }
-
-  if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
-    this._events = new EventHandlers();
-    this._eventsCount = 0;
-  }
-
-  this._maxListeners = this._maxListeners || undefined;
-}; // Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-
-
-EventEmitter$1.prototype.setMaxListeners = function setMaxListeners(n) {
-  if (typeof n !== 'number' || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-function $getMaxListeners(that) {
-  if (that._maxListeners === undefined) return EventEmitter$1.defaultMaxListeners;
-  return that._maxListeners;
-}
-
-EventEmitter$1.prototype.getMaxListeners = function getMaxListeners() {
-  return $getMaxListeners(this);
-}; // These standalone emit* functions are used to optimize calling of event
-// handlers for fast cases because emit() itself often has a variable number of
-// arguments and can be deoptimized because of that. These functions always have
-// the same number of arguments and thus do not get deoptimized, so the code
-// inside them can execute faster.
-
-
-function emitNone(handler, isFn, self) {
-  if (isFn) handler.call(self);else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) {
-      listeners[i].call(self);
-    }
-  }
-}
-
-function emitOne(handler, isFn, self, arg1) {
-  if (isFn) handler.call(self, arg1);else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) {
-      listeners[i].call(self, arg1);
-    }
-  }
-}
-
-function emitTwo(handler, isFn, self, arg1, arg2) {
-  if (isFn) handler.call(self, arg1, arg2);else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) {
-      listeners[i].call(self, arg1, arg2);
-    }
-  }
-}
-
-function emitThree(handler, isFn, self, arg1, arg2, arg3) {
-  if (isFn) handler.call(self, arg1, arg2, arg3);else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) {
-      listeners[i].call(self, arg1, arg2, arg3);
-    }
-  }
-}
-
-function emitMany(handler, isFn, self, args) {
-  if (isFn) handler.apply(self, args);else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) {
-      listeners[i].apply(self, args);
-    }
-  }
-}
-
-EventEmitter$1.prototype.emit = function emit(type) {
-  var er, handler, len, args, i, events, domain;
-  var doError = type === 'error';
-  events = this._events;
-  if (events) doError = doError && events.error == null;else if (!doError) return false;
-  domain = this.domain; // If there is no 'error' event listener then throw.
-
-  if (doError) {
-    er = arguments[1];
-
-    if (domain) {
-      if (!er) er = new Error('Uncaught, unspecified "error" event');
-      er.domainEmitter = this;
-      er.domain = domain;
-      er.domainThrown = false;
-      domain.emit('error', er);
-    } else if (er instanceof Error) {
-      throw er; // Unhandled 'error' event
-    } else {
-      // At least give some kind of context to the user
-      var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
-      err.context = er;
-      throw err;
-    }
-
-    return false;
-  }
-
-  handler = events[type];
-  if (!handler) return false;
-  var isFn = typeof handler === 'function';
-  len = arguments.length;
-
-  switch (len) {
-    // fast cases
-    case 1:
-      emitNone(handler, isFn, this);
-      break;
-
-    case 2:
-      emitOne(handler, isFn, this, arguments[1]);
-      break;
-
-    case 3:
-      emitTwo(handler, isFn, this, arguments[1], arguments[2]);
-      break;
-
-    case 4:
-      emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
-      break;
-    // slower
-
-    default:
-      args = new Array(len - 1);
-
-      for (i = 1; i < len; i++) {
-        args[i - 1] = arguments[i];
-      }
-
-      emitMany(handler, isFn, this, args);
-  }
-  return true;
-};
-
-function _addListener(target, type, listener, prepend) {
-  var m;
-  var events;
-  var existing;
-  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
-  events = target._events;
-
-  if (!events) {
-    events = target._events = new EventHandlers();
-    target._eventsCount = 0;
-  } else {
-    // To avoid recursion in the case that type === "newListener"! Before
-    // adding it to the listeners, first emit "newListener".
-    if (events.newListener) {
-      target.emit('newListener', type, listener.listener ? listener.listener : listener); // Re-assign `events` because a newListener handler could have caused the
-      // this._events to be assigned to a new object
-
-      events = target._events;
-    }
-
-    existing = events[type];
-  }
-
-  if (!existing) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    existing = events[type] = listener;
-    ++target._eventsCount;
-  } else {
-    if (typeof existing === 'function') {
-      // Adding the second element, need to change to array.
-      existing = events[type] = prepend ? [listener, existing] : [existing, listener];
-    } else {
-      // If we've already got an array, just append.
-      if (prepend) {
-        existing.unshift(listener);
-      } else {
-        existing.push(listener);
-      }
-    } // Check for listener leak
-
-
-    if (!existing.warned) {
-      m = $getMaxListeners(target);
-
-      if (m && m > 0 && existing.length > m) {
-        existing.warned = true;
-        var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + type + ' listeners added. ' + 'Use emitter.setMaxListeners() to increase limit');
-        w.name = 'MaxListenersExceededWarning';
-        w.emitter = target;
-        w.type = type;
-        w.count = existing.length;
-        emitWarning(w);
-      }
-    }
-  }
-
-  return target;
-}
-
-function emitWarning(e) {
-  typeof console.warn === 'function' ? console.warn(e) : console.log(e);
-}
-
-EventEmitter$1.prototype.addListener = function addListener(type, listener) {
-  return _addListener(this, type, listener, false);
-};
-
-EventEmitter$1.prototype.on = EventEmitter$1.prototype.addListener;
-
-EventEmitter$1.prototype.prependListener = function prependListener(type, listener) {
-  return _addListener(this, type, listener, true);
-};
-
-function _onceWrap(target, type, listener) {
-  var fired = false;
-
-  function g() {
-    target.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(target, arguments);
-    }
-  }
-
-  g.listener = listener;
-  return g;
-}
-
-EventEmitter$1.prototype.once = function once(type, listener) {
-  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
-  this.on(type, _onceWrap(this, type, listener));
-  return this;
-};
-
-EventEmitter$1.prototype.prependOnceListener = function prependOnceListener(type, listener) {
-  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
-  this.prependListener(type, _onceWrap(this, type, listener));
-  return this;
-}; // emits a 'removeListener' event iff the listener was removed
-
-
-EventEmitter$1.prototype.removeListener = function removeListener(type, listener) {
-  var list, events, position, i, originalListener;
-  if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
-  events = this._events;
-  if (!events) return this;
-  list = events[type];
-  if (!list) return this;
-
-  if (list === listener || list.listener && list.listener === listener) {
-    if (--this._eventsCount === 0) this._events = new EventHandlers();else {
-      delete events[type];
-      if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
-    }
-  } else if (typeof list !== 'function') {
-    position = -1;
-
-    for (i = list.length; i-- > 0;) {
-      if (list[i] === listener || list[i].listener && list[i].listener === listener) {
-        originalListener = list[i].listener;
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0) return this;
-
-    if (list.length === 1) {
-      list[0] = undefined;
-
-      if (--this._eventsCount === 0) {
-        this._events = new EventHandlers();
-        return this;
-      } else {
-        delete events[type];
-      }
-    } else {
-      spliceOne(list, position);
-    }
-
-    if (events.removeListener) this.emit('removeListener', type, originalListener || listener);
-  }
-
-  return this;
-};
-
-EventEmitter$1.prototype.removeAllListeners = function removeAllListeners(type) {
-  var listeners, events;
-  events = this._events;
-  if (!events) return this; // not listening for removeListener, no need to emit
-
-  if (!events.removeListener) {
-    if (arguments.length === 0) {
-      this._events = new EventHandlers();
-      this._eventsCount = 0;
-    } else if (events[type]) {
-      if (--this._eventsCount === 0) this._events = new EventHandlers();else delete events[type];
-    }
-
-    return this;
-  } // emit removeListener for all listeners on all events
-
-
-  if (arguments.length === 0) {
-    var keys = Object.keys(events);
-
-    for (var i = 0, key; i < keys.length; ++i) {
-      key = keys[i];
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-
-    this.removeAllListeners('removeListener');
-    this._events = new EventHandlers();
-    this._eventsCount = 0;
-    return this;
-  }
-
-  listeners = events[type];
-
-  if (typeof listeners === 'function') {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    do {
-      this.removeListener(type, listeners[listeners.length - 1]);
-    } while (listeners[0]);
-  }
-
-  return this;
-};
-
-EventEmitter$1.prototype.listeners = function listeners(type) {
-  var evlistener;
-  var ret;
-  var events = this._events;
-  if (!events) ret = [];else {
-    evlistener = events[type];
-    if (!evlistener) ret = [];else if (typeof evlistener === 'function') ret = [evlistener.listener || evlistener];else ret = unwrapListeners(evlistener);
-  }
-  return ret;
-};
-
-EventEmitter$1.listenerCount = function (emitter, type) {
-  if (typeof emitter.listenerCount === 'function') {
-    return emitter.listenerCount(type);
-  } else {
-    return listenerCount$1.call(emitter, type);
-  }
-};
-
-EventEmitter$1.prototype.listenerCount = listenerCount$1;
-
-function listenerCount$1(type) {
-  var events = this._events;
-
-  if (events) {
-    var evlistener = events[type];
-
-    if (typeof evlistener === 'function') {
-      return 1;
-    } else if (evlistener) {
-      return evlistener.length;
-    }
-  }
-
-  return 0;
-}
-
-EventEmitter$1.prototype.eventNames = function eventNames() {
-  return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
-}; // About 1.5x faster than the two-arg version of Array#splice().
-
-
-function spliceOne(list, index) {
-  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) {
-    list[i] = list[k];
-  }
-
-  list.pop();
-}
-
-function arrayClone(arr, i) {
-  var copy = new Array(i);
-
-  while (i--) {
-    copy[i] = arr[i];
-  }
-
-  return copy;
-}
-
-function unwrapListeners(arr) {
-  var ret = new Array(arr.length);
-
-  for (var i = 0; i < ret.length; ++i) {
-    ret[i] = arr[i].listener || arr[i];
-  }
-
-  return ret;
-}
-
-var events = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': EventEmitter$1,
-  EventEmitter: EventEmitter$1
-});
-
 var require$$0$1 = /*@__PURE__*/getAugmentedNamespace(events);
 
 function _createForOfIteratorHelper$1(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray$1(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -5988,9 +6006,9 @@ var onewireutils = OneWireUtils;
 
 var _MIDI_RESPONSE, _SYSEX_RESPONSE;
 
-function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$1(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _createSuper$3(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$3(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
-function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct$3() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 
 var EventEmitter = require$$0$1.EventEmitter; // Internal Dependencies
@@ -6313,10 +6331,10 @@ var Transport = null;
  * @property {SerialPort} sp The serial port object used to communicate with the arduino.
  */
 
-var Firmata = /*#__PURE__*/function (_EventEmitter) {
+var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
   _inherits(Firmata, _EventEmitter);
 
-  var _super = _createSuper$1(Firmata);
+  var _super = _createSuper$3(Firmata);
 
   function Firmata(port, options, callback) {
     var _this;
@@ -8058,11 +8076,11 @@ var Firmata = /*#__PURE__*/function (_EventEmitter) {
 }(EventEmitter); // Prototype Compatibility Aliases
 
 
-Firmata.prototype.analogWrite = Firmata.prototype.pwmWrite; // Static Compatibility Aliases
+Firmata$1.prototype.analogWrite = Firmata$1.prototype.pwmWrite; // Static Compatibility Aliases
 
-Firmata.Board = Firmata;
-Firmata.SYSEX_RESPONSE = SYSEX_RESPONSE;
-Firmata.MIDI_RESPONSE = MIDI_RESPONSE; // The following are used internally.
+Firmata$1.Board = Firmata$1;
+Firmata$1.SYSEX_RESPONSE = SYSEX_RESPONSE;
+Firmata$1.MIDI_RESPONSE = MIDI_RESPONSE; // The following are used internally.
 
 /**
  * writeToTransport Due to the non-blocking behaviour of transport write
@@ -8163,10 +8181,10 @@ function encodeCustomFloat(input) {
 
 var bindTransport = function bindTransport(transport) {
   Transport = transport;
-  return Firmata;
+  return Firmata$1;
 };
 
-bindTransport.Firmata = Firmata;
+bindTransport.Firmata = Firmata$1;
 var firmata = bindTransport;
 
 function _typeof(obj) {
@@ -13194,9 +13212,9 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _createSuper$2(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$2(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct$2() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var AbstractBinding = lib$1;
 
 function cancelError(message) {
@@ -13214,7 +13232,7 @@ function attachUsbId(dst, dstKey, id) {
 var lib = /*#__PURE__*/function (_AbstractBinding) {
   _inherits(WebSerialBinding, _AbstractBinding);
 
-  var _super = _createSuper(WebSerialBinding);
+  var _super = _createSuper$2(WebSerialBinding);
 
   function WebSerialBinding(opts) {
     var _this;
@@ -13776,8 +13794,26 @@ var nodePixelConstants = {
   COLOR_ORDER: COLOR_ORDER
 };
 
+function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$1(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+/**
+ * Return a Promise which will reject after the delay time passed.
+ * @param {number} delay - waiting time to reject in milliseconds
+ * @returns {Promise<string>} Promise which will reject with reason after the delay.
+ */
+
+var timeoutReject = function timeoutReject(delay) {
+  return new Promise(function (_, reject) {
+    return setTimeout(function () {
+      return reject("timeout ".concat(delay, "ms"));
+    }, delay);
+  });
+}; // Setup transport of Firmata.
+
+
 lib$2.Binding = lib;
-var FirmataClass = firmata(lib$2); // eslint-disable-next-line prefer-const
+var Firmata = firmata(lib$2); // eslint-disable-next-line prefer-const
 
 var neoPixelGammaTable = function (steps, gamma) {
   var gammaTable = new Array(steps);
@@ -13803,145 +13839,184 @@ var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
   return (gammaCorrectedColor[0] << 16) + (gammaCorrectedColor[1] << 8) + gammaCorrectedColor[2];
 };
 
-var FirmataBoard = /*#__PURE__*/function () {
+var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(FirmataBoard, _EventEmitter);
+
+  var _super = _createSuper$1(FirmataBoard);
+
   /**
-   * Construct a G2SBoard communication object.
+   * Construct a firmata board object.
    * @param {Runtime} runtime - the Scratch runtime
    */
   function FirmataBoard(runtime) {
+    var _this;
+
     _classCallCheck(this, FirmataBoard);
 
-    this.name = 'FirmataBoard';
+    _this = _super.call(this);
+    _this.name = 'FirmataBoard';
     /**
      * The Scratch runtime to register event listeners.
      * @type {Runtime}
      * @private
      */
 
-    this.runtime = runtime;
+    _this.runtime = runtime;
+    /**
+     * State of this board
+     * @type {string}
+     */
+
+    _this.state = 'disconnect';
     /**
      * The Firmata board for reading/writing peripheral data.
-     * @type {Board}
+     * @type {Firmata}
      * @private
      */
 
-    this.board = null;
+    _this.firmata = null;
     /**
      * The serial port for transporting of Firmata.
      */
 
-    this.port = null;
+    _this.port = null;
     /**
      * ID of the extension which requested to open port.
      */
 
-    this.extensionId = null;
-    this.portInfo = null;
-    this.neoPixel = null;
+    _this.extensionId = null;
+    /**
+     * shortest interval time between digital input readings
+     */
+
+    _this.digitalReadInterval = 20;
+    /**
+     * shortest interval time between analog input readings
+     */
+
+    _this.analogReadInterval = 20;
+    /**
+     * Waiting time for response of digital input reading in milliseconds.
+     */
+
+    _this.updateDigitalInputWaitingTime = 100;
+    /**
+     * Waiting time for response of analog input reading in milliseconds.
+     */
+
+    _this.updateAnalogInputWaitingTime = 100;
+    /**
+     * Waiting time for response of I2C reading in milliseconds.
+     */
+
+    _this.i2cReadWaitingTime = 100;
+    /**
+     * Waiting time for response of OneWire reading in milliseconds.
+     */
+
+    _this.oneWireReadWaitingTime = 100;
+    _this.portInfo = null;
+    _this.neoPixel = null;
+    return _this;
   }
+  /**
+   * Open a port to connect a firmata board.
+   * @param {string} extensionId - ID of the extension which is requesting
+   * @param {object} options - serial port options
+   * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+   */
+
 
   _createClass(FirmataBoard, [{
     key: "requestPort",
     value: function () {
       var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
-        var _this = this;
+        var _this2 = this;
 
         var nativePort, permittedPorts;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if ('serial' in navigator) {
-                  _context.next = 3;
-                  break;
-                }
-
-                console.log('This browser does not support Web Serial API.');
-                return _context.abrupt("return", Promise.resolve('This browser does not support Web Serial API.'));
-
-              case 3:
                 if (!this.port) {
-                  _context.next = 5;
+                  _context.next = 2;
                   break;
                 }
 
-                return _context.abrupt("return");
+                return _context.abrupt("return", Promise.resolve(this));
 
-              case 5:
+              case 2:
+                // already opened
                 this.state = 'portRequesting';
                 this.extensionId = extensionId;
                 nativePort = null;
-                _context.next = 10;
+                _context.next = 7;
                 return navigator.serial.getPorts();
 
-              case 10:
+              case 7:
                 permittedPorts = _context.sent;
 
                 if (!(permittedPorts !== null && Array.isArray(permittedPorts) && permittedPorts.length > 0)) {
-                  _context.next = 15;
+                  _context.next = 12;
                   break;
                 }
 
                 nativePort = permittedPorts[0];
-                _context.next = 18;
+                _context.next = 15;
                 break;
 
-              case 15:
-                _context.next = 17;
+              case 12:
+                _context.next = 14;
                 return navigator.serial.requestPort(options);
 
-              case 17:
+              case 14:
                 nativePort = _context.sent;
 
-              case 18:
+              case 15:
                 this.port = new lib$2(nativePort, {
                   baudRate: 57600,
                   // firmata: 57600
                   autoOpen: false
                 });
                 this.portInfo = this.port.path.getInfo();
-                this.board = new FirmataClass(this.port);
-                this.board.once('open', function () {
-                  _this.state = 'connect';
+                this.firmata = new Firmata(this.port);
+                this.firmata.once('open', function () {
+                  _this2.state = 'connect';
                 });
-                this.board.once('close', function () {
-                  if (_this.state === 'disconnect') return;
+                this.firmata.once('close', function () {
+                  if (_this2.state === 'disconnect') return;
 
-                  _this.releaseBoard();
+                  _this2.releaseBoard();
                 });
-                this.board.once('disconnect', function (error) {
-                  if (_this.state === 'disconnect') return;
+                this.firmata.once('disconnect', function (error) {
+                  if (_this2.state === 'disconnect') return;
 
-                  _this.handleDisconnectError(error);
+                  _this2.handleDisconnectError(error);
                 });
-                this.board.once('error', function (error) {
-                  if (_this.state === 'disconnect') return;
+                this.firmata.once('error', function (error) {
+                  if (_this2.state === 'disconnect') return;
 
-                  if (error) {
-                    _this.handleDisconnectError(error);
-                  } else {
-                    _this.releaseBoard();
-                  }
+                  _this2.handleDisconnectError(error);
                 });
 
                 return _context.abrupt("return", new Promise(function (resolve, reject) {
-                  _this.port.open(function (error) {
+                  _this2.port.open(function (error) {
                     if (error) {
-                      _this.releaseBoard();
+                      _this2.releaseBoard();
 
                       reject(error);
                       return;
                     }
 
-                    _this.board.once('ready', function () {
-                      _this.onBoarReady();
+                    _this2.firmata.once('ready', function () {
+                      _this2.onBoarReady();
 
-                      resolve('connected');
+                      resolve(_this2);
                     });
                   });
                 }));
 
-              case 27:
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -13958,14 +14033,10 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "onBoarReady",
     value: function onBoarReady() {
-      var firmInfo = this.board.firmware;
+      var firmInfo = this.firmata.firmware;
       console.log("".concat(firmInfo.name, "-").concat(firmInfo.version.major, ".").concat(firmInfo.version.minor, " on: ").concat(JSON.stringify(this.portInfo)));
-      this.board.i2cConfig();
+      this.firmata.i2cConfig();
       this.state = 'ready';
-      this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
-        name: this.name,
-        path: this.portInfo
-      });
     }
   }, {
     key: "isConnected",
@@ -13993,15 +14064,11 @@ var FirmataBoard = /*#__PURE__*/function () {
                 }
 
                 this.port = null;
-                this.board = null;
                 this.oneWireDevices = null;
                 this.extensionId = null;
-                this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-                  name: this.name,
-                  path: this.portInfo
-                });
+                this.emit(FirmataBoard.RELEASED);
 
-              case 8:
+              case 7:
               case "end":
                 return _context2.stop();
             }
@@ -14018,8 +14085,10 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "disconnect",
     value: function disconnect() {
-      if (this.board && this.port && this.port.isOpen) {
-        this.board.reset(); // notify disconnection to board
+      if (this.state === 'disconnect') return;
+
+      if (this.firmata && this.port && this.port.isOpen) {
+        this.firmata.reset(); // notify disconnection to board
       }
 
       this.releaseBoard();
@@ -14052,137 +14121,227 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "pinMode",
     value: function pinMode(pin, mode) {
-      return this.board.pinMode(pin, mode);
+      return this.firmata.pinMode(pin, mode);
+    }
+    /**
+     * Update pin value as a digital input when the last update was too old.
+     * @param {number} pin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+
+  }, {
+    key: "updateDigitalInput",
+    value: function updateDigitalInput(pin) {
+      var _this3 = this;
+
+      if (this.pins[pin].updating || this.pins[pin].updateTime && Date.now() - this.pins[pin].updateTime < this.digitalReadInterval) {
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      this.pins[pin].updating = true;
+      var request = new Promise(function (resolve) {
+        if (_this3.pins[pin].inputBias !== _this3.firmata.MODES.PULLUP) {
+          _this3.pins[pin].inputBias = _this3.firmata.MODES.INPUT;
+        }
+
+        _this3.firmata.pinMode(pin, _this3.pins[pin].inputBias);
+
+        _this3.firmata.digitalRead(pin, function (value) {
+          _this3.pins[pin].value = value;
+          _this3.pins[pin].updateTime = Date.now();
+          resolve(_this3.pins[pin].value);
+        });
+      });
+      return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
+        _this3.pins[pin].value = 0;
+        return Promise.reject(reason);
+      }).finally(function () {
+        _this3.pins[pin].updating = false;
+      });
+    }
+    /**
+     * Set input bias of the connector.
+     * @param {number} pin - number of the pin
+     * @param {boolean} pullUp - input bias of the pin [none | pullUp]
+     * @returns {undefined} set send message then return immediately
+     */
+
+  }, {
+    key: "setInputBias",
+    value: function setInputBias(pin, pullUp) {
+      this.pins[pin].inputBias = pullUp ? this.MODES.PULLUP : this.MODES.INPUT;
+      this.pinMode(pin, this.pins[pin].inputBias);
+    }
+    /**
+     * Update pin value as a analog input when the last update was too old.
+     * @param {number} analogPin - pin number to read
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     */
+
+  }, {
+    key: "updateAnalogInput",
+    value: function updateAnalogInput(analogPin) {
+      var _this4 = this;
+
+      var pin = this.firmata.analogPins[analogPin];
+
+      if (this.pins[pin].updating || this.pins[pin].updateTime && Date.now() - this.pins[pin].updateTime < this.analogReadInterval) {
+        return Promise.resolve(this.pins[pin].value);
+      }
+
+      this.pins[pin].updating = true;
+      var request = new Promise(function (resolve) {
+        _this4.firmata.pinMode(analogPin, _this4.MODES.ANALOG);
+
+        _this4.firmata.analogRead(analogPin, function (value) {
+          _this4.pins[pin].value = value;
+          _this4.pins[pin].updateTime = Date.now();
+          resolve(_this4.pins[pin].value);
+        });
+      });
+      return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)]).catch(function (reason) {
+        _this4.pins[pin].value = 0;
+        return Promise.reject(reason);
+      }).finally(function () {
+        _this4.pins[pin].updating = false;
+      });
     }
   }, {
     key: "digitalRead",
     value: function digitalRead(pin, callback) {
-      return this.board.digitalRead(pin, callback);
+      return this.firmata.digitalRead(pin, callback);
     }
   }, {
     key: "reportDigitalPin",
     value: function reportDigitalPin(pin, value) {
-      return this.board.reportDigitalPin(pin, value);
+      return this.firmata.reportDigitalPin(pin, value);
     }
   }, {
     key: "digitalWrite",
     value: function digitalWrite(pin, value, enqueue) {
-      return this.board.digitalWrite(pin, value, enqueue);
+      return this.firmata.digitalWrite(pin, value, enqueue);
     }
   }, {
     key: "pwmWrite",
     value: function pwmWrite(pin, value) {
-      return this.board.pwmWrite(pin, value);
+      return this.firmata.pwmWrite(pin, value);
     }
   }, {
     key: "servoWrite",
     value: function servoWrite() {
-      var _this$board;
+      var _this$firmata;
 
-      return (_this$board = this.board).servoWrite.apply(_this$board, arguments);
+      return (_this$firmata = this.firmata).servoWrite.apply(_this$firmata, arguments);
     }
   }, {
     key: "analogRead",
     value: function analogRead(pin, callback) {
-      return this.board.analogRead(pin, callback);
+      return this.firmata.analogRead(pin, callback);
     }
   }, {
     key: "reportAnalogPin",
     value: function reportAnalogPin(pin, value) {
-      return this.board.reportAnalogPin(pin, value);
+      return this.firmata.reportAnalogPin(pin, value);
     }
   }, {
     key: "i2cWrite",
     value: function i2cWrite(address, registerOrData, inBytes) {
-      return this.board.i2cWrite(address, registerOrData, inBytes);
-    }
-  }, {
-    key: "i2cRead",
-    value: function i2cRead(address, register, bytesToRead, callback) {
-      return this.board.i2cRead(address, register, bytesToRead, callback);
+      return this.firmata.i2cWrite(address, registerOrData, inBytes);
     }
   }, {
     key: "i2cStop",
     value: function i2cStop(options) {
-      return this.board.i2cStop(options);
+      return this.firmata.i2cStop(options);
     }
   }, {
     key: "i2cReadOnce",
-    value: function i2cReadOnce(address, register, bytesToRead, callback) {
-      return this.board.i2cReadOnce(address, register, bytesToRead, callback);
+    value: function i2cReadOnce(address, register, readLength, timeout) {
+      var _this5 = this;
+
+      timeout = timeout ? timeout : this.i2cReadWaitingTime;
+      var request = new Promise(function (resolve) {
+        _this5.firmata.i2cReadOnce(address, register, readLength, function (data) {
+          resolve(data);
+        });
+      });
+      return Promise.race([request, timeoutReject(timeout)]);
     }
   }, {
     key: "sendOneWireReset",
     value: function sendOneWireReset(pin) {
-      return this.board.sendOneWireReset(pin);
+      return this.firmata.sendOneWireReset(pin);
     }
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
-      var _this2 = this;
+      var _this6 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this2.board.pins[pin].mode !== _this2.board.MODES.ONEWIRE) {
-          _this2.board.sendOneWireConfig(pin, true);
+        if (_this6.firmata.pins[pin].mode !== _this6.firmata.MODES.ONEWIRE) {
+          _this6.firmata.sendOneWireConfig(pin, true);
 
-          return _this2.board.sendOneWireSearch(pin, function (error, founds) {
+          return _this6.firmata.sendOneWireSearch(pin, function (error, founds) {
             if (error) return reject(error);
             if (founds.length < 1) return reject(new Error('no device'));
 
-            _this2.board.pinMode(pin, _this2.board.MODES.ONEWIRE);
+            _this6.firmata.pinMode(pin, _this6.firmata.MODES.ONEWIRE);
 
-            _this2.oneWireDevices = founds;
+            _this6.oneWireDevices = founds;
 
-            _this2.board.sendOneWireDelay(pin, 1);
+            _this6.firmata.sendOneWireDelay(pin, 1);
 
-            resolve(_this2.oneWireDevices);
+            resolve(_this6.oneWireDevices);
           });
         }
 
-        resolve(_this2.oneWireDevices);
+        resolve(_this6.oneWireDevices);
       });
     }
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
-      var _this3 = this;
+      var _this7 = this;
 
       return this.searchOneWireDevices(pin).then(function (devices) {
-        _this3.board.sendOneWireWrite(pin, devices[0], data);
+        _this7.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
   }, {
     key: "oneWireRead",
-    value: function oneWireRead(pin, length) {
-      var _this4 = this;
+    value: function oneWireRead(pin, length, timeout) {
+      var _this8 = this;
 
-      return this.searchOneWireDevices(pin).then(function (devices) {
+      timeout = timeout ? timeout : this.oneWireReadWaitingTime;
+      var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this4.board.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+          _this8.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
             if (readError) return reject(readError);
             resolve(data);
           });
         });
       });
+      return Promise.race([request, timeoutReject(timeout)]);
     }
   }, {
     key: "oneWireWriteAndRead",
-    value: function oneWireWriteAndRead(pin, data, numBytesToRead) {
-      var _this5 = this;
+    value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
+      var _this9 = this;
 
-      return this.searchOneWireDevices(pin).then(function (devices) {
+      timeout = timeout ? timeout : this.oneWireReadWaitingTime;
+      var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this5.board.sendOneWireWriteAndRead(pin, devices[0], data, numBytesToRead, function (readError, readData) {
+          _this9.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
             if (readError) return reject(readError);
             resolve(readData);
           });
         });
       });
+      return Promise.race([request, timeoutReject(timeout)]);
     }
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
-      var _this6 = this;
+      var _this10 = this;
 
       // now send the config message with length and data point.
       this.neoPixel = {
@@ -14198,7 +14357,7 @@ var FirmataBoard = /*#__PURE__*/function () {
       data[5] = length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
       data[6] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
-        _this6.port.write(data, function () {
+        _this10.port.write(data, function () {
           return resolve();
         });
       });
@@ -14206,7 +14365,7 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "neoPixelSetColor",
     value: function neoPixelSetColor(index, color) {
-      var _this7 = this;
+      var _this11 = this;
 
       if (!this.neoPixel) return Promise.resolve();
       var address = Math.min(this.neoPixel.length, Math.max(0, index));
@@ -14223,7 +14382,7 @@ var FirmataBoard = /*#__PURE__*/function () {
       data[8] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
       data[9] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
-        _this7.port.write(data, function () {
+        _this11.port.write(data, function () {
           return resolve();
         });
       });
@@ -14281,7 +14440,7 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
-      var _this8 = this;
+      var _this12 = this;
 
       var data = [];
       data[0] = nodePixelConstants.START_SYSEX;
@@ -14289,7 +14448,7 @@ var FirmataBoard = /*#__PURE__*/function () {
       data[2] = nodePixelConstants.PIXEL_SHOW;
       data[3] = nodePixelConstants.END_SYSEX;
       return new Promise(function (resolve) {
-        _this8.port.write(data, function () {
+        _this12.port.write(data, function () {
           return resolve();
         });
       });
@@ -14301,46 +14460,1905 @@ var FirmataBoard = /*#__PURE__*/function () {
   }, {
     key: "pins",
     get: function get() {
-      return this.board.pins;
+      return this.firmata.pins;
     }
   }, {
     key: "MODES",
     get: function get() {
-      return this.board.MODES;
+      return this.firmata.MODES;
     }
   }, {
     key: "HIGH",
     get: function get() {
-      return this.board.HIGH;
+      return this.firmata.HIGH;
     }
   }, {
     key: "LOW",
     get: function get() {
-      return this.board.LOW;
+      return this.firmata.LOW;
     }
   }, {
     key: "RESOLUTION",
     get: function get() {
-      return this.board.RESOLUTION;
+      return this.firmata.RESOLUTION;
+    }
+  }], [{
+    key: "RELEASED",
+    get:
+    /**
+     * Event name for reporting that this board has been released.
+     * @const {string}
+     */
+    function get() {
+      return 'RELEASED';
     }
   }]);
 
   return FirmataBoard;
+}(EventEmitter$1);
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+/**
+ * Manager object which serves firmata boards.
+ */
+
+var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(FirmataConnector, _EventEmitter);
+
+  var _super = _createSuper(FirmataConnector);
+
+  /**
+   * Constructor of this instance.
+   * @param {Runtime} runtime - Scratch runtime object
+   */
+  function FirmataConnector(runtime) {
+    var _this;
+
+    _classCallCheck(this, FirmataConnector);
+
+    _this = _super.call(this);
+    /**
+     * The Scratch 3.0 runtime.
+     * @type {Runtime}
+     */
+
+    _this.runtime = runtime;
+    /**
+     * Available boards
+     * @type {Array<FirmataBoard>}
+     */
+
+    _this.boards = [];
+    return _this;
+  }
+  /**
+   * Return connected board which is confirmed with the options.
+   * @param {object} options serial port options
+   * @param {Array<{usbVendorId, usbProductId}>} options.filters allay of filters
+   * @returns {FirmataBoard?} first board which confirmed with options
+   */
+
+
+  _createClass(FirmataConnector, [{
+    key: "findBoard",
+    value: function findBoard(options) {
+      if (this.boards.length === 0) return;
+      if (!options || !options.filters) return this.boards[0];
+      return this.boards.find(function (aBoard) {
+        return aBoard.isConnected() && options.filters.some(function (filter) {
+          return filter.usbVendorId === aBoard.portInfo.usbVendorId && filter.usbProductId === aBoard.portInfo.usbProductId;
+        });
+      });
+    }
+    /**
+     * Add a board to the boards holder.
+     * @param {FirmataBoard} newBoard the board to be added
+     */
+
+  }, {
+    key: "addBoard",
+    value: function addBoard(newBoard) {
+      this.boards.push(newBoard);
+      this.emit(FirmataConnector.BOARD_ADDED, newBoard);
+    }
+    /**
+     * Remove a board from the boards holder.
+     * @param {FirmataBoard} removal the board to be removed
+     */
+
+  }, {
+    key: "removeBoard",
+    value: function removeBoard(removal) {
+      var indexOfRemoval = this.boards.indexOf(removal);
+      if (indexOfRemoval < 0) return; // not found
+
+      this.boards.splice(indexOfRemoval, 1);
+      this.emit(FirmataConnector.BOARD_ADDED, removal);
+    }
+    /**
+     * Return a connected firmata board which is confirmed with the options
+     * @param {string} extensionId - ID of the extension which is requesting
+     * @param {object} options - serial port options
+     * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+     */
+
+  }, {
+    key: "connect",
+    value: function connect(extensionId, options) {
+      var _this2 = this;
+
+      if (!('serial' in navigator)) {
+        console.log('This browser does not support Web Serial API.');
+        return Promise.reject('This browser does not support Web Serial API.');
+      }
+
+      var connectedBoard = this.findBoard(options);
+
+      if (connectedBoard) {
+        // share a board object
+        return Promise.resolve(connectedBoard);
+      }
+
+      var newBoard = new FirmataBoard(this.runtime);
+      newBoard.once(FirmataBoard.RELEASED, function () {
+        _this2.removeBoard(newBoard);
+
+        _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+          name: newBoard.name,
+          path: newBoard.portInfo
+        });
+      });
+      return newBoard.requestPort(extensionId, options).then(function (connected) {
+        _this2.addBoard(connected);
+
+        return connected;
+      });
+    }
+  }], [{
+    key: "BOARD_REMOVED",
+    get:
+    /**
+     * Event name for reporting that a board removed.
+     * @const {string}
+     */
+    function get() {
+      return 'BOARD_REMOVED';
+    }
+    /**
+     * Event name for reporting that a board added.
+     * @const {string}
+     */
+
+  }, {
+    key: "BOARD_ADDED",
+    get: function get() {
+      return 'BOARD_ADDED';
+    }
+  }]);
+
+  return FirmataConnector;
+}(EventEmitter$1);
+/**
+ * Return a shared firmata connector object
+ * @param {Runtime} runtime - Scratch runtime object
+ * @returns {FirmataConnector} a firmata connector object
+ */
+
+var getFirmataConnector = function getFirmataConnector(runtime) {
+  if (!runtime.firmataConnector) {
+    runtime.firmataConnector = new FirmataConnector(runtime);
+  }
+
+  return runtime.firmataConnector;
+};
+
+/**
+ * VL53L0X API converted from Cpp code for Arduino.
+ * ref: https://github.com/pololu/vl53l0x-arduino
+ */
+
+/* eslint-disable no-unused-vars */
+
+/* eslint-disable camelcase */
+// register addresses from API vl53l0x_device.h (ordered as listed there)
+// enum regAddr
+var SYSRANGE_START = 0x00;
+var SYSTEM_SEQUENCE_CONFIG = 0x01;
+var SYSTEM_INTERMEASUREMENT_PERIOD = 0x04;
+var SYSTEM_INTERRUPT_CONFIG_GPIO = 0x0A;
+var GPIO_HV_MUX_ACTIVE_HIGH = 0x84;
+var SYSTEM_INTERRUPT_CLEAR = 0x0B;
+var RESULT_INTERRUPT_STATUS = 0x13;
+var RESULT_RANGE_STATUS = 0x14;
+var I2C_SLAVE_DEVICE_ADDRESS = 0x8A;
+var MSRC_CONFIG_CONTROL = 0x60;
+var PRE_RANGE_CONFIG_VALID_PHASE_LOW = 0x56;
+var PRE_RANGE_CONFIG_VALID_PHASE_HIGH = 0x57;
+var FINAL_RANGE_CONFIG_VALID_PHASE_LOW = 0x47;
+var FINAL_RANGE_CONFIG_VALID_PHASE_HIGH = 0x48;
+var FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT = 0x44;
+var PRE_RANGE_CONFIG_VCSEL_PERIOD = 0x50;
+var PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51;
+var FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70;
+var FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x71;
+var MSRC_CONFIG_TIMEOUT_MACROP = 0x46;
+var IDENTIFICATION_MODEL_ID = 0xC0;
+var OSC_CALIBRATE_VAL = 0xF8;
+var GLOBAL_CONFIG_VCSEL_WIDTH = 0x32;
+var GLOBAL_CONFIG_SPAD_ENABLES_REF_0 = 0xB0;
+var GLOBAL_CONFIG_REF_EN_START_SELECT = 0xB6;
+var DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD = 0x4E;
+var DYNAMIC_SPAD_REF_EN_START_OFFSET = 0x4F;
+var VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV = 0x89;
+var ALGO_PHASECAL_LIM = 0x30;
+var ALGO_PHASECAL_CONFIG_TIMEOUT = 0x30; // enum vcselPeriodType
+
+var VcselPeriodPreRange = 0;
+var VcselPeriodFinalRange = 1;
+/**
+ * Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
+ * from register value
+ * based on VL53L0X_decode_vcsel_period()
+ * @param {number} reg_val - register value
+ * @returns {number} decoded value
+ */
+
+var decodeVcselPeriod = function decodeVcselPeriod(reg_val) {
+  return reg_val + 1 << 1;
+}; // Encode VCSEL pulse period register value from period in PCLKs
+// based on VL53L0X_encode_vcsel_period()
+
+
+var encodeVcselPeriod = function encodeVcselPeriod(period_pclks) {
+  return (period_pclks >> 1) - 1;
+}; // Calculate macro period in *nanoseconds* from VCSEL period in PCLKs
+// based on VL53L0X_calc_macro_period_ps()
+// PLL_period_ps = 1655; macro_period_vclks = 2304
+
+
+var calcMacroPeriod = function calcMacroPeriod(vcsel_period_pclks) {
+  return (2304 * vcsel_period_pclks * 1655 + 500) / 1000;
+};
+/**
+ * This class is representing a VL53L0X distance sensor.
+ */
+
+
+var VL53L0X = /*#__PURE__*/function () {
+  // eslint-disable-next-line valid-jsdoc
+
+  /**
+   * Constructor of VL53L0X instance.
+   * @param {FirmataBoard} board - connecting firmata board
+   * @param {*} address - I2C address of the sensor
+   */
+  function VL53L0X(board, address) {
+    _classCallCheck(this, VL53L0X);
+
+    /**
+     * Connecting firmata board
+     * @type {import('./firmata-board').default}
+     */
+    this.board = board;
+    /**
+     * I2C address for this module
+     */
+
+    this.address = 0x29;
+
+    if (address) {
+      this.setAddress(address);
+    }
+    /**
+     * read by init and used when starting measurement;
+     * is StopVariable field of VL53L0X_DevData_t structure in API
+     * @type {number}
+     */
+
+
+    this.stop_variable = 0;
+    /**
+     * Timeout for IO in milliseconds.
+     * @type {number}
+     */
+
+    this.io_timeout = 500;
+    /**
+     * Did a timeout occur in a sequence.
+     * @type {boolean}
+     */
+
+    this.did_timeout = false;
+    /**
+     * @type {number}
+     */
+
+    this.measurement_timing_budget_us = 0;
+  }
+  /**
+   * Change address for this module
+   * @param {number} new_addr - I2C address to set
+   */
+
+
+  _createClass(VL53L0X, [{
+    key: "setAddress",
+    value: function setAddress(new_addr) {
+      this.writeReg(I2C_SLAVE_DEVICE_ADDRESS, new_addr);
+      this.address = new_addr;
+    }
+    /**
+     * Initialize sensor using sequence based on VL53L0X_DataInit(),
+     * VL53L0X_StaticInit(), and VL53L0X_PerformRefCalibration().
+     * @param {boolean} io2v8 - set 2V8 mode if it was true
+     * @returns {Promise<boolean>} a Promise which resolves boolean if the initialization was succeeded.
+     */
+
+  }, {
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(io2v8) {
+        var id, info, refSpadMap, firstSpadToEnable, spadsEnabled, i;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.readReg(IDENTIFICATION_MODEL_ID);
+
+              case 2:
+                id = _context.sent;
+
+                if (!(id !== 0xEE)) {
+                  _context.next = 5;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 5:
+                if (!io2v8) {
+                  _context.next = 13;
+                  break;
+                }
+
+                _context.t0 = this;
+                _context.t1 = VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV;
+                _context.next = 10;
+                return this.readReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV);
+
+              case 10:
+                _context.t2 = _context.sent;
+                _context.t3 = _context.t2 | 0x01;
+
+                _context.t0.writeReg.call(_context.t0, _context.t1, _context.t3);
+
+              case 13:
+                // "Set I2C standard mode"
+                this.writeReg(0x88, 0x00);
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x00);
+                _context.next = 19;
+                return this.readReg(0x91);
+
+              case 19:
+                this.stop_variable = _context.sent;
+                this.writeReg(0x00, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x00); // disable SIGNAL_RATE_MSRC (bit 1) and SIGNAL_RATE_PRE_RANGE (bit 4) limit checks
+
+                _context.t4 = this;
+                _context.t5 = MSRC_CONFIG_CONTROL;
+                _context.next = 27;
+                return this.readReg(MSRC_CONFIG_CONTROL);
+
+              case 27:
+                _context.t6 = _context.sent;
+                _context.t7 = _context.t6 | 0x12;
+
+                _context.t4.writeReg.call(_context.t4, _context.t5, _context.t7);
+
+                // set final range signal rate limit to 0.25 MCPS (million counts per second)
+                this.setSignalRateLimit(0.25);
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xFF); // VL53L0X_DataInit() end
+                // VL53L0X_StaticInit() begin
+
+                info = {
+                  count: 0,
+                  isAperture: false
+                };
+                _context.next = 35;
+                return this.getSpadInfo(info);
+
+              case 35:
+                if (_context.sent) {
+                  _context.next = 37;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 37:
+                _context.next = 39;
+                return this.readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, 6);
+
+              case 39:
+                refSpadMap = _context.sent;
+                // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00);
+                this.writeReg(DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4);
+                firstSpadToEnable = info.isAperture ? 12 : 0; // 12 is the first aperture spad
+
+                spadsEnabled = 0;
+
+                for (i = 0; i < 48; i++) {
+                  if (i < firstSpadToEnable || spadsEnabled === info.count) {
+                    // This bit is lower than the first one that should be enabled, or
+                    // (reference_spad_count) bits have already been enabled, so zero this bit
+                    refSpadMap[i / 8] &= ~(1 << i % 8);
+                  } else if (refSpadMap[i / 8] >> i % 8 & 0x1) {
+                    spadsEnabled++;
+                  }
+                }
+
+                this.writeMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, refSpadMap, 6); // -- VL53L0X_set_reference_spads() end
+                // -- VL53L0X_load_tuning_settings() begin
+                // DefaultTuningSettings from vl53l0x_tuning.h
+
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x00);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x09, 0x00);
+                this.writeReg(0x10, 0x00);
+                this.writeReg(0x11, 0x00);
+                this.writeReg(0x24, 0x01);
+                this.writeReg(0x25, 0xFF);
+                this.writeReg(0x75, 0x00);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x4E, 0x2C);
+                this.writeReg(0x48, 0x00);
+                this.writeReg(0x30, 0x20);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x30, 0x09);
+                this.writeReg(0x54, 0x00);
+                this.writeReg(0x31, 0x04);
+                this.writeReg(0x32, 0x03);
+                this.writeReg(0x40, 0x83);
+                this.writeReg(0x46, 0x25);
+                this.writeReg(0x60, 0x00);
+                this.writeReg(0x27, 0x00);
+                this.writeReg(0x50, 0x06);
+                this.writeReg(0x51, 0x00);
+                this.writeReg(0x52, 0x96);
+                this.writeReg(0x56, 0x08);
+                this.writeReg(0x57, 0x30);
+                this.writeReg(0x61, 0x00);
+                this.writeReg(0x62, 0x00);
+                this.writeReg(0x64, 0x00);
+                this.writeReg(0x65, 0x00);
+                this.writeReg(0x66, 0xA0);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x22, 0x32);
+                this.writeReg(0x47, 0x14);
+                this.writeReg(0x49, 0xFF);
+                this.writeReg(0x4A, 0x00);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x7A, 0x0A);
+                this.writeReg(0x7B, 0x00);
+                this.writeReg(0x78, 0x21);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x23, 0x34);
+                this.writeReg(0x42, 0x00);
+                this.writeReg(0x44, 0xFF);
+                this.writeReg(0x45, 0x26);
+                this.writeReg(0x46, 0x05);
+                this.writeReg(0x40, 0x40);
+                this.writeReg(0x0E, 0x06);
+                this.writeReg(0x20, 0x1A);
+                this.writeReg(0x43, 0x40);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x34, 0x03);
+                this.writeReg(0x35, 0x44);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x31, 0x04);
+                this.writeReg(0x4B, 0x09);
+                this.writeReg(0x4C, 0x05);
+                this.writeReg(0x4D, 0x04);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x44, 0x00);
+                this.writeReg(0x45, 0x20);
+                this.writeReg(0x47, 0x08);
+                this.writeReg(0x48, 0x28);
+                this.writeReg(0x67, 0x00);
+                this.writeReg(0x70, 0x04);
+                this.writeReg(0x71, 0x01);
+                this.writeReg(0x72, 0xFE);
+                this.writeReg(0x76, 0x00);
+                this.writeReg(0x77, 0x00);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x0D, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0x01, 0xF8);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x8E, 0x01);
+                this.writeReg(0x00, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x00); // -- VL53L0X_load_tuning_settings() end
+                // "Set interrupt config to new sample ready"
+                // -- VL53L0X_SetGpioConfig() begin
+
+                this.writeReg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
+                _context.t8 = this;
+                _context.t9 = GPIO_HV_MUX_ACTIVE_HIGH;
+                _context.next = 134;
+                return this.readReg(GPIO_HV_MUX_ACTIVE_HIGH);
+
+              case 134:
+                _context.t10 = _context.sent;
+                _context.t11 = ~0x10;
+                _context.t12 = _context.t10 & _context.t11;
+
+                _context.t8.writeReg.call(_context.t8, _context.t9, _context.t12);
+
+                // active low
+                this.writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01); // -- VL53L0X_SetGpioConfig() end
+
+                _context.next = 141;
+                return this.getMeasurementTimingBudget();
+
+              case 141:
+                this.measurement_timing_budget_us = _context.sent;
+                // "Disable MSRC and TCC by default"
+                // MSRC = Minimum Signal Rate Check
+                // TCC = Target CentreCheck
+                // -- VL53L0X_SetSequenceStepEnable() begin
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // -- VL53L0X_SetSequenceStepEnable() end
+                // "Recalculate timing budget"
+
+                _context.next = 145;
+                return this.setMeasurementTimingBudget(this.measurement_timing_budget_us);
+
+              case 145:
+                // VL53L0X_StaticInit() end
+                // VL53L0X_PerformRefCalibration() begin (VL53L0X_perform_ref_calibration())
+                // -- VL53L0X_perform_vhv_calibration() begin
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x01);
+                _context.next = 148;
+                return this.performSingleRefCalibration(0x40);
+
+              case 148:
+                if (_context.sent) {
+                  _context.next = 150;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 150:
+                // -- VL53L0X_perform_vhv_calibration() end
+                // -- VL53L0X_perform_phase_calibration() begin
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
+                _context.next = 153;
+                return this.performSingleRefCalibration(0x00);
+
+              case 153:
+                if (_context.sent) {
+                  _context.next = 155;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 155:
+                // -- VL53L0X_perform_phase_calibration() end
+                // "restore the previous Sequence Config"
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // VL53L0X_PerformRefCalibration() end
+
+                return _context.abrupt("return", true);
+
+              case 157:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init(_x) {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+    /**
+     * Write an 8-bit at the register.
+     * @param {number} register - register to write
+     * @param {number} value - written 8-bit value
+     */
+
+  }, {
+    key: "writeReg",
+    value: function writeReg(register, value) {
+      this.board.i2cWrite(this.address, register, value);
+    }
+    /**
+     * Write a 16-bit at the register.
+     * @param {number} register - register to write
+     * @param {number} value - written 16-bit value
+     */
+
+  }, {
+    key: "writeReg16Bit",
+    value: function writeReg16Bit(register, value) {
+      var data = [value >> 8 & 0xFF, value & 0xFF];
+      this.board.i2cWrite(this.address, register, data);
+    }
+    /**
+     * Write a 32-bit at the register.
+     * @param {number} register - register to write
+     * @param {number} value - written 32-bit value
+     */
+
+  }, {
+    key: "writeReg32Bit",
+    value: function writeReg32Bit(register, value) {
+      var data = [value >> 24 & 0xFF, value >> 16 & 0xFF, value >> 8 & 0xFF, value & 0xFF];
+      this.board.i2cWrite(this.address, register, data);
+    }
+    /**
+     * Read an 8-bit from the register.
+     * @param {number} register - register to read
+     * @returns {Promise<number>} a Promise which resolves read value
+     */
+
+  }, {
+    key: "readReg",
+    value: function readReg(register) {
+      return this.board.i2cReadOnce(this.address, register, 1, this.io_timeout).then(function (data) {
+        return data[0];
+      });
+    }
+    /**
+     * Read a 16-bit from the register.
+     * @param {number} register - starting register
+     * @returns {Promise<number>} a Promise which resolves read value
+     */
+
+  }, {
+    key: "readReg16Bit",
+    value: function readReg16Bit(register) {
+      return this.board.i2cReadOnce(this.address, register, 2, this.io_timeout).then(function (data) {
+        var value = data[0] << 8 | data[1];
+        return value;
+      });
+    }
+    /**
+     * Read a 32-bit from the register.
+     * @param {number} register - starting register
+     * @returns {Promise<number>} a Promise which resolves read value
+     */
+
+  }, {
+    key: "readReg32Bit",
+    value: function readReg32Bit(register) {
+      return this.board.i2cReadOnce(this.address, register, 4, this.io_timeout).then(function (data) {
+        var value = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
+        return value;
+      });
+    }
+    /**
+     * Write these bytes starting at the register.
+     * @param {number} register - starting register
+     * @param {Array<number>} data - array of uint8t to be written
+     */
+
+  }, {
+    key: "writeMulti",
+    value: function writeMulti(register, data) {
+      this.board.i2cWrite(this.address, register, data);
+    }
+    /**
+     * Read bytes of the length from the register.
+     * @param {number} register - starting register
+     * @param {number} bytesToRead - byte length to read
+     * @returns {Promise<Array<number>>} a Promise which resolves read bytes
+     */
+
+  }, {
+    key: "readMulti",
+    value: function readMulti(register, bytesToRead) {
+      return this.board.i2cReadOnce(this.address, register, bytesToRead, this.io_timeout);
+    }
+    /**
+     * Record the current time to check an upcoming timeout against
+     */
+
+  }, {
+    key: "startTimeout",
+    value: function startTimeout() {
+      /**
+       * Starting time to count timeout for IO.
+       */
+      this.timeout_start_ms = Date.now();
+    }
+    /**
+     * Check if timeout is enabled (set to nonzero value) and has expired.
+     * @returns {boolean} true when the timeout has expired
+     */
+
+  }, {
+    key: "checkTimeoutExpired",
+    value: function checkTimeoutExpired() {
+      return this.io_timeout > 0 && Date.now() - this.timeout_start_ms > this.io_timeout;
+    } // Set the return signal rate limit check value in units of MCPS (mega counts
+    // per second). "This represents the amplitude of the signal reflected from the
+    // target and detected by the device"; setting this limit presumably determines
+    // the minimum measurement necessary for the sensor to report a valid reading.
+    // Setting a lower limit increases the potential range of the sensor but also
+    // seems to increase the likelihood of getting an inaccurate reading because of
+    // unwanted reflections from objects other than the intended target.
+    // Defaults to 0.25 MCPS as initialized by the ST API and this library.
+
+  }, {
+    key: "setSignalRateLimit",
+    value: function setSignalRateLimit(limitMCPS) {
+      if (limitMCPS < 0 || limitMCPS > 511.99) {
+        return false;
+      } // Q9.7 fixed point format (9 integer bits, 7 fractional bits)
+
+
+      this.writeReg16Bit(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT, limitMCPS * (1 << 7));
+      return true;
+    } // Get the return signal rate limit check value in MCPS
+
+  }, {
+    key: "getSignalRateLimit",
+    value: function () {
+      var _getSignalRateLimit = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.readReg16Bit(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT);
+
+              case 2:
+                _context2.t0 = _context2.sent;
+                _context2.t1 = 1 << 7;
+                return _context2.abrupt("return", _context2.t0 / _context2.t1);
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function getSignalRateLimit() {
+        return _getSignalRateLimit.apply(this, arguments);
+      }
+
+      return getSignalRateLimit;
+    }() // Set the measurement timing budget in microseconds, which is the time allowed
+    // for one measurement; the ST API and this library take care of splitting the
+    // timing budget among the sub-steps in the ranging sequence. A longer timing
+    // budget allows for more accurate measurements. Increasing the budget by a
+    // factor of N decreases the range measurement standard deviation by a factor of
+    // sqrt(N). Defaults to about 33 milliseconds; the minimum is 20 ms.
+    // based on VL53L0X_set_measurement_timing_budget_micro_seconds()
+
+  }, {
+    key: "setMeasurementTimingBudget",
+    value: function () {
+      var _setMeasurementTimingBudget = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(budget_us) {
+        var enables, timeouts, StartOverhead, EndOverhead, MsrcOverhead, TccOverhead, DssOverhead, PreRangeOverhead, FinalRangeOverhead, MinTimingBudget, used_budget_us, final_range_timeout_us, final_range_timeout_mclks;
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                enables = {
+                  tcc: false,
+                  msrc: false,
+                  dss: false,
+                  pre_range: false,
+                  final_range: false
+                };
+                timeouts = {
+                  pre_range_vcsel_period_pclks: 0,
+                  final_range_vcsel_period_pclks: 0,
+                  msrc_dss_tcc_mclks: 0,
+                  pre_range_mclks: 0,
+                  final_range_mclks: 0,
+                  msrc_dss_tcc_us: 0,
+                  pre_range_us: 0,
+                  final_range_us: 0
+                };
+                StartOverhead = 1910;
+                EndOverhead = 960;
+                MsrcOverhead = 660;
+                TccOverhead = 590;
+                DssOverhead = 690;
+                PreRangeOverhead = 660;
+                FinalRangeOverhead = 550;
+                MinTimingBudget = 20000;
+
+                if (!(budget_us < MinTimingBudget)) {
+                  _context3.next = 12;
+                  break;
+                }
+
+                return _context3.abrupt("return", false);
+
+              case 12:
+                used_budget_us = StartOverhead + EndOverhead;
+                _context3.next = 15;
+                return this.getSequenceStepEnables(enables);
+
+              case 15:
+                _context3.next = 17;
+                return this.getSequenceStepTimeouts(enables, timeouts);
+
+              case 17:
+                if (enables.tcc) {
+                  used_budget_us += timeouts.msrc_dss_tcc_us + TccOverhead;
+                }
+
+                if (enables.dss) {
+                  used_budget_us += 2 * (timeouts.msrc_dss_tcc_us + DssOverhead);
+                } else if (enables.msrc) {
+                  used_budget_us += timeouts.msrc_dss_tcc_us + MsrcOverhead;
+                }
+
+                if (enables.pre_range) {
+                  used_budget_us += timeouts.pre_range_us + PreRangeOverhead;
+                }
+
+                if (!enables.final_range) {
+                  _context3.next = 29;
+                  break;
+                }
+
+                used_budget_us += FinalRangeOverhead; // "Note that the final range timeout is determined by the timing
+                // budget and the sum of all other timeouts within the sequence.
+                // If there is no room for the final range timeout, then an error
+                // will be set. Otherwise the remaining time will be applied to
+                // the final range."
+
+                if (!(used_budget_us > budget_us)) {
+                  _context3.next = 24;
+                  break;
+                }
+
+                return _context3.abrupt("return", false);
+
+              case 24:
+                final_range_timeout_us = budget_us - used_budget_us; // set_sequence_step_timeout() begin
+                // (SequenceStepId == VL53L0X_SEQUENCESTEP_FINAL_RANGE)
+                // "For the final range timeout, the pre-range timeout
+                //  must be added. To do this both final and pre-range
+                //  timeouts must be expressed in macro periods MClks
+                //  because they have different vcsel periods."
+
+                final_range_timeout_mclks = this.timeoutMicrosecondsToMclks(final_range_timeout_us, timeouts.final_range_vcsel_period_pclks);
+
+                if (enables.pre_range) {
+                  final_range_timeout_mclks += timeouts.pre_range_mclks;
+                }
+
+                this.writeReg16Bit(FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI, this.encodeTimeout(final_range_timeout_mclks)); // set_sequence_step_timeout() end
+
+                this.measurement_timing_budget_us = budget_us; // store for internal reuse
+
+              case 29:
+                return _context3.abrupt("return", true);
+
+              case 30:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function setMeasurementTimingBudget(_x2) {
+        return _setMeasurementTimingBudget.apply(this, arguments);
+      }
+
+      return setMeasurementTimingBudget;
+    }() // Get the measurement timing budget in microseconds
+    // based on VL53L0X_get_measurement_timing_budget_micro_seconds()
+    // in us
+
+  }, {
+    key: "getMeasurementTimingBudget",
+    value: function () {
+      var _getMeasurementTimingBudget = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
+        var enables, timeouts, StartOverhead, EndOverhead, MsrcOverhead, TccOverhead, DssOverhead, PreRangeOverhead, FinalRangeOverhead, budget_us;
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                enables = {
+                  tcc: false,
+                  msrc: false,
+                  dss: false,
+                  pre_range: false,
+                  final_range: false
+                };
+                timeouts = {
+                  pre_range_vcsel_period_pclks: 0,
+                  final_range_vcsel_period_pclks: 0,
+                  msrc_dss_tcc_mclks: 0,
+                  pre_range_mclks: 0,
+                  final_range_mclks: 0,
+                  msrc_dss_tcc_us: 0,
+                  pre_range_us: 0,
+                  final_range_us: 0
+                };
+                StartOverhead = 1910;
+                EndOverhead = 960;
+                MsrcOverhead = 660;
+                TccOverhead = 590;
+                DssOverhead = 690;
+                PreRangeOverhead = 660;
+                FinalRangeOverhead = 550; // "Start and end overhead times always present"
+
+                budget_us = StartOverhead + EndOverhead;
+                _context4.next = 12;
+                return this.getSequenceStepEnables(enables);
+
+              case 12:
+                _context4.next = 14;
+                return this.getSequenceStepTimeouts(enables, timeouts);
+
+              case 14:
+                if (enables.tcc) {
+                  budget_us += timeouts.msrc_dss_tcc_us + TccOverhead;
+                }
+
+                if (enables.dss) {
+                  budget_us += 2 * (timeouts.msrc_dss_tcc_us + DssOverhead);
+                } else if (enables.msrc) {
+                  budget_us += timeouts.msrc_dss_tcc_us + MsrcOverhead;
+                }
+
+                if (enables.pre_range) {
+                  budget_us += timeouts.pre_range_us + PreRangeOverhead;
+                }
+
+                if (enables.final_range) {
+                  budget_us += timeouts.final_range_us + FinalRangeOverhead;
+                }
+
+                this.measurement_timing_budget_us = budget_us; // store for internal reuse
+
+                return _context4.abrupt("return", budget_us);
+
+              case 20:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getMeasurementTimingBudget() {
+        return _getMeasurementTimingBudget.apply(this, arguments);
+      }
+
+      return getMeasurementTimingBudget;
+    }() // Set the VCSEL (vertical cavity surface emitting laser) pulse period for the
+    // given period type (pre-range or final range) to the given value in PCLKs.
+    // Longer periods seem to increase the potential range of the sensor.
+    // Valid values are (even numbers only):
+    //  pre:  12 to 18 (initialized default: 14)
+    //  final: 8 to 14 (initialized default: 10)
+    // based on VL53L0X_set_vcsel_pulse_period()
+
+  }, {
+    key: "setVcselPulsePeriod",
+    value: function () {
+      var _setVcselPulsePeriod = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(type, period_pclks) {
+        var vcsel_period_reg, enables, timeouts, new_pre_range_timeout_mclks, new_msrc_timeout_mclks, new_final_range_timeout_mclks, sequence_config;
+        return regenerator.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                vcsel_period_reg = encodeVcselPeriod(period_pclks);
+                enables = {
+                  tcc: false,
+                  msrc: false,
+                  dss: false,
+                  pre_range: false,
+                  final_range: false
+                };
+                timeouts = {
+                  pre_range_vcsel_period_pclks: 0,
+                  final_range_vcsel_period_pclks: 0,
+                  msrc_dss_tcc_mclks: 0,
+                  pre_range_mclks: 0,
+                  final_range_mclks: 0,
+                  msrc_dss_tcc_us: 0,
+                  pre_range_us: 0,
+                  final_range_us: 0
+                };
+                _context5.next = 5;
+                return this.getSequenceStepEnables(enables);
+
+              case 5:
+                _context5.next = 7;
+                return this.getSequenceStepTimeouts(enables, timeouts);
+
+              case 7:
+                if (!(type === VcselPeriodPreRange)) {
+                  _context5.next = 28;
+                  break;
+                }
+
+                _context5.t0 = period_pclks;
+                _context5.next = _context5.t0 === 12 ? 11 : _context5.t0 === 14 ? 13 : _context5.t0 === 16 ? 15 : _context5.t0 === 18 ? 17 : 19;
+                break;
+
+              case 11:
+                this.writeReg(PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x18);
+                return _context5.abrupt("break", 20);
+
+              case 13:
+                this.writeReg(PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x30);
+                return _context5.abrupt("break", 20);
+
+              case 15:
+                this.writeReg(PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x40);
+                return _context5.abrupt("break", 20);
+
+              case 17:
+                this.writeReg(PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x50);
+                return _context5.abrupt("break", 20);
+
+              case 19:
+                return _context5.abrupt("return", false);
+
+              case 20:
+                this.writeReg(PRE_RANGE_CONFIG_VALID_PHASE_LOW, 0x08); // apply new VCSEL period
+
+                this.writeReg(PRE_RANGE_CONFIG_VCSEL_PERIOD, vcsel_period_reg); // update timeouts
+                // set_sequence_step_timeout() begin
+                // (SequenceStepId == VL53L0X_SEQUENCESTEP_PRE_RANGE)
+
+                new_pre_range_timeout_mclks = this.timeoutMicrosecondsToMclks(timeouts.pre_range_us, period_pclks);
+                this.writeReg16Bit(PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI, this.encodeTimeout(new_pre_range_timeout_mclks)); // set_sequence_step_timeout() end
+                // set_sequence_step_timeout() begin
+                // (SequenceStepId == VL53L0X_SEQUENCESTEP_MSRC)
+
+                new_msrc_timeout_mclks = this.timeoutMicrosecondsToMclks(timeouts.msrc_dss_tcc_us, period_pclks);
+                this.writeReg(MSRC_CONFIG_TIMEOUT_MACROP, new_msrc_timeout_mclks > 256 ? 255 : new_msrc_timeout_mclks - 1); // set_sequence_step_timeout() end
+
+                _context5.next = 72;
+                break;
+
+              case 28:
+                if (!(type === VcselPeriodFinalRange)) {
+                  _context5.next = 71;
+                  break;
+                }
+
+                _context5.t1 = period_pclks;
+                _context5.next = _context5.t1 === 8 ? 32 : _context5.t1 === 10 ? 40 : _context5.t1 === 12 ? 48 : _context5.t1 === 14 ? 56 : 64;
+                break;
+
+              case 32:
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x10);
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_LOW, 0x08);
+                this.writeReg(GLOBAL_CONFIG_VCSEL_WIDTH, 0x02);
+                this.writeReg(ALGO_PHASECAL_CONFIG_TIMEOUT, 0x0C);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(ALGO_PHASECAL_LIM, 0x30);
+                this.writeReg(0xFF, 0x00);
+                return _context5.abrupt("break", 65);
+
+              case 40:
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x28);
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_LOW, 0x08);
+                this.writeReg(GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+                this.writeReg(ALGO_PHASECAL_CONFIG_TIMEOUT, 0x09);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(ALGO_PHASECAL_LIM, 0x20);
+                this.writeReg(0xFF, 0x00);
+                return _context5.abrupt("break", 65);
+
+              case 48:
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x38);
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_LOW, 0x08);
+                this.writeReg(GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+                this.writeReg(ALGO_PHASECAL_CONFIG_TIMEOUT, 0x08);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(ALGO_PHASECAL_LIM, 0x20);
+                this.writeReg(0xFF, 0x00);
+                return _context5.abrupt("break", 65);
+
+              case 56:
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x48);
+                this.writeReg(FINAL_RANGE_CONFIG_VALID_PHASE_LOW, 0x08);
+                this.writeReg(GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+                this.writeReg(ALGO_PHASECAL_CONFIG_TIMEOUT, 0x07);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(ALGO_PHASECAL_LIM, 0x20);
+                this.writeReg(0xFF, 0x00);
+                return _context5.abrupt("break", 65);
+
+              case 64:
+                return _context5.abrupt("return", false);
+
+              case 65:
+                // apply new VCSEL period
+                this.writeReg(FINAL_RANGE_CONFIG_VCSEL_PERIOD, vcsel_period_reg); // update timeouts
+                // set_sequence_step_timeout() begin
+                // (SequenceStepId == VL53L0X_SEQUENCESTEP_FINAL_RANGE)
+                // "For the final range timeout, the pre-range timeout
+                //  must be added. To do this both final and pre-range
+                //  timeouts must be expressed in macro periods MClks
+                //  because they have different vcsel periods."
+
+                new_final_range_timeout_mclks = this.timeoutMicrosecondsToMclks(timeouts.final_range_us, period_pclks);
+
+                if (enables.pre_range) {
+                  new_final_range_timeout_mclks += timeouts.pre_range_mclks;
+                }
+
+                this.writeReg16Bit(FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI, this.encodeTimeout(new_final_range_timeout_mclks)); // set_sequence_step_timeout end
+
+                _context5.next = 72;
+                break;
+
+              case 71:
+                return _context5.abrupt("return", false);
+
+              case 72:
+                _context5.next = 74;
+                return this.setMeasurementTimingBudget(this.measurement_timing_budget_us);
+
+              case 74:
+                _context5.next = 76;
+                return this.readReg(SYSTEM_SEQUENCE_CONFIG);
+
+              case 76:
+                sequence_config = _context5.sent;
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
+                _context5.next = 80;
+                return this.performSingleRefCalibration(0x0);
+
+              case 80:
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, sequence_config); // VL53L0X_perform_phase_calibration() end
+
+                return _context5.abrupt("return", true);
+
+              case 82:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function setVcselPulsePeriod(_x3, _x4) {
+        return _setVcselPulsePeriod.apply(this, arguments);
+      }
+
+      return setVcselPulsePeriod;
+    }() // Get the VCSEL pulse period in PCLKs for the given period type.
+    // based on VL53L0X_get_vcsel_pulse_period()
+
+  }, {
+    key: "getVcselPulsePeriod",
+    value: function () {
+      var _getVcselPulsePeriod = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(type) {
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (!(type === VcselPeriodPreRange)) {
+                  _context6.next = 8;
+                  break;
+                }
+
+                _context6.t0 = decodeVcselPeriod;
+                _context6.next = 4;
+                return this.readReg(PRE_RANGE_CONFIG_VCSEL_PERIOD);
+
+              case 4:
+                _context6.t1 = _context6.sent;
+                return _context6.abrupt("return", (0, _context6.t0)(_context6.t1));
+
+              case 8:
+                if (!(type === VcselPeriodFinalRange)) {
+                  _context6.next = 14;
+                  break;
+                }
+
+                _context6.t2 = decodeVcselPeriod;
+                _context6.next = 12;
+                return this.readReg(FINAL_RANGE_CONFIG_VCSEL_PERIOD);
+
+              case 12:
+                _context6.t3 = _context6.sent;
+                return _context6.abrupt("return", (0, _context6.t2)(_context6.t3));
+
+              case 14:
+                return _context6.abrupt("return", 255);
+
+              case 15:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function getVcselPulsePeriod(_x5) {
+        return _getVcselPulsePeriod.apply(this, arguments);
+      }
+
+      return getVcselPulsePeriod;
+    }()
+    /**
+     * Start continuous ranging measurements. If period_ms (optional) is 0 or not
+     * given, continuous back-to-back mode is used (the sensor takes measurements as
+     * often as possible); otherwise, continuous timed mode is used, with the given
+     * inter-measurement period in milliseconds determining how often the sensor
+     * takes a measurement.
+     * based on VL53L0X_StartMeasurement()
+     * @param {number} period_ms - interval time between measurements
+     */
+
+  }, {
+    key: "startContinuous",
+    value: function () {
+      var _startContinuous = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(period_ms) {
+        var osc_calibrate_val;
+        return regenerator.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x00);
+                this.writeReg(0x91, this.stop_variable);
+                this.writeReg(0x00, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x00);
+
+                if (!period_ms) {
+                  _context7.next = 16;
+                  break;
+                }
+
+                _context7.next = 10;
+                return this.readReg16Bit(OSC_CALIBRATE_VAL);
+
+              case 10:
+                osc_calibrate_val = _context7.sent;
+
+                if (osc_calibrate_val !== 0) {
+                  period_ms *= osc_calibrate_val;
+                }
+
+                this.writeReg32Bit(SYSTEM_INTERMEASUREMENT_PERIOD, period_ms); // VL53L0X_SetInterMeasurementPeriodMilliSeconds() end
+
+                this.writeReg(SYSRANGE_START, 0x04); // VL53L0X_REG_SYSRANGE_MODE_TIMED
+
+                _context7.next = 17;
+                break;
+
+              case 16:
+                // continuous back-to-back mode
+                this.writeReg(SYSRANGE_START, 0x02); // VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK
+
+              case 17:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function startContinuous(_x6) {
+        return _startContinuous.apply(this, arguments);
+      }
+
+      return startContinuous;
+    }()
+    /**
+     * Stop continuous measurements
+     * based on VL53L0X_StopMeasurement()
+     */
+
+  }, {
+    key: "stopContinuous",
+    value: function stopContinuous() {
+      this.writeReg(SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
+
+      this.writeReg(0xFF, 0x01);
+      this.writeReg(0x00, 0x00);
+      this.writeReg(0x91, 0x00);
+      this.writeReg(0x00, 0x01);
+      this.writeReg(0xFF, 0x00);
+    }
+    /**
+     * Returns a range reading in millimeters when continuous mode is active
+     * (readRangeSingleMillimeters() also calls this function after starting a
+     * single-shot range measurement)
+     * @returns {Promise<number>} a Promise which resolves range for continuous mode
+     */
+
+  }, {
+    key: "readRangeContinuousMillimeters",
+    value: function () {
+      var _readRangeContinuousMillimeters = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+        var range;
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                this.startTimeout();
+
+              case 1:
+                _context8.next = 3;
+                return this.readReg(RESULT_INTERRUPT_STATUS);
+
+              case 3:
+                _context8.t0 = _context8.sent;
+                _context8.t1 = _context8.t0 & 0x07;
+
+                if (!(_context8.t1 === 0)) {
+                  _context8.next = 11;
+                  break;
+                }
+
+                if (!this.checkTimeoutExpired()) {
+                  _context8.next = 9;
+                  break;
+                }
+
+                this.did_timeout = true;
+                return _context8.abrupt("return", Promise.reject("timeout read RESULT_INTERRUPT_STATUS: ".concat(this.io_timeout, "ms")));
+
+              case 9:
+                _context8.next = 1;
+                break;
+
+              case 11:
+                _context8.next = 13;
+                return this.readReg16Bit(RESULT_RANGE_STATUS + 10);
+
+              case 13:
+                range = _context8.sent;
+                this.writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01);
+                return _context8.abrupt("return", range);
+
+              case 16:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function readRangeContinuousMillimeters() {
+        return _readRangeContinuousMillimeters.apply(this, arguments);
+      }
+
+      return readRangeContinuousMillimeters;
+    }()
+    /**
+     * Performs a single-shot range measurement and returns the reading in millimeters
+     * based on VL53L0X_PerformSingleRangingMeasurement()
+     * @returns {Promise<number>} a Promise which resolves range for single-shot mode
+     */
+
+  }, {
+    key: "readRangeSingleMillimeters",
+    value: function () {
+      var _readRangeSingleMillimeters = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
+        return regenerator.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x00);
+                this.writeReg(0x91, this.stop_variable);
+                this.writeReg(0x00, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x00);
+                this.writeReg(SYSRANGE_START, 0x01); // "Wait until start bit has been cleared"
+
+                this.startTimeout();
+
+              case 9:
+                _context9.next = 11;
+                return this.readReg(SYSRANGE_START);
+
+              case 11:
+                _context9.t0 = _context9.sent;
+
+                if (!(_context9.t0 & 0x01)) {
+                  _context9.next = 18;
+                  break;
+                }
+
+                if (!this.checkTimeoutExpired()) {
+                  _context9.next = 16;
+                  break;
+                }
+
+                this.did_timeout = true;
+                return _context9.abrupt("return", Promise.reject("timeout read SYSRANGE_START: ".concat(this.io_timeout, "ms")));
+
+              case 16:
+                _context9.next = 9;
+                break;
+
+              case 18:
+                return _context9.abrupt("return", this.readRangeContinuousMillimeters());
+
+              case 19:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function readRangeSingleMillimeters() {
+        return _readRangeSingleMillimeters.apply(this, arguments);
+      }
+
+      return readRangeSingleMillimeters;
+    }()
+    /**
+     * Return whether a timeout did occur and clear the timeout flag.
+     * @returns {boolean} whether a timeout occur or not
+     */
+
+  }, {
+    key: "timeoutOccurred",
+    value: function timeoutOccurred() {
+      var tmp = this.did_timeout;
+      this.did_timeout = false;
+      return tmp;
+    }
+    /**
+     * Get reference SPAD (single photon avalanche diode) count and type
+     * based on VL53L0X_get_info_from_device(),
+     * but only gets reference SPAD count and type
+     * @param {object} info - info of SPAD
+     * @param {number} info.count - SPAD count
+     * @param {boolean} info.isAperture - SPAD is aperture type or not
+     * @returns {Promise<boolean>} whether the info has got or not
+     */
+
+  }, {
+    key: "getSpadInfo",
+    value: function () {
+      var _getSpadInfo = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(info) {
+        var tmp;
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x00);
+                this.writeReg(0xFF, 0x06);
+                _context10.t0 = this;
+                _context10.next = 7;
+                return this.readReg(0x83);
+
+              case 7:
+                _context10.t1 = _context10.sent;
+                _context10.t2 = _context10.t1 | 0x04;
+
+                _context10.t0.writeReg.call(_context10.t0, 0x83, _context10.t2);
+
+                this.writeReg(0xFF, 0x07);
+                this.writeReg(0x81, 0x01);
+                this.writeReg(0x80, 0x01);
+                this.writeReg(0x94, 0x6b);
+                this.writeReg(0x83, 0x00);
+                this.startTimeout();
+
+              case 16:
+                _context10.next = 18;
+                return this.readReg(0x83);
+
+              case 18:
+                _context10.t3 = _context10.sent;
+
+                if (!(_context10.t3 === 0x00)) {
+                  _context10.next = 24;
+                  break;
+                }
+
+                if (!this.checkTimeoutExpired()) {
+                  _context10.next = 22;
+                  break;
+                }
+
+                return _context10.abrupt("return", false);
+
+              case 22:
+                _context10.next = 16;
+                break;
+
+              case 24:
+                this.writeReg(0x83, 0x01);
+                _context10.next = 27;
+                return this.readReg(0x92);
+
+              case 27:
+                tmp = _context10.sent;
+                info.count = tmp & 0x7f;
+                info.isAperture = (tmp >> 7 & 0x01) === 0x01;
+                this.writeReg(0x81, 0x00);
+                this.writeReg(0xFF, 0x06);
+                _context10.t4 = this;
+                _context10.next = 35;
+                return this.readReg(0x83);
+
+              case 35:
+                _context10.t5 = _context10.sent;
+                _context10.t6 = ~0x04;
+                _context10.t7 = _context10.t5 & _context10.t6;
+
+                _context10.t4.writeReg.call(_context10.t4, 0x83, _context10.t7);
+
+                this.writeReg(0xFF, 0x01);
+                this.writeReg(0x00, 0x01);
+                this.writeReg(0xFF, 0x00);
+                this.writeReg(0x80, 0x00);
+                return _context10.abrupt("return", true);
+
+              case 44:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function getSpadInfo(_x7) {
+        return _getSpadInfo.apply(this, arguments);
+      }
+
+      return getSpadInfo;
+    }()
+    /**
+     * Get sequence step enables
+     * based on VL53L0X_GetSequenceStepEnables()
+     * @param {Promise<object>} enables - reading buffer for sequence step enables
+     */
+
+  }, {
+    key: "getSequenceStepEnables",
+    value: function () {
+      var _getSequenceStepEnables = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11(enables) {
+        var sequence_config;
+        return regenerator.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return this.readReg(SYSTEM_SEQUENCE_CONFIG);
+
+              case 2:
+                sequence_config = _context11.sent;
+                enables.tcc = sequence_config >> 4 & 0x1;
+                enables.dss = sequence_config >> 3 & 0x1;
+                enables.msrc = sequence_config >> 2 & 0x1;
+                enables.pre_range = sequence_config >> 6 & 0x1;
+                enables.final_range = sequence_config >> 7 & 0x1;
+
+              case 8:
+              case "end":
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this);
+      }));
+
+      function getSequenceStepEnables(_x8) {
+        return _getSequenceStepEnables.apply(this, arguments);
+      }
+
+      return getSequenceStepEnables;
+    }() // Get sequence step timeouts
+    // based on get_sequence_step_timeout(),
+    // but gets all timeouts instead of just the requested one, and also stores
+    // intermediate values
+
+  }, {
+    key: "getSequenceStepTimeouts",
+    value: function () {
+      var _getSequenceStepTimeouts = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee12(enables, timeouts) {
+        return regenerator.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return this.getVcselPulsePeriod(VcselPeriodPreRange);
+
+              case 2:
+                timeouts.pre_range_vcsel_period_pclks = _context12.sent;
+                _context12.next = 5;
+                return this.readReg(MSRC_CONFIG_TIMEOUT_MACROP);
+
+              case 5:
+                _context12.t0 = _context12.sent;
+                timeouts.msrc_dss_tcc_mclks = _context12.t0 + 1;
+                timeouts.msrc_dss_tcc_us = this.timeoutMclksToMicroseconds(timeouts.msrc_dss_tcc_mclks, timeouts.pre_range_vcsel_period_pclks);
+                _context12.t1 = this;
+                _context12.next = 11;
+                return this.readReg16Bit(PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI);
+
+              case 11:
+                _context12.t2 = _context12.sent;
+                timeouts.pre_range_mclks = _context12.t1.decodeTimeout.call(_context12.t1, _context12.t2);
+                timeouts.pre_range_us = this.timeoutMclksToMicroseconds(timeouts.pre_range_mclks, timeouts.pre_range_vcsel_period_pclks);
+                _context12.next = 16;
+                return this.getVcselPulsePeriod(VcselPeriodFinalRange);
+
+              case 16:
+                timeouts.final_range_vcsel_period_pclks = _context12.sent;
+                _context12.t3 = this;
+                _context12.next = 20;
+                return this.readReg16Bit(FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI);
+
+              case 20:
+                _context12.t4 = _context12.sent;
+                timeouts.final_range_mclks = _context12.t3.decodeTimeout.call(_context12.t3, _context12.t4);
+
+                if (enables.pre_range) {
+                  timeouts.final_range_mclks -= timeouts.pre_range_mclks;
+                }
+
+                timeouts.final_range_us = this.timeoutMclksToMicroseconds(timeouts.final_range_mclks, timeouts.final_range_vcsel_period_pclks);
+
+              case 24:
+              case "end":
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function getSequenceStepTimeouts(_x9, _x10) {
+        return _getSequenceStepTimeouts.apply(this, arguments);
+      }
+
+      return getSequenceStepTimeouts;
+    }() // Decode sequence step timeout in MCLKs from register value
+    // based on VL53L0X_decode_timeout()
+    // Note: the original function returned a uint32_t, but the return value is
+    // always stored in a uint16_t.
+
+  }, {
+    key: "decodeTimeout",
+    value: function decodeTimeout(reg_val) {
+      // format: "(LSByte * 2^MSByte) + 1"
+      return ((reg_val & 0x00FF) << ((reg_val & 0xFF00) >> 8)) + 1;
+    } // Encode sequence step timeout register value from timeout in MCLKs
+    // based on VL53L0X_encode_timeout()
+
+  }, {
+    key: "encodeTimeout",
+    value: function encodeTimeout(timeout_mclks) {
+      // format: "(LSByte * 2^MSByte) + 1"
+      var ls_byte = 0;
+      var ms_byte = 0;
+
+      if (timeout_mclks > 0) {
+        ls_byte = timeout_mclks - 1;
+
+        while ((ls_byte & 0xFFFFFF00) > 0) {
+          ls_byte >>= 1;
+          ms_byte++;
+        }
+
+        return ms_byte << 8 | ls_byte & 0xFF;
+      }
+
+      return 0;
+    } // Convert sequence step timeout from MCLKs to microseconds with given VCSEL period in PCLKs
+    // based on VL53L0X_calc_timeout_us()
+
+  }, {
+    key: "timeoutMclksToMicroseconds",
+    value: function timeoutMclksToMicroseconds(timeout_period_mclks, vcsel_period_pclks) {
+      var macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
+      return (timeout_period_mclks * macro_period_ns + 500) / 1000;
+    } // Convert sequence step timeout from microseconds to MCLKs with given VCSEL period in PCLKs
+    // based on VL53L0X_calc_timeout_mclks()
+
+  }, {
+    key: "timeoutMicrosecondsToMclks",
+    value: function timeoutMicrosecondsToMclks(timeout_period_us, vcsel_period_pclks) {
+      var macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
+      return (timeout_period_us * 1000 + macro_period_ns / 2) / macro_period_ns;
+    } // based on VL53L0X_perform_single_ref_calibration()
+
+  }, {
+    key: "performSingleRefCalibration",
+    value: function () {
+      var _performSingleRefCalibration = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee13(vhv_init_byte) {
+        return regenerator.wrap(function _callee13$(_context13) {
+          while (1) {
+            switch (_context13.prev = _context13.next) {
+              case 0:
+                this.writeReg(SYSRANGE_START, 0x01 | vhv_init_byte); // VL53L0X_REG_SYSRANGE_MODE_START_STOP
+
+                this.startTimeout();
+
+              case 2:
+                _context13.next = 4;
+                return this.readReg(RESULT_INTERRUPT_STATUS);
+
+              case 4:
+                _context13.t0 = _context13.sent;
+                _context13.t1 = _context13.t0 & 0x07;
+
+                if (!(_context13.t1 === 0)) {
+                  _context13.next = 11;
+                  break;
+                }
+
+                if (!this.checkTimeoutExpired()) {
+                  _context13.next = 9;
+                  break;
+                }
+
+                return _context13.abrupt("return", false);
+
+              case 9:
+                _context13.next = 2;
+                break;
+
+              case 11:
+                this.writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01);
+                this.writeReg(SYSRANGE_START, 0x00);
+                return _context13.abrupt("return", true);
+
+              case 14:
+              case "end":
+                return _context13.stop();
+            }
+          }
+        }, _callee13, this);
+      }));
+
+      function performSingleRefCalibration(_x11) {
+        return _performSingleRefCalibration.apply(this, arguments);
+      }
+
+      return performSingleRefCalibration;
+    }()
+  }]);
+
+  return VL53L0X;
 }();
 
 /**
- * Return a Promise which will reject after the delay time passed.
- * @param {number} delay - waiting time to reject in milliseconds
- * @returns {Promise<string>} Promise which will reject with reason after the delay.
+ * acceleration sensor ADX345 API
+ */
+// register addresses
+var ADXL345_ADDR = 0x53;
+var ADXL345_ID = 0xE5;
+var DATA_FORMAT = 0x31;
+var POWER_CTL = 0x2D;
+var DATA_X0 = 0x32;
+var FULL_RES_16G = 0x0B;
+var MEASURE = 0x08;
+/**
+ * This class is representing a ADXL345.
  */
 
-var timeoutReject = function timeoutReject(delay) {
-  return new Promise(function (_, reject) {
-    return setTimeout(function () {
-      return reject("timeout ".concat(delay, "ms"));
-    }, delay);
-  });
-};
+var ADXL345 = /*#__PURE__*/function () {
+  /**
+   * Constructor of ADXL345 instance.
+   * @param {FirmataBoard} board - connecting firmata board
+   */
+  function ADXL345(board) {
+    _classCallCheck(this, ADXL345);
+
+    /**
+     * Connecting firmata board
+     * @type {import('./firmata-board').default}
+     */
+    this.board = board;
+    /**
+     * I2C address
+     * @type {number}
+     */
+
+    this.address = ADXL345_ADDR;
+    /**
+     * Timeout for readings in milliseconds.
+     * @type {number}
+     */
+
+    this.timeout = 2000;
+    /**
+     * Scale factor for raw data of acceleration
+     */
+
+    this.scale = {
+      x: 0.0392266,
+      // =(4/1000*9.80665)
+      y: 0.0392266,
+      z: 0.0392266
+    };
+  }
+  /**
+   * Initialize the sensor
+   * @returns {Promise} a Promise which resolves when the sensor was initialized
+   */
+
+
+  _createClass(ADXL345, [{
+    key: "init",
+    value: function init() {
+      var _this = this;
+
+      return this.readID().then(function (id) {
+        if (id !== ADXL345_ID) return Promise.reject("0x".concat(_this.address.toString(16), " is not ADXL345"));
+
+        _this.board.i2cWrite(_this.address, DATA_FORMAT, FULL_RES_16G);
+
+        _this.board.i2cWrite(_this.address, POWER_CTL, MEASURE);
+      });
+    }
+    /**
+     * Read ID of a ADXL345
+     * @returns {Promise} a Promise which resolves ID
+     */
+
+  }, {
+    key: "readID",
+    value: function readID() {
+      return this.board.i2cReadOnce(this.address, 0x00, 1, this.timeout).then(function (data) {
+        return data[0];
+      });
+    }
+    /**
+     * Return latest acceleration data
+     * @returns {promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
+     */
+
+  }, {
+    key: "getAcceleration",
+    value: function getAcceleration() {
+      var _this2 = this;
+
+      return this.board.i2cReadOnce(this.address, DATA_X0, 6, this.timeout).then(function (data) {
+        var dataView = new DataView(new Uint8Array(data).buffer);
+        var acceleration = {};
+        acceleration.x = dataView.getInt16(0, true) * _this2.scale.x;
+        acceleration.y = dataView.getInt16(2, true) * _this2.scale.y;
+        acceleration.z = dataView.getInt16(4, true) * _this2.scale.z;
+        return acceleration;
+      });
+    }
+  }]);
+
+  return ADXL345;
+}();
 
 var integer64From = function integer64From(value, unsigned) {
   if (!value) return unsigned ? Long.UZERO : Long.ZERO;
@@ -14455,8 +16473,31 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       // Replace 'formatMessage' to a formatter which is used in the runtime.
       formatMessage = runtime.formatMessage;
     }
+    /**
+     * Current connected board object with firmata protocol
+     * @type {FirmataBoard}
+     */
 
-    this.board = new FirmataBoard(runtime);
+
+    this.board = null;
+    /**
+     * Distance sensor VL53L0X
+     * @type {VL53L0X}
+     */
+
+    this.vl53l0x = null;
+    /**
+     * Manager of firmata boards
+     * @type {FirmataConnector}
+     */
+
+    this.firmataConnector = getFirmataConnector(runtime);
+    this.firmataConnector.addListener(FirmataConnector.BOARD_ADDED, function () {
+      return _this.updateBoard();
+    });
+    this.firmataConnector.addListener(FirmataConnector.BOARD_REMOVED, function () {
+      return _this.updateBoard();
+    });
     /**
      * state holder of the all pins
      */
@@ -14465,16 +16506,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     [9, 10, 11, 14, 15, 16].forEach(function (pin) {
       _this.pins[pin] = {};
     });
-    /**
-     * shortest interval time between digital input readings
-     */
-
-    this.digitalReadInterval = 20;
-    /**
-     * shortest interval time between analog input readings
-     */
-
-    this.analogReadInterval = 20;
     this.serialPortOptions = {
       filters: [{
         usbVendorId: 0x04D8,
@@ -14492,52 +16523,31 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }; // register to call scan()/connect()
 
     this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
-    this.runtime.addListener(this.runtime.constructor.PERIPHERAL_CONNECTED, function (peripheral) {
-      if (!peripheral) return;
-
-      if (peripheral.name === _this.board.name && peripheral.portInfo === _this.board.portInfo) ;
-    });
-    this.runtime.addListener(this.runtime.constructor.PERIPHERAL_DISCONNECTED, function (peripheral) {
-      if (!peripheral) return;
-
-      if (peripheral.name === _this.board.name && peripheral.portInfo === _this.board.portInfo) {
-        _this.runtime.emit(_this.runtime.constructor.PERIPHERAL_CONNECTION_LOST_ERROR, {
-          message: "Scratch lost connection to",
-          extensionId: EXTENSION_ID
-        });
-      }
-    });
     this.runtime.on('PROJECT_STOP_ALL', function () {
       _this.neoPixelClear();
     });
-    /**
-     * Waiting time for response of digital input reading in milliseconds.
-     */
-
-    this.updateDigitalInputWaitingTime = 100;
-    /**
-     * Waiting time for response of analog input reading in milliseconds.
-     */
-
-    this.analogLevelGetWaitingTime = 100;
-    /**
-     * Waiting time for response of I2C reading in milliseconds.
-     */
-
-    this.i2cReadWaitingTime = 100;
-    /**
-     * Waiting time for response of OneWire reading in milliseconds.
-     */
-
-    this.oneWireReadWaitingTime = 100;
   }
   /**
-   * Called by the runtime when user wants to scan for a peripheral.
-   * @returns {Promise} - a Promise which resolves when a board was connected
+   * Update connected board
    */
 
 
   _createClass(ExtensionBlocks, [{
+    key: "updateBoard",
+    value: function updateBoard() {
+      if (this.board && this.board.isConnected()) return;
+      var prev = this.board;
+      this.board = this.firmataConnector.findBoard(this.serialPortOptions);
+      if (prev === this.board) return;
+      this.vl53l0x = null;
+      this.adxl345 = null;
+    }
+    /**
+     * Called by the runtime when user wants to scan for a peripheral.
+     * @returns {Promise} - a Promise which resolves when a board was connected
+     */
+
+  }, {
     key: "scan",
     value: function scan() {
       return this.connectBoard();
@@ -14560,66 +16570,36 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      return this.board.requestPort(EXTENSION_ID, this.serialPortOptions);
+      var _this2 = this;
+
+      if (this.board && this.board.isConnected()) return; // Already connected
+
+      return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
+        _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_CONNECTED, {
+          name: connectedBoard.name,
+          path: connectedBoard.portInfo
+        });
+
+        return 'connected';
+      }).catch(function (reason) {
+        if (reason) {
+          console.log(reason);
+          return reason;
+        }
+
+        return "fail to connect port: ".concat(JSON.stringify(_this2.serialPortOptions));
+      });
     }
   }, {
     key: "disconnectBoard",
     value: function disconnectBoard() {
+      if (!this.board) return;
       return this.board.disconnect();
-    } // startBoardReporting () {
-    // }
-
+    }
   }, {
     key: "boardStateChanged",
     value: function boardStateChanged(args) {
       return args.STATE === 'connected' === this.isConnected();
-    }
-    /**
-     * Update pin value as a digital input when the last update was too old.
-     * @param {number} pin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
-     */
-
-  }, {
-    key: "updateDigitalInput",
-    value: function updateDigitalInput(pin) {
-      var _this2 = this;
-
-      if (typeof this.pins[pin].updateTime === 'undefined') {
-        this.pins[pin].updateTime = 0;
-        this.pins[pin].state = 'ready';
-      }
-
-      if (this.pins[pin].state !== 'ready') {
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      if (Date.now() - this.pins[pin].updateTime > this.digitalReadInterval) {
-        this.pins[pin].state = 'digitalReading';
-        var request = new Promise(function (resolve) {
-          if (!Number.isInteger(_this2.pins[pin].inputMode)) {
-            _this2.pins[pin].inputMode = _this2.board.MODES.INPUT;
-          }
-
-          _this2.board.pinMode(pin, _this2.pins[pin].inputMode);
-
-          _this2.board.digitalRead(pin, function (value) {
-            _this2.pins[pin].value = value !== 0;
-            _this2.pins[pin].updateTime = Date.now();
-            resolve(_this2.pins[pin].value);
-          });
-        });
-        return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
-          console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
-          _this2.pins[pin].value = false;
-          return _this2.pins[pin].value;
-        }).finally(function () {
-          _this2.pins[pin].state = 'ready';
-          return _this2.pins[pin].value;
-        });
-      }
-
-      return Promise.resolve(this.pins[pin].value);
     }
     /**
      * Whether the current level of the connector is HIGHT as digital input.
@@ -14633,7 +16613,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function digitalIsHigh(args) {
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
-      return this.updateDigitalInput(pin);
+      return this.board.updateDigitalInput(pin).then(function (readData) {
+        return !!readData;
+      }).catch(function (reason) {
+        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
+        return false;
+      });
     }
     /**
      * Detect the edge as digital level of the connector for HAT block.
@@ -14649,9 +16634,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return false;
       var pin = parseInt(args.CONNECTOR, 10);
       var rise = cast.toBoolean(args.LEVEL);
-      this.updateDigitalInput(pin); // update for the next call
-
-      return rise === this.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
+      this.board.updateDigitalInput(pin) // update for the next call
+      .catch(function (reason) {
+        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
+      });
+      return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
     /**
      * Set input bias of the connector.
@@ -14667,8 +16654,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return;
       var pin = parseInt(args.PIN, 10);
       var pullUp = args.BIAS === 'pullUp';
-      this.pins[pin].inputMode = pullUp ? this.board.MODES.PULLUP : this.board.MODES.INPUT;
-      this.board.pinMode(pin, this.pins[pin].inputMode);
+      this.board.setInputBias(pin, pullUp);
     }
     /**
      * Set the connector to the level as digital output.
@@ -14696,41 +16682,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "analogLevelGet",
     value: function analogLevelGet(args) {
-      var _this3 = this;
-
       if (!this.isConnected()) return Promise.resolve(0);
       var analogPin = parseInt(args.CONNECTOR, 10);
-      var pin = analogPin + 14; // GPIO pin number
-
-      if (!Number.isInteger(this.pins[pin].updateTime)) {
-        this.pins[pin].updateTime = 0;
-        this.pins[pin].state = 'ready';
-      }
-
-      if (this.pins[pin].state !== 'ready') {
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      if (Date.now() - this.pins[pin].updateTime > this.analogReadInterval) {
-        this.pins[pin].state = 'analogReading';
-        this.board.pinMode(analogPin, this.board.MODES.ANALOG);
-        var request = new Promise(function (resolve) {
-          _this3.board.analogRead(analogPin, function (value) {
-            _this3.pins[pin].updateTime = Date.now();
-            _this3.pins[pin].value = value;
-            resolve(_this3.pins[pin].value);
-          });
-        });
-        return Promise.race([request, timeoutReject(this.analogLevelGetWaitingTime)]).catch(function (reason) {
-          console.log("analogRead(".concat(analogPin, ") was rejected by ").concat(reason));
-          return _this3.pins[pin].value;
-        }).finally(function () {
-          _this3.pins[pin].state = 'ready';
-          return _this3.pins[pin].value;
-        });
-      }
-
-      return Promise.resolve(this.pins[pin].value);
+      return this.board.updateAnalogInput(analogPin).catch(function (reason) {
+        console.log("analogRead(".concat(analogPin, ") was rejected by ").concat(reason));
+        return 0;
+      });
     }
     /**
      * Set the connector to power (%) as PWM.
@@ -14769,18 +16726,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(args) {
-      var _this4 = this;
-
       if (!this.isConnected()) return '';
       var address = Number(args.ADDRESS);
       var register = Number(args.REGISTER);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      var request = new Promise(function (resolve) {
-        _this4.board.i2cReadOnce(address, register, length, function (data) {
-          resolve(numericArrayToString(data));
-        });
-      });
-      return Promise.race([request, timeoutReject(this.i2cReadWaitingTime)]).catch(function (reason) {
+      return this.board.i2cReadOnce(address, register, length).then(function (data) {
+        return numericArrayToString(data);
+      }).catch(function (reason) {
         console.log("i2cReadOnce(".concat(address, ", ").concat(register, ", ").concat(length, ") was rejected by ").concat(reason));
         return '';
       });
@@ -14813,40 +16765,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
   }, {
     key: "oneWireRead",
-    value: function oneWireRead(args, util) {
-      var _this5 = this;
-
+    value: function oneWireRead(args) {
       if (!this.isConnected()) return Promise.resolve('');
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-
-      if (!this.pins[pin].state) {
-        this.pins[pin] = {
-          state: 'ready',
-          value: ''
-        };
-      }
-
-      if (this.pins[pin].state !== 'ready') {
-        if (util) {
-          util.yield(); // re-try this call after a while.
-
-          return; // Do not return Promise.resolve() to re-try.
-        }
-
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      this.pins[pin].state = 'oneWireReading';
-      var request = this.board.oneWireRead(pin, length).then(function (readData) {
-        _this5.pins[pin].value = numericArrayToString(readData);
-        return _this5.pins[pin].value;
-      });
-      return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)]).catch(function (reason) {
+      return this.board.oneWireRead(pin, length).then(function (readData) {
+        return numericArrayToString(readData);
+      }).catch(function (reason) {
         console.log("oneWireRead(".concat(pin, ", ").concat(length, ") was rejected by ").concat(reason));
         return '';
-      }).finally(function () {
-        _this5.pins[pin].state = 'ready';
       });
     }
     /**
@@ -14859,41 +16786,16 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
   }, {
     key: "oneWireWriteAndRead",
-    value: function oneWireWriteAndRead(args, util) {
-      var _this6 = this;
-
+    value: function oneWireWriteAndRead(args) {
       if (!this.isConnected()) return Promise.resolve('');
       var pin = parseInt(args.CONNECTOR, 10);
       var data = readAsNumericArray(args.DATA);
       var readLength = parseInt(cast.toNumber(args.LENGTH), 10);
-
-      if (!this.pins[pin].state) {
-        this.pins[pin] = {
-          state: 'ready',
-          value: ''
-        };
-      }
-
-      if (this.pins[pin].state !== 'ready') {
-        if (util) {
-          util.yield(); // re-try this call after a while.
-
-          return; // Do not return Promise.resolve() to re-try.
-        }
-
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      this.pins[pin].state = 'oneWireWriteAndReading';
-      var request = this.board.oneWireWriteAndRead(pin, data, readLength).then(function (readData) {
-        _this6.pins[pin].value = numericArrayToString(readData);
-        return _this6.pins[pin].value;
-      });
-      return Promise.race([request, timeoutReject(this.oneWireReadWaitingTime)]).catch(function (reason) {
+      return this.board.oneWireWriteAndRead(pin, data, readLength).then(function (readData) {
+        return numericArrayToString(readData);
+      }).catch(function (reason) {
         console.log("oneWireWriteAndRead(".concat(pin, ", ").concat(data, ", ").concat(readLength, ") was rejected by ").concat(reason));
         return '';
-      }).finally(function () {
-        _this6.pins[pin].state = 'ready';
       });
     }
   }, {
@@ -14926,6 +16828,167 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return Promise.resolve();
       return this.board.neoPixelClear();
     }
+  }, {
+    key: "measureDistanceVL53L",
+    value: function () {
+      var _measureDistanceVL53L = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+        var _this3 = this;
+
+        var newSensor, found, distance;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt("return", 0);
+
+              case 2:
+                if (this.vl53l0x) {
+                  _context.next = 14;
+                  break;
+                }
+
+                newSensor = new VL53L0X(this.board);
+                _context.next = 6;
+                return newSensor.init(true);
+
+              case 6:
+                found = _context.sent;
+
+                if (found) {
+                  _context.next = 9;
+                  break;
+                }
+
+                return _context.abrupt("return", 0);
+
+              case 9:
+                _context.next = 11;
+                return newSensor.startContinuous().catch(function (reason) {
+                  console.log("fail to VL53L0X.startContinuous() by ".concat(reason));
+                  newSensor = null;
+                });
+
+              case 11:
+                if (newSensor) {
+                  _context.next = 13;
+                  break;
+                }
+
+                return _context.abrupt("return", 0);
+
+              case 13:
+                this.vl53l0x = newSensor;
+
+              case 14:
+                _context.next = 16;
+                return this.vl53l0x.readRangeContinuousMillimeters().catch(function (reason) {
+                  console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(reason));
+                  _this3.vl53l0x = null;
+                  return 0;
+                });
+
+              case 16:
+                distance = _context.sent;
+                return _context.abrupt("return", distance);
+
+              case 18:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function measureDistanceVL53L() {
+        return _measureDistanceVL53L.apply(this, arguments);
+      }
+
+      return measureDistanceVL53L;
+    }()
+    /**
+     * Get acceleration for the axis by ADXL345
+     * @param {object} args - the block's arguments.
+     * @param {number} args.AXIS - axis to get
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+
+  }, {
+    key: "getAccelerationADXL345",
+    value: function () {
+      var _getAccelerationADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(args) {
+        var _this4 = this;
+
+        var axis, newSensor;
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context2.next = 2;
+                  break;
+                }
+
+                return _context2.abrupt("return", Promise.resolve(0));
+
+              case 2:
+                axis = args.AXIS;
+
+                if (this.adxl345) {
+                  _context2.next = 15;
+                  break;
+                }
+
+                newSensor = new ADXL345(this.board);
+                _context2.prev = 5;
+                _context2.next = 8;
+                return newSensor.init();
+
+              case 8:
+                _context2.next = 14;
+                break;
+
+              case 10:
+                _context2.prev = 10;
+                _context2.t0 = _context2["catch"](5);
+                // fail to create instance
+                console.log(_context2.t0);
+                return _context2.abrupt("return", Promise.resolve(0));
+
+              case 14:
+                this.adxl345 = newSensor;
+
+              case 15:
+                return _context2.abrupt("return", this.adxl345.getAcceleration().then(function (acceleration) {
+                  if (axis === 'absolute') {
+                    return Math.round(Math.sqrt(Math.pow(acceleration.x, 2) + Math.pow(acceleration.y, 2) + Math.pow(acceleration.z, 2)) * 100) / 100;
+                  }
+
+                  return acceleration[axis];
+                }).catch(function (reason) {
+                  console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
+                  _this4.adxl345 = null;
+                  return 0;
+                }));
+
+              case 16:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[5, 10]]);
+      }));
+
+      function getAccelerationADXL345(_x) {
+        return _getAccelerationADXL.apply(this, arguments);
+      }
+
+      return getAccelerationADXL345;
+    }()
   }, {
     key: "numberAtIndex",
     value: function numberAtIndex(args) {
@@ -15420,6 +17483,33 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           }),
           arguments: {}
         }, '---', {
+          opcode: 'measureDistance',
+          func: 'measureDistanceVL53L',
+          blockType: blockType.REPORTER,
+          disableMonitor: true,
+          text: formatMessage({
+            id: 'g2s.measureDistance',
+            default: 'distance (mm)',
+            description: 'report distance'
+          }),
+          arguments: {}
+        }, '---', {
+          opcode: 'getAcceleration',
+          func: 'getAccelerationADXL345',
+          blockType: blockType.REPORTER,
+          disableMonitor: true,
+          text: formatMessage({
+            id: 'g2s.getAcceleration',
+            default: 'acceleration [AXIS] (m/s^2)',
+            description: 'report acceleration'
+          }),
+          arguments: {
+            AXIS: {
+              type: argumentType.STRING,
+              menu: 'accelerationAxisMenu'
+            }
+          }
+        }, '---', {
           opcode: 'numberAtIndex',
           blockType: blockType.REPORTER,
           text: formatMessage({
@@ -15591,6 +17681,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             acceptReporters: false,
             items: this.getOneWireDeviceMenu()
           },
+          accelerationAxisMenu: {
+            acceptReporters: false,
+            items: this.getAccelerationAxisMenu()
+          },
           bytesTypeMenu: {
             acceptReporters: false,
             items: ['Int16', 'Uint16']
@@ -15751,6 +17845,35 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: "".concat(prefix, "4"),
         value: '4'
+      }];
+    }
+  }, {
+    key: "getAccelerationAxisMenu",
+    value: function getAccelerationAxisMenu() {
+      return [{
+        text: formatMessage({
+          id: 'g2s.accelerationAxisMenu.x',
+          default: 'x'
+        }),
+        value: 'x'
+      }, {
+        text: formatMessage({
+          id: 'g2s.accelerationAxisMenu.y',
+          default: 'y'
+        }),
+        value: 'y'
+      }, {
+        text: formatMessage({
+          id: 'g2s.accelerationAxisMenu.z',
+          default: 'z'
+        }),
+        value: 'z'
+      }, {
+        text: formatMessage({
+          id: 'g2s.accelerationAxisMenu.absolute',
+          default: 'absolute'
+        }),
+        value: 'absolute'
       }];
     }
   }], [{
