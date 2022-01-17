@@ -316,19 +316,49 @@ class ExtensionBlocks {
 
     /**
      * The level (0...100) of the connector as analog input.
-     * @param {object} args - the block's arguments.
-     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {number} analogPin - pin number of the connector
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
      */
-    analogLevelGet (args) {
+    getAnalogLevel (analogPin) {
         if (!this.isConnected()) return Promise.resolve(0);
-        const analogPin = parseInt(args.CONNECTOR, 10);
         return this.board.updateAnalogInput(analogPin)
             .then(raw => Math.round((raw / 1023) * 1000) / 10)
             .catch(reason => {
                 console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
                 return 0;
             });
+    }
+
+    /**
+     * The level of analog A1 connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+    analogLevelA1 () {
+        return this.getAnalogLevel(0);
+    }
+
+    /**
+     * The level of analog A2 connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+    analogLevelA2 () {
+        return this.getAnalogLevel(1);
+    }
+
+    /**
+     * The level of analog B1 connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+    analogLevelB1 () {
+        return this.getAnalogLevel(2);
+    }
+
+    /**
+     * The level of analog A1 connector
+     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     */
+    analogLevelB2 () {
+        return this.getAnalogLevel(3);
     }
 
     /**
@@ -692,19 +722,51 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'analogLevelGet',
+                    opcode: 'analogLevelA1',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
-                        id: 'g2s.analogLevelGet',
-                        default: 'level of analog [CONNECTOR]',
+                        id: 'g2s.analogLevelA1',
+                        default: 'level of analog A1',
                         description: 'report analog level of the connector'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'analogConnectorMenu'
-                        }
+                    }
+                },
+                {
+                    opcode: 'analogLevelA2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.analogLevelA2',
+                        default: 'level of analog A2',
+                        description: 'report analog level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'analogLevelB1',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.analogLevelB1',
+                        default: 'level of analog B1',
+                        description: 'report analog level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'analogLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.analogLevelB2',
+                        default: 'level of analog B2',
+                        description: 'report analog level of the connector'
+                    }),
+                    arguments: {
                     }
                 },
                 {
@@ -1206,10 +1268,6 @@ class ExtensionBlocks {
                     acceptReporters: true,
                     items: this.getDigitalLevelMenu()
                 },
-                analogConnectorMenu: {
-                    acceptReporters: false,
-                    items: this.getAnalogConnectorMenu()
-                },
                 inputPinsMenu: {
                     acceptReporters: true,
                     items: this.getInputPinsMenu()
@@ -1299,27 +1357,6 @@ class ExtensionBlocks {
                     description: 'label for high value in digital output menu for g2s'
                 }),
                 value: 'true'
-            }
-        ];
-    }
-
-    getAnalogConnectorMenu () {
-        const prefix = formatMessage({
-            id: 'g2s.analogConnector.prefix',
-            default: 'Analog'
-        });
-        return [
-            {
-                text: `${prefix}1`,
-                value: '0'
-            },
-            {
-                text: `${prefix}2`,
-                value: '1'
-            },
-            {
-                text: `${prefix}3`,
-                value: '2'
             }
         ];
     }
