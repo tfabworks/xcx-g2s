@@ -115,6 +115,12 @@ class FirmataBoard extends EventEmitter {
         this.analogReadInterval = 20;
 
         /**
+         * shortest interval time between message sending
+         * @type {number}
+         */
+        this.sendingInterval = 10;
+
+        /**
          * Waiting time for response of digital input reading in milliseconds.
          */
         this.updateDigitalInputWaitingTime = 100;
@@ -352,8 +358,17 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.digitalWrite(pin, value, enqueue);
     }
 
+    /**
+     * Set PWM to the valu on the pin
+     * @param {number} pin pin number to set
+     * @param {number} value PWM level
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     pwmWrite (pin, value) {
-        return this.firmata.pwmWrite(pin, value);
+        return new Promise(resolve => {
+            this.firmata.pwmWrite(pin, value);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     servoWrite (...args) {

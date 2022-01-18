@@ -366,14 +366,15 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     analogLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
-        const value = Math.round((this.board.RESOLUTION.PWM - 0) * (percent / 100));
+        const value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
         this.board.pinMode(pin, this.board.MODES.PWM);
-        this.board.pwmWrite(pin, value);
+        return this.board.pwmWrite(pin, value);
     }
 
     servoTurn (args) {
