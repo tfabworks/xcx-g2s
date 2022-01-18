@@ -306,11 +306,14 @@ class FirmataBoard extends EventEmitter {
      * Set input bias of the connector.
      * @param {number} pin - number of the pin
      * @param {boolean} pullUp - input bias of the pin [none | pullUp]
-     * @returns {undefined} set send message then return immediately
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     setInputBias (pin, pullUp) {
         this.pins[pin].inputBias = (pullUp ? this.MODES.PULLUP : this.MODES.INPUT);
-        this.pinMode(pin, this.pins[pin].inputBias);
+        return new Promise(resolve => {
+            this.pinMode(pin, this.pins[pin].inputBias);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     /**

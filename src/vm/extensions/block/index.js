@@ -291,13 +291,13 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {string} args.PIN - number of the pin
      * @param {string} args.BIAS - input bias of the pin [none | pullUp]
-     * @returns {undefined} set send message then return immediately
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     inputBiasSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.PIN, 10);
         const pullUp = args.BIAS === 'pullUp';
-        this.board.setInputBias(pin, pullUp);
+        return this.board.setInputBias(pin, pullUp);
     }
 
     /**
