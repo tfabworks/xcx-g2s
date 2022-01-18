@@ -357,8 +357,18 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.reportDigitalPin(pin, value);
     }
 
+    /**
+     * Asks the arduino to write a value to a digital pin
+     * @param {number} pin The pin you want to write a value to.
+     * @param {number} value The value you want to write. Must be board.HIGH or board.LOW
+     * @param {boolean} enqueue When true, the local state is updated but the command is not sent to the Arduino
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     digitalWrite (pin, value, enqueue) {
-        return this.firmata.digitalWrite(pin, value, enqueue);
+        return new Promise(resolve => {
+            this.firmata.digitalWrite(pin, value, enqueue);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     /**
