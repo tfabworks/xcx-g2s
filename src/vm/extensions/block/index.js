@@ -305,13 +305,14 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {boolean | string | number} args.LEVEL - level to be set
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     digitalLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
         this.board.pinMode(pin, this.board.MODES.OUTPUT);
-        this.board.digitalWrite(pin, value);
+        return this.board.digitalWrite(pin, value);
     }
 
     /**
