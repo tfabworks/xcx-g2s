@@ -438,8 +438,16 @@ class FirmataBoard extends EventEmitter {
         return Promise.race([request, timeoutReject(timeout)]);
     }
 
+    /**
+     * Resets all devices on the bus.
+     * @param {number} pin pin number to reset
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     sendOneWireReset (pin) {
-        return this.firmata.sendOneWireReset(pin);
+        return new Promise(resolve => {
+            this.firmata.sendOneWireReset(pin);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     searchOneWireDevices (pin) {

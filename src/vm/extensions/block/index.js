@@ -421,10 +421,16 @@ class ExtensionBlocks {
             });
     }
 
+    /**
+     * Reset OneWire modules on the pin
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     oneWireReset (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
-        this.board.sendOneWireReset(pin);
+        return this.board.sendOneWireReset(pin);
     }
 
     oneWireWrite (args) {
