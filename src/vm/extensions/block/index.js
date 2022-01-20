@@ -252,6 +252,20 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get the digital level of the pin
+     * @param {number} pin - pin number to get
+     * @returns {Promise<number>} a Promise which resolves digital value [0|1] of the pin
+     */
+    getDigitalLevel (pin) {
+        if (!this.isConnected()) return Promise.resolve(0);
+        return this.board.updateDigitalInput(pin)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return false;
+            });
+    }
+
+    /**
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
@@ -260,12 +274,40 @@ class ExtensionBlocks {
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
-        return this.board.updateDigitalInput(pin)
-            .then(readData => !!readData)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return false;
-            });
+        return this.getDigitalLevel(pin)
+            .then(readData => !!readData);
+    }
+
+    /**
+     * The level of digital A1 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+    digitalLevelA1 () {
+        return this.getDigitalLevel(10);
+    }
+
+    /**
+     * The level of digital A2 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+    digitalLevelA2 () {
+        return this.getDigitalLevel(11);
+    }
+
+    /**
+     * The level of digital B1 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+    digitalLevelB1 () {
+        return this.getDigitalLevel(6);
+    }
+
+    /**
+     * The level of digital B2 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+    digitalLevelB2 () {
+        return this.getDigitalLevel(9);
     }
 
     /**
@@ -792,6 +834,56 @@ class ExtensionBlocks {
                     arguments: {
                     }
                 },
+                '---',
+                {
+                    opcode: 'digitalLevelA1',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.digitalLevelA1',
+                        default: 'level of digital A1',
+                        description: 'report digital level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'digitalLevelA2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.digitalLevelA2',
+                        default: 'level of digital A2',
+                        description: 'report digital level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'digitalLevelB1',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.digitalLevelB1',
+                        default: 'level of digital B1',
+                        description: 'report digital level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'digitalLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.digitalLevelB2',
+                        default: 'level of digital B2',
+                        description: 'report digital level of the connector'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
                 {
                     opcode: 'digitalIsHigh',
                     blockType: BlockType.BOOLEAN,
