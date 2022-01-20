@@ -389,7 +389,7 @@ class FirmataBoard extends EventEmitter {
      * @param {number} pin The pin the servo is connected to
      * @param {number} value The degrees to move the servo to.
      * @returns {Promise} a Promise which resolves when the message was sent
-    */
+     */
     servoWrite (...args) {
         return new Promise(resolve => {
             this.firmata.servoWrite(...args);
@@ -405,8 +405,18 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.reportAnalogPin(pin, value);
     }
 
-    i2cWrite (address, registerOrData, inBytes) {
-        return this.firmata.i2cWrite(address, registerOrData, inBytes);
+    /**
+     * Write data to the register
+     * @param {number} address The address of the I2C device.
+     * @param {number} register The register to write
+     * @param {Array} inBytes An array of bytes
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+    i2cWrite (address, register, inBytes) {
+        return new Promise(resolve => {
+            this.firmata.i2cWrite(address, register, inBytes);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     i2cStop (options) {
