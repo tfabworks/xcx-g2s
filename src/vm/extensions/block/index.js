@@ -392,12 +392,20 @@ class ExtensionBlocks {
         return this.board.servoWrite(pin, value);
     }
 
+    /**
+     * Write data to register
+     * @param {object} args - the block's arguments.
+     * @param {number} args.ADDRESS - I2C address
+     * @param {number} args.REGISTER - register which write to
+     * @param {Array<number>} args.DATA - bytes to be written
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     i2cWrite (args) {
         if (!this.isConnected()) return;
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
         const data = readAsNumericArray(args.DATA);
-        this.board.i2cWrite(address, register, data);
+        return this.board.i2cWrite(address, register, data);
     }
 
     i2cReadOnce (args) {
