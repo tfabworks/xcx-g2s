@@ -1124,8 +1124,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelConfigStrip',
-                        default: 'NeoPixel [CONNECTOR] length [LENGTH]',
-                        description: 'configure NeoPixel on the connector'
+                        default: 'full color LED [CONNECTOR] length [LENGTH]',
+                        description: 'configure full color LED on the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
@@ -1143,8 +1143,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]',
-                        description: 'set NeoPixel color'
+                        default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE]',
+                        description: 'set full color LED color'
                     }),
                     arguments: {
                         POSITION: {
@@ -1170,8 +1170,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelShow',
-                        default: 'NeoPixel show',
-                        description: 'show NeoPixel'
+                        default: 'full color LED show',
+                        description: 'show full color LED'
                     }),
                     arguments: {
                     }
@@ -1181,8 +1181,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelClear',
-                        default: 'NeoPixel clear',
-                        description: 'clear NeoPixel'
+                        default: 'full color LED clear',
+                        description: 'clear full color LED'
                     }),
                     arguments: {
                     }
