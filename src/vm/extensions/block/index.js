@@ -170,7 +170,7 @@ class ExtensionBlocks {
          * state holder of the all pins
          */
         this.pins = [];
-        [9, 10, 11, 14, 15, 16]
+        [6, 9, 10, 11, 14, 15, 16, 17]
             .forEach(pin => {
                 this.pins[pin] = {};
             });
@@ -1343,22 +1343,26 @@ class ExtensionBlocks {
     }
 
     getDigitalConnectorMenu () {
-        const prefix = formatMessage({
+        const digitalPrefix = formatMessage({
             id: 'g2s.digitalConnector.prefix',
             default: 'Digital'
         });
         return [
             {
-                text: `${prefix}1`,
-                value: '9'
-            },
-            {
-                text: `${prefix}2`,
+                text: `${digitalPrefix} A1`,
                 value: '10'
             },
             {
-                text: `${prefix}3`,
+                text: `${digitalPrefix} A2`,
                 value: '11'
+            },
+            {
+                text: `${digitalPrefix} B1`,
+                value: '6'
+            },
+            {
+                text: `${digitalPrefix} B2`,
+                value: '9'
             }
         ];
     }
@@ -1395,28 +1399,36 @@ class ExtensionBlocks {
         });
         return [
             {
-                text: `${digitalPrefix}1`,
-                value: '9'
-            },
-            {
-                text: `${digitalPrefix}2`,
+                text: `${digitalPrefix} A1`,
                 value: '10'
             },
             {
-                text: `${digitalPrefix}3`,
+                text: `${digitalPrefix} A2`,
                 value: '11'
             },
             {
-                text: `${analogPrefix}1`,
-                value: '14'
+                text: `${digitalPrefix} B1`,
+                value: '6'
             },
             {
-                text: `${analogPrefix}2`,
-                value: '15'
+                text: `${digitalPrefix} B2`,
+                value: '9'
             },
             {
-                text: `${analogPrefix}3`,
-                value: '16'
+                text: `${analogPrefix} A1`,
+                value: '0'
+            },
+            {
+                text: `${analogPrefix} A2`,
+                value: '1'
+            },
+            {
+                text: `${analogPrefix} B1`,
+                value: '2'
+            },
+            {
+                text: `${analogPrefix} B2`,
+                value: '3'
             }
         ];
     }
