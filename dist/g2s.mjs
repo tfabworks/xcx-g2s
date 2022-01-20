@@ -1550,6 +1550,10 @@ var en = {
 	"g2s.analogLevelA2": "level of analog A2",
 	"g2s.analogLevelB1": "level of analog B1",
 	"g2s.analogLevelB2": "level of analog B2",
+	"g2s.digitalLevelA1": "level of digital A1",
+	"g2s.digitalLevelA2": "level of digital A2",
+	"g2s.digitalLevelB1": "level of digital B1",
+	"g2s.digitalLevelB2": "level of digital B2",
 	"g2s.digitalConnector.prefix": "Digital",
 	"g2s.digitalLevelMenu.low": "Low",
 	"g2s.digitalLevelMenu.high": "High",
@@ -1567,10 +1571,10 @@ var en = {
 	"g2s.oneWireWrite": "OneWire [CONNECTOR] write [DATA]",
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
 	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
-	"g2s.neoPixelConfigStrip": "Set NeoPixel length [LENGTH] on [CONNECTOR]",
-	"g2s.neoPixelSetColor": "NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]",
-	"g2s.neoPixelShow": "NeoPixel show",
-	"g2s.neoPixelClear": "NeoPixel clear",
+	"g2s.neoPixelConfigStrip": "Set full color LED length [LENGTH] on [CONNECTOR]",
+	"g2s.neoPixelSetColor": "full color LED color [POSITION] R [RED] G [GREEN] B [BLUE]",
+	"g2s.neoPixelShow": "full color LED show",
+	"g2s.neoPixelClear": "full color LED clear",
 	"g2s.measureDistance": "distance (mm)",
 	"g2s.getAcceleration": "acceleration [AXIS] (m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
@@ -1598,6 +1602,10 @@ var ja = {
 	"g2s.analogLevelA2": "アナログA2のレベル",
 	"g2s.analogLevelB1": "アナログB1のレベル",
 	"g2s.analogLevelB2": "アナログB2のレベル",
+	"g2s.digitalLevelA1": "デジタルA1のレベル",
+	"g2s.digitalLevelA2": "デジタルA2のレベル",
+	"g2s.digitalLevelB1": "デジタルB1のレベル",
+	"g2s.digitalLevelB2": "デジタルB2のレベル",
 	"g2s.digitalConnector.prefix": "デジタル",
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
@@ -1615,10 +1623,10 @@ var ja = {
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]を書き込む",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
-	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のNeoPixelをつなぐ",
-	"g2s.neoPixelSetColor": "NeoPixel[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
-	"g2s.neoPixelShow": "NeoPixelを光らせる",
-	"g2s.neoPixelClear": "NeoPixelを消す",
+	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のフルカラーLEDをつなぐ",
+	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
+	"g2s.neoPixelShow": "フルカラーLEDを光らせる",
+	"g2s.neoPixelClear": "フルカラーLEDを消す",
 	"g2s.measureDistance": "距離(mm)",
 	"g2s.getAcceleration": "加速度[AXIS](m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
@@ -1649,6 +1657,10 @@ var translations = {
 	"g2s.analogLevelA2": "アナログA2のレベル",
 	"g2s.analogLevelB1": "アナログB1のレベル",
 	"g2s.analogLevelB2": "アナログB2のレベル",
+	"g2s.digitalLevelA1": "デジタルA1のレベル",
+	"g2s.digitalLevelA2": "デジタルA2のレベル",
+	"g2s.digitalLevelB1": "デジタルB1のレベル",
+	"g2s.digitalLevelB2": "デジタルB2のレベル",
 	"g2s.digitalConnector.prefix": "デジタル",
 	"g2s.digitalLevelMenu.low": "ロー",
 	"g2s.digitalLevelMenu.high": "ハイ",
@@ -1666,10 +1678,10 @@ var translations = {
 	"g2s.oneWireWrite": "[CONNECTOR]のOneWireに[DATA]をかきこむ",
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
-	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のNeoPixelをつなぐ",
-	"g2s.neoPixelSetColor": "NeoPixel[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
-	"g2s.neoPixelShow": "NeoPixelをひからせる",
-	"g2s.neoPixelClear": "NeoPixelをけす",
+	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のフルカラーLEDをつなぐ",
+	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
+	"g2s.neoPixelShow": "フルカラーLEDをひからせる",
+	"g2s.neoPixelClear": "フルカラーLEDをけす",
 	"g2s.measureDistance": "きょり(mm)",
 	"g2s.getAcceleration": "かそくど[AXIS](m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
@@ -16606,7 +16618,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
 
     this.pins = [];
-    [9, 10, 11, 14, 15, 16].forEach(function (pin) {
+    [6, 9, 10, 11, 14, 15, 16, 17].forEach(function (pin) {
       _this.pins[pin] = {};
     });
     this.serialPortOptions = {
@@ -16705,6 +16717,21 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return args.STATE === 'connected' === this.isConnected();
     }
     /**
+     * Get the digital level of the pin
+     * @param {number} pin - pin number to get
+     * @returns {Promise<number>} a Promise which resolves digital value [0|1] of the pin
+     */
+
+  }, {
+    key: "getDigitalLevel",
+    value: function getDigitalLevel(pin) {
+      if (!this.isConnected()) return Promise.resolve(0);
+      return this.board.updateDigitalInput(pin).catch(function (reason) {
+        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
+        return false;
+      });
+    }
+    /**
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
@@ -16716,12 +16743,49 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function digitalIsHigh(args) {
       if (!this.isConnected()) return Promise.resolve(false);
       var pin = parseInt(args.CONNECTOR, 10);
-      return this.board.updateDigitalInput(pin).then(function (readData) {
+      return this.getDigitalLevel(pin).then(function (readData) {
         return !!readData;
-      }).catch(function (reason) {
-        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
-        return false;
       });
+    }
+    /**
+     * The level of digital A1 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+
+  }, {
+    key: "digitalLevelA1",
+    value: function digitalLevelA1() {
+      return this.getDigitalLevel(10);
+    }
+    /**
+     * The level of digital A2 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+
+  }, {
+    key: "digitalLevelA2",
+    value: function digitalLevelA2() {
+      return this.getDigitalLevel(11);
+    }
+    /**
+     * The level of digital B1 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+
+  }, {
+    key: "digitalLevelB1",
+    value: function digitalLevelB1() {
+      return this.getDigitalLevel(6);
+    }
+    /**
+     * The level of digital B2 connector
+     * @returns {Promise} - a Promise which resolves digital level of the pin
+     */
+
+  }, {
+    key: "digitalLevelB2",
+    value: function digitalLevelB2() {
+      return this.getDigitalLevel(9);
     }
     /**
      * Detect the edge as digital level of the connector for HAT block.
@@ -17395,7 +17459,47 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             description: 'report analog level of the connector'
           }),
           arguments: {}
+        }, '---', {
+          opcode: 'digitalLevelA1',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.digitalLevelA1',
+            default: 'level of digital A1',
+            description: 'report digital level of the connector'
+          }),
+          arguments: {}
         }, {
+          opcode: 'digitalLevelA2',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.digitalLevelA2',
+            default: 'level of digital A2',
+            description: 'report digital level of the connector'
+          }),
+          arguments: {}
+        }, {
+          opcode: 'digitalLevelB1',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.digitalLevelB1',
+            default: 'level of digital B1',
+            description: 'report digital level of the connector'
+          }),
+          arguments: {}
+        }, {
+          opcode: 'digitalLevelB2',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.digitalLevelB2',
+            default: 'level of digital B2',
+            description: 'report digital level of the connector'
+          }),
+          arguments: {}
+        }, '---', {
           opcode: 'digitalIsHigh',
           blockType: blockType.BOOLEAN,
           text: formatMessage({
@@ -17619,8 +17723,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelConfigStrip',
-            default: 'NeoPixel [CONNECTOR] length [LENGTH]',
-            description: 'configure NeoPixel on the connector'
+            default: 'full color LED [CONNECTOR] length [LENGTH]',
+            description: 'configure full color LED on the connector'
           }),
           arguments: {
             CONNECTOR: {
@@ -17637,8 +17741,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelSetColor',
-            default: 'NeoPixel color [POSITION] R [RED] G [GREEN] B [BLUE]',
-            description: 'set NeoPixel color'
+            default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE]',
+            description: 'set full color LED color'
           }),
           arguments: {
             POSITION: {
@@ -17663,8 +17767,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelShow',
-            default: 'NeoPixel show',
-            description: 'show NeoPixel'
+            default: 'full color LED show',
+            description: 'show full color LED'
           }),
           arguments: {}
         }, {
@@ -17672,8 +17776,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelClear',
-            default: 'NeoPixel clear',
-            description: 'clear NeoPixel'
+            default: 'full color LED clear',
+            description: 'clear full color LED'
           }),
           arguments: {}
         }, '---', {
@@ -17910,19 +18014,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getDigitalConnectorMenu",
     value: function getDigitalConnectorMenu() {
-      var prefix = formatMessage({
+      var digitalPrefix = formatMessage({
         id: 'g2s.digitalConnector.prefix',
         default: 'Digital'
       });
       return [{
-        text: "".concat(prefix, "1"),
-        value: '9'
-      }, {
-        text: "".concat(prefix, "2"),
+        text: "".concat(digitalPrefix, " A1"),
         value: '10'
       }, {
-        text: "".concat(prefix, "3"),
+        text: "".concat(digitalPrefix, " A2"),
         value: '11'
+      }, {
+        text: "".concat(digitalPrefix, " B1"),
+        value: '6'
+      }, {
+        text: "".concat(digitalPrefix, " B2"),
+        value: '9'
       }];
     }
   }, {
@@ -17956,23 +18063,29 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         default: 'Analog'
       });
       return [{
-        text: "".concat(digitalPrefix, "1"),
-        value: '9'
-      }, {
-        text: "".concat(digitalPrefix, "2"),
+        text: "".concat(digitalPrefix, " A1"),
         value: '10'
       }, {
-        text: "".concat(digitalPrefix, "3"),
+        text: "".concat(digitalPrefix, " A2"),
         value: '11'
       }, {
-        text: "".concat(analogPrefix, "1"),
-        value: '14'
+        text: "".concat(digitalPrefix, " B1"),
+        value: '6'
       }, {
-        text: "".concat(analogPrefix, "2"),
-        value: '15'
+        text: "".concat(digitalPrefix, " B2"),
+        value: '9'
       }, {
-        text: "".concat(analogPrefix, "3"),
-        value: '16'
+        text: "".concat(analogPrefix, " A1"),
+        value: '0'
+      }, {
+        text: "".concat(analogPrefix, " A2"),
+        value: '1'
+      }, {
+        text: "".concat(analogPrefix, " B1"),
+        value: '2'
+      }, {
+        text: "".concat(analogPrefix, " B2"),
+        value: '3'
       }];
     }
   }, {
