@@ -378,11 +378,18 @@ class ExtensionBlocks {
         return this.board.pwmWrite(pin, value);
     }
 
+    /**
+     * Turn the servo motor to the degrees.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {number} args.DEGREE - degrees to the servo to turn
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     servoTurn (args) {
         const pin = parseInt(args.CONNECTOR, 10);
         const value = Cast.toNumber(args.DEGREE);
         this.board.pinMode(pin, this.board.MODES.SERVO);
-        this.board.servoWrite(pin, value);
+        return this.board.servoWrite(pin, value);
     }
 
     i2cWrite (args) {

@@ -384,8 +384,17 @@ class FirmataBoard extends EventEmitter {
         });
     }
 
+    /**
+     * Asks the arduino to move a servo
+     * @param {number} pin The pin the servo is connected to
+     * @param {number} value The degrees to move the servo to.
+     * @returns {Promise} a Promise which resolves when the message was sent
+    */
     servoWrite (...args) {
-        return this.firmata.servoWrite(...args);
+        return new Promise(resolve => {
+            this.firmata.servoWrite(...args);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     analogRead (pin, callback) {
