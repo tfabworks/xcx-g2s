@@ -1485,10 +1485,6 @@ class ExtensionBlocks {
             id: 'g2s.digitalConnector.prefix',
             default: 'Digital'
         });
-        const analogPrefix = formatMessage({
-            id: 'g2s.analogConnector.prefix',
-            default: 'Analog'
-        });
         return [
             {
                 text: `${digitalPrefix} A1`,
@@ -1505,22 +1501,6 @@ class ExtensionBlocks {
             {
                 text: `${digitalPrefix} B2`,
                 value: '9'
-            },
-            {
-                text: `${analogPrefix} A1`,
-                value: '0'
-            },
-            {
-                text: `${analogPrefix} A2`,
-                value: '1'
-            },
-            {
-                text: `${analogPrefix} B1`,
-                value: '2'
-            },
-            {
-                text: `${analogPrefix} B2`,
-                value: '3'
             }
         ];
     }
