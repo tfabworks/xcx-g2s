@@ -9,6 +9,7 @@ import Long from 'long';
 import {FirmataConnector, getFirmataConnector} from './firmata-connector';
 import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
+import BME280 from './bme280';
 
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
@@ -201,6 +202,7 @@ class ExtensionBlocks {
         if (prev === this.board) return;
         this.vl53l0x = null;
         this.adxl345 = null;
+        this.bme280 = null;
     }
 
     /**
@@ -610,6 +612,84 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
                 this.adxl345 = null;
+                return 0;
+            });
+    }
+
+    /**
+     * Get temperature from BME280
+     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     */
+    async getTemperatureBME280 () {
+        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.bme280) {
+            const newSensor = new BME280(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return Promise.resolve(0);
+            }
+            this.bme280 = newSensor;
+        }
+        return this.bme280.readTemperature()
+            .then(temp => (Math.round(temp * 100) / 100))
+            .catch(reason => {
+                console.log(`BME280.readTemperature() was rejected by ${reason}`);
+                this.bme280 = null;
+                return 0;
+            });
+    }
+
+    /**
+     * Get pressure from BME280
+     * @returns {Promise<number>} a Promise which resolves value of pressure [hPa]
+     */
+    async getPressureBME280 () {
+        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.bme280) {
+            const newSensor = new BME280(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return Promise.resolve(0);
+            }
+            this.bme280 = newSensor;
+        }
+        return this.bme280.readPressure()
+            .then(press => (Math.round(press * 100) / 10000))
+            .catch(reason => {
+                console.log(`BME280.readPressure() was rejected by ${reason}`);
+                this.bme280 = null;
+                return 0;
+            });
+    }
+
+    /**
+     * Get humidity from BME280
+     * @returns {Promise<number>} a Promise which resolves value of humidity [%]
+     */
+    async getHumidityBME280 () {
+        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.bme280) {
+            const newSensor = new BME280(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return Promise.resolve(0);
+            }
+            this.bme280 = newSensor;
+        }
+        return this.bme280.readHumidity()
+            .then(hum => (Math.round(hum * 100) / 100))
+            .catch(reason => {
+                console.log(`BME280.readHumidity() was rejected by ${reason}`);
+                this.bme280 = null;
                 return 0;
             });
     }
@@ -1217,6 +1297,46 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             menu: 'accelerationAxisMenu'
                         }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'getTemperature',
+                    func: 'getTemperatureBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getTemperature',
+                        default: 'temperature (°C)',
+                        description: 'report temperature'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getPressure',
+                    func: 'getPressureBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getPressure',
+                        default: 'pressure (hPa)',
+                        description: 'report pressure'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getHumidity',
+                    func: 'getHumidityBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getHumidity',
+                        default: 'humidity (%)',
+                        description: 'report humidity'
+                    }),
+                    arguments: {
                     }
                 },
                 '---',
