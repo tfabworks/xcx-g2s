@@ -426,14 +426,16 @@ class ExtensionBlocks {
      * Turn the servo motor to the degrees.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @param {number} args.DEGREE - degrees to the servo to turn
+     * @param {number} args.ANGLE - degrees to the servo to turn
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     servoTurn (args) {
         const pin = parseInt(args.CONNECTOR, 10);
-        const value = Cast.toNumber(args.DEGREE);
+        const angle = Cast.toNumber(args.ANGLE);
+        let servoValue = 90 - angle; // = 180 - (angle + 90)
+        servoValue = Math.min(180, Math.max(0, servoValue));
         this.board.pinMode(pin, this.board.MODES.SERVO);
-        return this.board.servoWrite(pin, value);
+        return this.board.servoWrite(pin, servoValue);
     }
 
     /**
@@ -1061,7 +1063,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.servoTurn',
-                        default: 'Servo [CONNECTOR] turn [DEGREE]',
+                        default: 'Servo [CONNECTOR] turn [ANGLE]',
                         description: 'turn servo motor'
                     }),
                     arguments: {
@@ -1069,7 +1071,7 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             menu: 'digitalConnectorMenu'
                         },
-                        DEGREE: {
+                        ANGLE: {
                             type: ArgumentType.ANGLE
                         }
                     }
