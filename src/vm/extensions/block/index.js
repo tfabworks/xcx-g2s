@@ -96,6 +96,10 @@ let extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
  */
 class ExtensionBlocks {
 
+    static set formatMessage (formatter) {
+        formatMessage = formatter;
+    }
+
     /**
      * @return {string} - the name of this extension.
      */
