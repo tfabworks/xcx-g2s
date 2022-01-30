@@ -273,6 +273,13 @@ class FirmataBoard extends EventEmitter {
      * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
      */
     updateDigitalInput (pin) {
+        if (
+            typeof this.pins[pin].mode !== 'undefined' &&
+            this.pins[pin].mode !== this.firmata.MODES.INPUT &&
+            this.pins[pin].mode !== this.firmata.MODES.PULLUP
+        ) {
+            return Promise.resolve(this.pins[pin].value);
+        }
         if (this.pins[pin].updating ||
              (this.pins[pin].updateTime &&
                 ((Date.now() - this.pins[pin].updateTime) < this.digitalReadInterval))) {

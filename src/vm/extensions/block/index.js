@@ -192,8 +192,21 @@ class ExtensionBlocks {
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
         this.runtime.on('PROJECT_STOP_ALL', () => {
+            this.resetPinMode();
             this.neoPixelClear();
         });
+    }
+
+    /**
+     * Reset pin mode
+     * @returns {undefined}
+     */
+    resetPinMode () {
+        if (!this.isConnected()) return;
+        [6, 9, 10, 11]
+            .forEach(pin => {
+                this.board.pinMode(pin, this.board.MODES.INPUT);
+            });
     }
 
     /**
