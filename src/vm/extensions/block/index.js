@@ -1523,7 +1523,7 @@ class ExtensionBlocks {
                     items: this.getDigitalLevelMenu()
                 },
                 inputPinsMenu: {
-                    acceptReporters: true,
+                    acceptReporters: false,
                     items: this.getInputPinsMenu()
                 },
                 pwmConnectorMenu: {
