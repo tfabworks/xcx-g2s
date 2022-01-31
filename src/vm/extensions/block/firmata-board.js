@@ -519,6 +519,7 @@ class FirmataBoard extends EventEmitter {
     }
 
     neoPixelConfigStrip (pin, length) {
+        this.pins[pin].mode = PIXEL_COMMAND;
         // now send the config message with length and data point.
         this.neoPixel = {pin: pin, length: length};
         const data = new Array(7);
