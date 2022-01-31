@@ -573,7 +573,7 @@ class ExtensionBlocks {
         return this.board.neoPixelClear();
     }
 
-    async measureDistanceVL53L () {
+    async measureDistanceWithLight () {
         if (!this.isConnected()) return 0;
         if (!this.vl53l0x) {
             let newSensor = new VL53L0X(this.board);
@@ -594,6 +594,23 @@ class ExtensionBlocks {
                 return 0;
             });
         return distance;
+    }
+
+    /**
+     * Measure distance with ultrasonic sensor HC-SR04
+     * @param {object} args - the block's arguments.
+     * @param {number} pin - pin number to trigger the sensor
+     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     */
+    measureDistanceWithUltrasonic (args) {
+        if (!this.isConnected()) return Promise.resolve(0);
+        const pin = parseInt(args.CONNECTOR, 10);
+        return this.board.pingSensor(pin)
+            .then(value => Math.round(value / 10))
+            .catch(reason => {
+                console.log(`pingSensor(${pin}) was rejected by ${reason}`);
+                return 0;
+            });
     }
 
     /**
@@ -1288,16 +1305,33 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'measureDistance',
-                    func: 'measureDistanceVL53L',
+                    opcode: 'measureDistanceWithLight',
+                    func: 'measureDistanceWithLight',
                     blockType: BlockType.REPORTER,
                     disableMonitor: true,
                     text: formatMessage({
-                        id: 'g2s.measureDistance',
-                        default: 'distance (mm)',
-                        description: 'report distance'
+                        id: 'g2s.measureDistanceWithLight',
+                        default: 'distance (mm) - light',
+                        description: 'report distance by light'
                     }),
                     arguments: {
+                    }
+                },
+                {
+                    opcode: 'measureDistanceWithUltrasonic',
+                    func: 'measureDistanceWithUltrasonic',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.measureDistanceWithUltrasonic',
+                        default: 'distance (cm) - Ultrasonic [CONNECTOR]',
+                        description: 'report distance by ultrasonic'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
                     }
                 },
                 '---',

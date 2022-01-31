@@ -13,6 +13,7 @@ import {
     PIXEL_SHOW
 } from './node-pixel-constants';
 
+const PING_SENSOR_COMMAND = 0x01;
 
 /**
  * Return a Promise which will reject after the delay time passed.
@@ -139,6 +140,11 @@ class FirmataBoard extends EventEmitter {
          * Waiting time for response of OneWire reading in milliseconds.
          */
         this.oneWireReadWaitingTime = 100;
+
+        /**
+         * Waiting time for response of ping sensor reading in milliseconds.
+         */
+        this.pingSensorWaitingTime = 100;
 
         this.portInfo = null;
 
@@ -567,6 +573,28 @@ class FirmataBoard extends EventEmitter {
         return new Promise(
             resolve => {
                 this.port.write(data, () => resolve());
+            });
+    }
+
+    /**
+     * Trigger the sensor to measure
+     * @param {number} pin - trigger pin of the sensor
+     * @param {number} timeout - waiting time for the response
+     * @returns {Promise<boolean>} a Promise which resolves value from the sensor
+     */
+    pingSensor (pin, timeout) {
+        timeout = timeout ? timeout : this.pingSensorWaitingTime;
+        this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
+        const request = new Promise(resolve => {
+            this.firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
+                const value = Firmata.decode([data[1], data[2]]);
+                resolve(value);
+            });
+            this.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        });
+        return Promise.race([request, timeoutReject(timeout)])
+            .finally(() => {
+                this.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
             });
     }
 
