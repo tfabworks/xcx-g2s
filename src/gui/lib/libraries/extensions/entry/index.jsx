@@ -28,11 +28,11 @@ const entry = {
     iconURL: iconURL,
     insetIconURL: insetIconURL,
     get description () {
-        return formatMessage({
-            defaultMessage: 'an extension for Xcratch',
+        return `${formatMessage({
+            defaultMessage: 'Connect Grove sensors and actuators.',
             description: 'Description for this extension',
             id: 'g2s.entry.description'
-        });
+        })} (v0.7.2)`;
     },
     featured: true,
     disabled: false,
