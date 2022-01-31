@@ -559,12 +559,23 @@ class ExtensionBlocks {
         return this.board.neoPixelShow();
     }
 
+    /**
+     * Set color of the LED
+     * @param {object} args - the block's arguments.
+     * @param {number} args.POSITION - position of the LED on the module start at 1
+     * @param {number} args.RED - value for red [0...255]
+     * @param {number} args.GREEN - value for green [0...255]
+     * @param {number} args.BLUE - value for blue [0...255]
+     * @param {number} args.BRIGHTNESS - brightness fo the LED [%]
+     * @returns {Promise} return a Promise which will resolve the command was sent
+     */
     neoPixelSetColor (args) {
         if (!this.isConnected()) return Promise.resolve();
-        const index = parseInt(Cast.toNumber(args.POSITION), 10) - 1;
-        const r = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.RED), 10)));
-        const g = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.GREEN), 10)));
-        const b = Math.max(0, Math.min(255, parseInt(Cast.toNumber(args.BLUE), 10)));
+        const index = Cast.toNumber(args.POSITION) - 1;
+        const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
+        const r = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.RED))) * brightness);
+        const g = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.GREEN))) * brightness);
+        const b = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.BLUE))) * brightness);
         return this.board.neoPixelSetColor(index, [r, g, b]);
     }
 
@@ -1259,7 +1270,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE]',
+                        default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE] brightness [BRIGHTNESS]',
                         description: 'set full color LED color'
                     }),
                     arguments: {
@@ -1278,6 +1289,10 @@ class ExtensionBlocks {
                         BLUE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '255'
+                        },
+                        BRIGHTNESS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '100'
                         }
                     }
                 },
