@@ -49,11 +49,11 @@ var entry = {
   insetIconURL: img$1,
 
   get description() {
-    return formatMessage$1({
-      defaultMessage: 'an extension for Xcratch',
+    return "".concat(formatMessage$1({
+      defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    });
+    }), " (v0.7.2)");
   },
 
   featured: true,
@@ -14170,6 +14170,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function updateDigitalInput(pin) {
       var _this3 = this;
 
+      if (typeof this.pins[pin].mode !== 'undefined' && this.pins[pin].mode !== this.firmata.MODES.INPUT && this.pins[pin].mode !== this.firmata.MODES.PULLUP) {
+        return Promise.resolve(this.pins[pin].value);
+      }
+
       if (this.pins[pin].updating || this.pins[pin].updateTime && Date.now() - this.pins[pin].updateTime < this.digitalReadInterval) {
         return Promise.resolve(this.pins[pin].value);
       }
@@ -17148,15 +17152,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
     this.runtime.on('PROJECT_STOP_ALL', function () {
+      _this.resetPinMode();
+
       _this.neoPixelClear();
     });
   }
   /**
-   * Update connected board
+   * Reset pin mode
+   * @returns {undefined}
    */
 
 
   _createClass(ExtensionBlocks, [{
+    key: "resetPinMode",
+    value: function resetPinMode() {
+      var _this2 = this;
+
+      if (!this.isConnected()) return;
+      [6, 9, 10, 11].forEach(function (pin) {
+        _this2.board.pinMode(pin, _this2.board.MODES.INPUT);
+      });
+    }
+    /**
+     * Update connected board
+     */
+
+  }, {
     key: "updateBoard",
     value: function updateBoard() {
       if (this.board && this.board.isConnected()) return;
@@ -17195,12 +17216,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this.board && this.board.isConnected()) return; // Already connected
 
       return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
-        _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_CONNECTED, {
+        _this3.runtime.emit(_this3.runtime.constructor.PERIPHERAL_CONNECTED, {
           name: connectedBoard.name,
           path: connectedBoard.portInfo
         });
@@ -17212,7 +17233,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           return reason;
         }
 
-        return "fail to connect port: ".concat(JSON.stringify(_this2.serialPortOptions));
+        return "fail to connect port: ".concat(JSON.stringify(_this3.serialPortOptions));
       });
     }
   }, {
@@ -17578,7 +17599,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "measureDistanceVL53L",
     value: function () {
       var _measureDistanceVL53L = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
-        var _this3 = this;
+        var _this4 = this;
 
         var newSensor, found, distance;
         return regenerator.wrap(function _callee$(_context) {
@@ -17634,7 +17655,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 _context.next = 16;
                 return this.vl53l0x.readRangeContinuousMillimeters().catch(function (reason) {
                   console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(reason));
-                  _this3.vl53l0x = null;
+                  _this4.vl53l0x = null;
                   return 0;
                 });
 
@@ -17667,7 +17688,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getAccelerationADXL345",
     value: function () {
       var _getAccelerationADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(args) {
-        var _this4 = this;
+        var _this5 = this;
 
         var axis, newSensor;
         return regenerator.wrap(function _callee2$(_context2) {
@@ -17717,7 +17738,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return acceleration[axis];
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this4.adxl345 = null;
+                  _this5.adxl345 = null;
                   return 0;
                 }));
 
@@ -17744,7 +17765,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getTemperatureBME280",
     value: function () {
       var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
-        var _this5 = this;
+        var _this6 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee3$(_context3) {
@@ -17788,7 +17809,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this5.bme280 = null;
+                  _this6.bme280 = null;
                   return 0;
                 }));
 
@@ -17815,7 +17836,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPressureBME280",
     value: function () {
       var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this6 = this;
+        var _this7 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
@@ -17859,7 +17880,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this6.bme280 = null;
+                  _this7.bme280 = null;
                   return 0;
                 }));
 
@@ -17886,7 +17907,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getHumidityBME280",
     value: function () {
       var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this7 = this;
+        var _this8 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee5$(_context5) {
@@ -17930,7 +17951,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this7.bme280 = null;
+                  _this8.bme280 = null;
                   return 0;
                 }));
 
@@ -18723,7 +18744,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             items: this.getDigitalLevelMenu()
           },
           inputPinsMenu: {
-            acceptReporters: true,
+            acceptReporters: false,
             items: this.getInputPinsMenu()
           },
           pwmConnectorMenu: {
@@ -18880,12 +18901,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }];
     }
   }], [{
-    key: "EXTENSION_NAME",
-    get:
+    key: "formatMessage",
+    set: function set(formatter) {
+      formatMessage = formatter;
+    }
     /**
      * @return {string} - the name of this extension.
      */
-    function get() {
+
+  }, {
+    key: "EXTENSION_NAME",
+    get: function get() {
       return formatMessage({
         id: 'g2s.name',
         default: 'AkaDako',
