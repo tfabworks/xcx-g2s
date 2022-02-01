@@ -53,7 +53,7 @@ var entry = {
       defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    }), " (v0.7.2)");
+    }), " (v0.8.0)");
   },
 
   featured: true,
@@ -1572,10 +1572,11 @@ var en = {
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
 	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
 	"g2s.neoPixelConfigStrip": "Set full color LED length [LENGTH] on [CONNECTOR]",
-	"g2s.neoPixelSetColor": "full color LED color [POSITION] R [RED] G [GREEN] B [BLUE]",
+	"g2s.neoPixelSetColor": "full color LED [POSITION] R [RED] G [GREEN] B [BLUE] brightness [BRIGHTNESS]",
 	"g2s.neoPixelShow": "full color LED show",
 	"g2s.neoPixelClear": "full color LED clear",
-	"g2s.measureDistance": "distance (mm)",
+	"g2s.measureDistanceWithLight": "distance (mm) - light",
+	"g2s.measureDistanceWithUltrasonic": "distance (cm) - Ultrasonic [CONNECTOR]",
 	"g2s.getAcceleration": "acceleration [AXIS] (m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
 	"g2s.accelerationAxisMenu.y": "y",
@@ -1627,10 +1628,11 @@ var ja = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
 	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のフルカラーLEDをつなぐ",
-	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE]にする",
+	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]の色を赤[RED] 緑[GREEN] 青[BLUE] 明るさ[BRIGHTNESS]にする",
 	"g2s.neoPixelShow": "フルカラーLEDを光らせる",
 	"g2s.neoPixelClear": "フルカラーLEDを消す",
-	"g2s.measureDistance": "距離(mm)",
+	"g2s.measureDistanceWithLight": "距離(mm) -光",
+	"g2s.measureDistanceWithUltrasonic": "距離(cm) - 超音波[CONNECTOR]",
 	"g2s.getAcceleration": "加速度[AXIS](m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
 	"g2s.accelerationAxisMenu.y": "y",
@@ -1685,10 +1687,11 @@ var translations = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
 	"g2s.neoPixelConfigStrip": "[CONNECTOR]に長さ[LENGTH]のフルカラーLEDをつなぐ",
-	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE]にする",
+	"g2s.neoPixelSetColor": "フルカラーLED[POSITION]のいろを あか[RED] みどり[GREEN] あお[BLUE] あかるさ[BRIGHTNESS]にする",
 	"g2s.neoPixelShow": "フルカラーLEDをひからせる",
 	"g2s.neoPixelClear": "フルカラーLEDをけす",
-	"g2s.measureDistance": "きょり(mm)",
+	"g2s.measureDistanceWithLight": "きょり(mm) -ひかり",
+	"g2s.measureDistanceWithUltrasonic": "きょり(cm) - ちょうおんぱ[CONNECTOR]",
 	"g2s.getAcceleration": "かそくど[AXIS](m/s^2)",
 	"g2s.accelerationAxisMenu.x": "x",
 	"g2s.accelerationAxisMenu.y": "y",
@@ -13827,6 +13830,7 @@ var nodePixelConstants = {
 function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$1(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+var PING_SENSOR_COMMAND = 0x01;
 /**
  * Return a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -13951,6 +13955,11 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
      */
 
     _this.oneWireReadWaitingTime = 100;
+    /**
+     * Waiting time for response of ping sensor reading in milliseconds.
+     */
+
+    _this.pingSensorWaitingTime = 100;
     _this.portInfo = null;
     _this.neoPixel = null;
     return _this;
@@ -14471,7 +14480,8 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function neoPixelConfigStrip(pin, length) {
       var _this16 = this;
 
-      // now send the config message with length and data point.
+      this.pins[pin].mode = nodePixelConstants.PIXEL_COMMAND; // now send the config message with length and data point.
+
       this.neoPixel = {
         pin: pin,
         length: length
@@ -14579,6 +14589,32 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         _this18.port.write(data, function () {
           return resolve();
         });
+      });
+    }
+    /**
+     * Trigger the sensor to measure
+     * @param {number} pin - trigger pin of the sensor
+     * @param {number} timeout - waiting time for the response
+     * @returns {Promise<boolean>} a Promise which resolves value from the sensor
+     */
+
+  }, {
+    key: "pingSensor",
+    value: function pingSensor(pin, timeout) {
+      var _this19 = this;
+
+      timeout = timeout ? timeout : this.pingSensorWaitingTime;
+      this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
+      var request = new Promise(function (resolve) {
+        _this19.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
+          var value = Firmata.decode([data[1], data[2]]);
+          resolve(value);
+        });
+
+        _this19.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+      });
+      return Promise.race([request, timeoutReject(timeout)]).finally(function () {
+        _this19.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
       });
     }
     /**
@@ -17579,14 +17615,26 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return Promise.resolve();
       return this.board.neoPixelShow();
     }
+    /**
+     * Set color of the LED
+     * @param {object} args - the block's arguments.
+     * @param {number} args.POSITION - position of the LED on the module start at 1
+     * @param {number} args.RED - value for red [0...255]
+     * @param {number} args.GREEN - value for green [0...255]
+     * @param {number} args.BLUE - value for blue [0...255]
+     * @param {number} args.BRIGHTNESS - brightness fo the LED [%]
+     * @returns {Promise} return a Promise which will resolve the command was sent
+     */
+
   }, {
     key: "neoPixelSetColor",
     value: function neoPixelSetColor(args) {
       if (!this.isConnected()) return Promise.resolve();
-      var index = parseInt(cast.toNumber(args.POSITION), 10) - 1;
-      var r = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.RED), 10)));
-      var g = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.GREEN), 10)));
-      var b = Math.max(0, Math.min(255, parseInt(cast.toNumber(args.BLUE), 10)));
+      var index = cast.toNumber(args.POSITION) - 1;
+      var brightness = Math.max(0, Math.min(100, cast.toNumber(args.BRIGHTNESS))) / 100;
+      var r = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.RED))) * brightness);
+      var g = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.GREEN))) * brightness);
+      var b = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.BLUE))) * brightness);
       return this.board.neoPixelSetColor(index, [r, g, b]);
     }
   }, {
@@ -17596,9 +17644,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.neoPixelClear();
     }
   }, {
-    key: "measureDistanceVL53L",
+    key: "measureDistanceWithLight",
     value: function () {
-      var _measureDistanceVL53L = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+      var _measureDistanceWithLight = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
         var _this4 = this;
 
         var newSensor, found, distance;
@@ -17671,12 +17719,31 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         }, _callee, this);
       }));
 
-      function measureDistanceVL53L() {
-        return _measureDistanceVL53L.apply(this, arguments);
+      function measureDistanceWithLight() {
+        return _measureDistanceWithLight.apply(this, arguments);
       }
 
-      return measureDistanceVL53L;
+      return measureDistanceWithLight;
     }()
+    /**
+     * Measure distance with ultrasonic sensor HC-SR04
+     * @param {object} args - the block's arguments.
+     * @param {number} pin - pin number to trigger the sensor
+     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     */
+
+  }, {
+    key: "measureDistanceWithUltrasonic",
+    value: function measureDistanceWithUltrasonic(args) {
+      if (!this.isConnected()) return Promise.resolve(0);
+      var pin = parseInt(args.CONNECTOR, 10);
+      return this.board.pingSensor(pin).then(function (value) {
+        return Math.round(value / 10);
+      }).catch(function (reason) {
+        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
+        return 0;
+      });
+    }
     /**
      * Get acceleration for the axis by ADXL345
      * @param {object} args - the block's arguments.
@@ -18488,7 +18555,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelSetColor',
-            default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE]',
+            default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE] brightness [BRIGHTNESS]',
             description: 'set full color LED color'
           }),
           arguments: {
@@ -18507,6 +18574,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             BLUE: {
               type: argumentType.NUMBER,
               defaultValue: '255'
+            },
+            BRIGHTNESS: {
+              type: argumentType.NUMBER,
+              defaultValue: '100'
             }
           }
         }, {
@@ -18528,16 +18599,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           }),
           arguments: {}
         }, '---', {
-          opcode: 'measureDistance',
-          func: 'measureDistanceVL53L',
+          opcode: 'measureDistanceWithLight',
+          func: 'measureDistanceWithLight',
           blockType: blockType.REPORTER,
           disableMonitor: true,
           text: formatMessage({
-            id: 'g2s.measureDistance',
-            default: 'distance (mm)',
-            description: 'report distance'
+            id: 'g2s.measureDistanceWithLight',
+            default: 'distance (mm) - light',
+            description: 'report distance by light'
           }),
           arguments: {}
+        }, {
+          opcode: 'measureDistanceWithUltrasonic',
+          func: 'measureDistanceWithUltrasonic',
+          blockType: blockType.REPORTER,
+          disableMonitor: true,
+          text: formatMessage({
+            id: 'g2s.measureDistanceWithUltrasonic',
+            default: 'distance (cm) - Ultrasonic [CONNECTOR]',
+            description: 'report distance by ultrasonic'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'digitalConnectorMenu'
+            }
+          }
         }, '---', {
           opcode: 'getAcceleration',
           func: 'getAccelerationADXL345',
