@@ -280,7 +280,7 @@ class ExtensionBlocks {
         return this.board.updateDigitalInput(pin)
             .catch(reason => {
                 console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return false;
+                return 0;
             });
     }
 
