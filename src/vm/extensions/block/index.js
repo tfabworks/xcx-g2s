@@ -250,14 +250,15 @@ class ExtensionBlocks {
                     name: connectedBoard.name,
                     path: connectedBoard.portInfo
                 });
-                return 'connected';
+                return `connected to ${JSON.stringify(connectedBoard.portInfo)}`;
             })
             .catch(reason => {
                 if (reason) {
                     console.log(reason);
-                    return reason;
+                } else {
+                    console.log(`fail to connect port: ${JSON.stringify(this.serialPortOptions)}`);
                 }
-                return `fail to connect port: ${JSON.stringify(this.serialPortOptions)}`;
+                return Promise.reject(reason);
             });
     }
 
