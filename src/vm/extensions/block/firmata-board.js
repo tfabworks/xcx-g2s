@@ -16,7 +16,7 @@ import {
 const PING_SENSOR_COMMAND = 0x01;
 
 /**
- * Return a Promise which will reject after the delay time passed.
+ * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
  * @returns {Promise<string>} Promise which will reject with reason after the delay.
  */
@@ -29,6 +29,10 @@ const Firmata = bindTransport(SerialPort);
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
 
+/**
+ * Gamma values table for NeoPixel.
+ * @type {Array<number>}
+ */
 const neoPixelGammaTable = ((steps, gamma) => {
     const gammaTable = new Array(steps);
     for (let i = 0; i < steps; i++) {
@@ -37,6 +41,12 @@ const neoPixelGammaTable = ((steps, gamma) => {
     return gammaTable;
 })(256, 2.8);
 
+/**
+ * Convert colors to gamma corrected value for NeoPixel.
+ * @param {Array<number>} colors - color values [red, green, blue]
+ * @param {Array<number>} gammaTable - gamma values
+ * @returns {number} value for NeoPixel
+ */
 const neoPixelColorValue = (colors, gammaTable) => {
     // colors are assumed to be an array of [r, g, b] bytes
     // colorValue returns a packed value able to be pushed to firmata rather than
@@ -56,6 +66,9 @@ const neoPixelColorValue = (colors, gammaTable) => {
     );
 };
 
+/**
+ * This class represents a board communicating with Firmata protocol.
+ */
 class FirmataBoard extends EventEmitter {
 
     /**
@@ -97,21 +110,25 @@ class FirmataBoard extends EventEmitter {
 
         /**
          * The serial port for transporting of Firmata.
+         * @type {SerialPort}
          */
         this.port = null;
 
         /**
          * ID of the extension which requested to open port.
+         * @type {string}
          */
         this.extensionId = null;
 
         /**
          * shortest interval time between digital input readings
+         * @type {number}
          */
         this.digitalReadInterval = 20;
 
         /**
          * shortest interval time between analog input readings
+         * @type {number}
          */
         this.analogReadInterval = 20;
 
@@ -123,31 +140,44 @@ class FirmataBoard extends EventEmitter {
 
         /**
          * Waiting time for response of digital input reading in milliseconds.
+         * @type {number}
          */
         this.updateDigitalInputWaitingTime = 100;
 
         /**
          * Waiting time for response of analog input reading in milliseconds.
+         * @type {number}
          */
         this.updateAnalogInputWaitingTime = 100;
 
         /**
          * Waiting time for response of I2C reading in milliseconds.
+         * @type {number}
          */
         this.i2cReadWaitingTime = 100;
 
         /**
          * Waiting time for response of OneWire reading in milliseconds.
+         * @type {number}
          */
         this.oneWireReadWaitingTime = 100;
 
         /**
          * Waiting time for response of ping sensor reading in milliseconds.
+         * @type {number}
          */
         this.pingSensorWaitingTime = 100;
 
+        /**
+         * Port information of the connected serial port.
+         * @type {object}
+         */
         this.portInfo = null;
 
+        /**
+         * Parameters of the NeoPixel module.
+         * @type {object}
+         */
         this.neoPixel = null;
     }
 
@@ -209,6 +239,9 @@ class FirmataBoard extends EventEmitter {
         });
     }
 
+    /**
+     * Called when a board was ready.
+     */
     onBoarReady () {
         const firmInfo = this.firmata.firmware;
         console.log(
@@ -218,14 +251,25 @@ class FirmataBoard extends EventEmitter {
         this.state = 'ready';
     }
 
+    /**
+     * Whether a board is connected.
+     * @returns {boolean} true if a board is connected
+     */
     isConnected () {
         return (this.state === 'connect' || this.state === 'ready');
     }
 
+    /**
+     * Whether the board is ready to operate.
+     * @returns {boolean} true if the board is ready
+     */
     isReady () {
         return this.state === 'ready';
     }
 
+    /**
+     * Release resources of the board then emit released-event.
+     */
     async releaseBoard () {
         this.state = 'disconnect';
         this.neoPixel = null;
@@ -238,6 +282,9 @@ class FirmataBoard extends EventEmitter {
         this.emit(FirmataBoard.RELEASED);
     }
 
+    /**
+     * Disconnect current connected board.
+     */
     disconnect () {
         if (this.state === 'disconnect') return;
         if (this.firmata && this.port && this.port.isOpen) {
@@ -255,7 +302,7 @@ class FirmataBoard extends EventEmitter {
      * Disconnect the device, and if the extension using this object has a
      * reset callback, call it.
      *
-     * @param {*} error - cause of the error
+     * @param {string} error - cause of the error
      * @returns {undefined}
      */
     handleDisconnectError (error) {
@@ -269,6 +316,12 @@ class FirmataBoard extends EventEmitter {
         this.disconnect();
     }
 
+    /**
+     * Asks the board to set the pin to a certain mode.
+     * @param {number} pin - The pin you want to change the mode of.
+     * @param {number} mode - The mode you want to set. Must be one of board.MODES
+     * @returns {undefined}
+     */
     pinMode (pin, mode) {
         return this.firmata.pinMode(pin, mode);
     }
@@ -362,19 +415,31 @@ class FirmataBoard extends EventEmitter {
             });
     }
 
+    /**
+     * Asks the board to read digital data.
+     * @param {number} pin - pin number to read
+     * @param {function(number)} callback - the function to call when data has been received
+     * @returns {undefined}
+     */
     digitalRead (pin, callback) {
         return this.firmata.digitalRead(pin, callback);
     }
 
+    /**
+     * Set reporting on pin
+     * @param {number} pin - The pin to turn on/off reporting
+     * @param {number} value - Binary value to turn reporting on/off
+     * @returns {undefined}
+     */
     reportDigitalPin (pin, value) {
         return this.firmata.reportDigitalPin(pin, value);
     }
 
     /**
-     * Asks the arduino to write a value to a digital pin
-     * @param {number} pin The pin you want to write a value to.
-     * @param {number} value The value you want to write. Must be board.HIGH or board.LOW
-     * @param {boolean} enqueue When true, the local state is updated but the command is not sent to the Arduino
+     * Asks the board to write a value to a digital pin
+     * @param {number} pin - The pin you want to write a value to.
+     * @param {number} value - The value you want to write. Must be board.HIGH or board.LOW
+     * @param {boolean} enqueue - When true, the local state is updated but the command is not sent to the board
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     digitalWrite (pin, value, enqueue) {
@@ -385,9 +450,9 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Set PWM to the valu on the pin
-     * @param {number} pin pin number to set
-     * @param {number} value PWM level
+     * Set PWM to the value on the pin
+     * @param {number} pin - pin number to set
+     * @param {number} value - PWM level
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     pwmWrite (pin, value) {
@@ -398,9 +463,9 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Asks the arduino to move a servo
-     * @param {number} pin The pin the servo is connected to
-     * @param {number} value The degrees to move the servo to.
+     * Asks the board to move a servo
+     * @param {number} pin - the pin the servo is connected to
+     * @param {number} value - the degrees to move the servo to.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     servoWrite (...args) {
@@ -410,6 +475,12 @@ class FirmataBoard extends EventEmitter {
         });
     }
 
+    /**
+     * Asks the board to read digital data.
+     * @param {number} pin - pin number to read
+     * @param {function(number)} callback - the function to call when data has been received
+     * @returns {undefined}
+     */
     analogRead (pin, callback) {
         return this.firmata.analogRead(pin, callback);
     }
@@ -419,10 +490,10 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Write data to the register
-     * @param {number} address The address of the I2C device.
-     * @param {number} register The register to write
-     * @param {Array} inBytes An array of bytes
+     * Write multiple bytes to an I2C module
+     * @param {number} address - address of the I2C device.
+     * @param {number} register - register to write
+     * @param {Array<number>} inBytes - bytes to be wrote
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     i2cWrite (address, register, inBytes) {
@@ -436,6 +507,14 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.i2cStop(options);
     }
 
+    /**
+     * Read multiple bytes from an I2C module
+     * @param {number} address - address of the I2C device
+     * @param {number} register - register to write
+     * @param {number} readLength - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
     i2cReadOnce (address, register, readLength, timeout) {
         timeout = timeout ? timeout : this.i2cReadWaitingTime;
         const request = new Promise(resolve => {
@@ -452,7 +531,7 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Resets all devices on the bus.
+     * Resets all devices on the OneWire bus.
      * @param {number} pin pin number to reset
      * @returns {Promise} a Promise which resolves when the message was sent
      */
@@ -463,6 +542,11 @@ class FirmataBoard extends EventEmitter {
         });
     }
 
+    /**
+     * Return found IDs on the OneWire bus.
+     * @param {number} pin - pin number to search
+     * @returns {Promise<Array<number>>} a Promise which resolves found device IDs
+     */
     searchOneWireDevices (pin) {
         return new Promise((resolve, reject) => {
             if (this.firmata.pins[pin].mode !== this.firmata.MODES.ONEWIRE) {
@@ -480,6 +564,12 @@ class FirmataBoard extends EventEmitter {
         });
     }
 
+    /**
+     * Write bytes to the first OneWire module on the pin
+     * @param {number} pin - pin number of the bus
+     * @param {Array<number>} data - bytes to be wrote
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     oneWireWrite (pin, data) {
         return this.searchOneWireDevices(pin)
             .then(devices => {
@@ -487,6 +577,13 @@ class FirmataBoard extends EventEmitter {
             });
     }
 
+    /**
+     * Read bytes from the first OneWire module on the pin.
+     * @param {number} pin - pin number of the bus
+     * @param {number} length - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
     oneWireRead (pin, length, timeout) {
         timeout = timeout ? timeout : this.oneWireReadWaitingTime;
         const request = this.searchOneWireDevices(pin)
@@ -500,6 +597,14 @@ class FirmataBoard extends EventEmitter {
         return Promise.race([request, timeoutReject(timeout)]);
     }
 
+    /**
+     * Write then read from the first OneWire module on the pin.
+     * @param {number} pin - pin number of the bus
+     * @param {Array<number>} data - bytes to read
+     * @param {number} readLength - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
     oneWireWriteAndRead (pin, data, readLength, timeout) {
         timeout = timeout ? timeout : this.oneWireReadWaitingTime;
         const request = this.searchOneWireDevices(pin)
@@ -518,6 +623,12 @@ class FirmataBoard extends EventEmitter {
         return Promise.race([request, timeoutReject(timeout)]);
     }
 
+    /**
+     * Configure a NeoPixel module which have several LEDs.
+     * @param {number} pin - pin number of the module
+     * @param {number} length - amount of LEDs
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
         // now send the config message with length and data point.
@@ -536,6 +647,13 @@ class FirmataBoard extends EventEmitter {
             });
     }
 
+    /**
+     * Set color to an LED on the current NeoPixel module.
+     * LED does not change the actual color until neoPixelShow() was sent.
+     * @param {number} index - index of LED to be set
+     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     neoPixelSetColor (index, color) {
         if (!this.neoPixel) return Promise.resolve();
         const address = Math.min(this.neoPixel.length, Math.max(0, index));
@@ -557,6 +675,10 @@ class FirmataBoard extends EventEmitter {
             });
     }
 
+    /**
+     * Turn off the all LEDs on the current NeoPixel module.
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     async neoPixelClear () {
         if (!this.neoPixel) return Promise.resolve();
         for (let index = 0; index < this.neoPixel.length; index++) {
@@ -565,6 +687,10 @@ class FirmataBoard extends EventEmitter {
         return this.neoPixelShow();
     }
 
+    /**
+     * Update color of LEDs on the current NeoPixel module.
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     neoPixelShow () {
         const data = [];
         data[0] = START_SYSEX;
@@ -606,18 +732,34 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.pins;
     }
 
+    /**
+     * All pin mode types
+     * @types {object<string, number>}
+     */
     get MODES () {
         return this.firmata.MODES;
     }
 
+    /**
+     * Value for hight in digital signal
+     * @types {number}
+     */
     get HIGH () {
         return this.firmata.HIGH;
     }
 
+    /**
+     * Value for low in digital signal
+     * @types {number}
+     */
     get LOW () {
         return this.firmata.LOW;
     }
 
+    /**
+     * Resolution values for ADC, DAC, PWA.
+     * @types {object<string, number>}
+     */
     get RESOLUTION () {
         return this.firmata.RESOLUTION;
     }

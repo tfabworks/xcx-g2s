@@ -11,6 +11,12 @@ import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
 
+/**
+ * Returns a Long Integer converted from the value.
+ * @param {number|string} value - value to be converted
+ * @param {boolean} unsigned - true for unsigned long
+ * @returns {Long} converted Long value
+ */
 const integer64From = (value, unsigned) => {
     if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
     let radix = 10;
@@ -35,8 +41,18 @@ const integer64From = (value, unsigned) => {
     return Long.fromValue(value, unsigned);
 };
 
+/**
+ * Make a String separated with ',' from a numeric Array
+ * @param {Array} array - numeric array to be converted
+ * @returns {string} converted string
+ */
 const numericArrayToString = array => array.join(', ');
 
+/**
+ * Returns a numeric Array made from the string expression.
+ * @param {string} stringExp - string to be converted
+ * @returns {Array} numeric array from the string
+ */
 const readAsNumericArray = stringExp => {
     if (typeof stringExp !== 'string') return [Number(stringExp)];
     stringExp = stringExp.trim();
@@ -96,6 +112,10 @@ let extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
  */
 class ExtensionBlocks {
 
+    /**
+     * A translation object which is used in this class.
+     * @param {FormatObject} formatter - translation object
+     */
     static set formatMessage (formatter) {
         formatMessage = formatter;
     }
@@ -237,11 +257,19 @@ class ExtensionBlocks {
         this.disconnectBoard();
     }
 
+    /**
+     * Return whether the board is ready to use or not.
+     * @returns {boolean} true if the board is connected
+     */
     isConnected () {
         if (!this.board) return false;
         return this.board.isReady();
     }
 
+    /**
+     * Connect a firmata board.
+     * @returns {Promise<string>} a promise which resolves the result of this command
+     */
     connectBoard () {
         if (this.board && this.board.isConnected()) return; // Already connected
         return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions)
@@ -262,19 +290,29 @@ class ExtensionBlocks {
             });
     }
 
+    /**
+     * Disconnect from the current connected board.
+     * @returns {undefined}
+     */
     disconnectBoard () {
         if (!this.board) return;
         return this.board.disconnect();
     }
 
+    /**
+     * Whether the current state is same as the argument state.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.STATE - state to detect
+     * @returns {boolean} true if the current state is same as the state
+     */
     boardStateChanged (args) {
         return (args.STATE === 'connected') === this.isConnected();
     }
 
     /**
-     * Get the digital level of the pin
+     * Get the digital level [0|1] of the pin.
      * @param {number} pin - pin number to get
-     * @returns {Promise<number>} a Promise which resolves digital value [0|1] of the pin
+     * @returns {Promise<number>} a Promise which resolves digital value of the pin
      */
     getDigitalLevel (pin) {
         if (!this.isConnected()) return Promise.resolve(0);
@@ -289,7 +327,7 @@ class ExtensionBlocks {
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise} a Promise which resolves boolean when the response was returned
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
      */
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
@@ -299,32 +337,32 @@ class ExtensionBlocks {
     }
 
     /**
-     * The level of digital A1 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital A1 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
     digitalLevelA1 () {
         return this.getDigitalLevel(10);
     }
 
     /**
-     * The level of digital A2 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital A2 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
     digitalLevelA2 () {
         return this.getDigitalLevel(11);
     }
 
     /**
-     * The level of digital B1 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital B1 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
     digitalLevelB1 () {
         return this.getDigitalLevel(6);
     }
 
     /**
-     * The level of digital B2 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital B2 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
     digitalLevelB2 () {
         return this.getDigitalLevel(9);
@@ -378,7 +416,7 @@ class ExtensionBlocks {
     }
 
     /**
-     * The level (0...100) of the connector as analog input.
+     * The level of the connector as analog input.
      * @param {number} analogPin - pin number of the connector
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
      */
@@ -393,39 +431,39 @@ class ExtensionBlocks {
     }
 
     /**
-     * The level of analog A1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
     analogLevelA1 () {
         return this.getAnalogLevel(0);
     }
 
     /**
-     * The level of analog A2 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A2 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
     analogLevelA2 () {
         return this.getAnalogLevel(1);
     }
 
     /**
-     * The level of analog B1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog B1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
     analogLevelB1 () {
         return this.getAnalogLevel(2);
     }
 
     /**
-     * The level of analog A1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
     analogLevelB2 () {
         return this.getAnalogLevel(3);
     }
 
     /**
-     * Set the connector to power (%) as PWM.
+     * Set the connector to power [%] as PWM.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
@@ -441,7 +479,7 @@ class ExtensionBlocks {
     }
 
     /**
-     * Turn the servo motor to the degrees.
+     * Turn the servo motor to the degrees (-90...90).
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {number} args.ANGLE - degrees to the servo to turn
@@ -461,7 +499,7 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.ADDRESS - I2C address
      * @param {number} args.REGISTER - register which write to
-     * @param {Array<number>} args.DATA - bytes to be written
+     * @param {Array<string>} args.DATA - bytes to be written
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     i2cWrite (args) {
@@ -472,6 +510,13 @@ class ExtensionBlocks {
         return this.board.i2cWrite(address, register, data);
     }
 
+    /**
+     * Read data from I2C once.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.ADDRESS - I2C address
+     * @param {number} args.REGISTER - register to read
+     * @returns {Promise<string>} a Promise which resolves read data
+     */
     i2cReadOnce (args) {
         if (!this.isConnected()) return '';
         const address = Number(args.ADDRESS);
@@ -497,6 +542,13 @@ class ExtensionBlocks {
         return this.board.sendOneWireReset(pin);
     }
 
+    /**
+     * Writ data to the first OneWire module.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {Array<string>} args.DATA - bytes to be written
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
     oneWireWrite (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
@@ -512,7 +564,6 @@ class ExtensionBlocks {
      * Read on OneWire.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
     oneWireRead (args) {
@@ -580,11 +631,19 @@ class ExtensionBlocks {
         return this.board.neoPixelSetColor(index, [r, g, b]);
     }
 
+    /**
+     * Clear all NeoPixel LEDs.
+     * @returns {Promise} return a Promise which will resolve the command was sent
+     */
     neoPixelClear () {
         if (!this.isConnected()) return Promise.resolve();
         return this.board.neoPixelClear();
     }
 
+    /**
+     * Measure distance [mm] using ToF sensor VL53L0X.
+     * @returns {Promise<number>} a Promise which resolves distance
+     */
     async measureDistanceWithLight () {
         if (!this.isConnected()) return 0;
         if (!this.vl53l0x) {
@@ -609,7 +668,7 @@ class ExtensionBlocks {
     }
 
     /**
-     * Measure distance with ultrasonic sensor HC-SR04
+     * Measure distance [cm] using ultrasonic sensor HC-SR04.
      * @param {object} args - the block's arguments.
      * @param {number} pin - pin number to trigger the sensor
      * @returns {Promise<number>} a Promise which resolves distance [cm]
@@ -626,7 +685,7 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get acceleration for the axis by ADXL345
+     * Get acceleration [m/s^2] for the axis using ADXL345
      * @param {object} args - the block's arguments.
      * @param {number} args.AXIS - axis to get
      * @returns {Promise<number>} return a Promise which resolves acceleration
@@ -742,6 +801,12 @@ class ExtensionBlocks {
             });
     }
 
+    /**
+     * Return a number at the index [one-based] in the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @returns {string} a number at the index
+     */
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
         let index = Number(args.INDEX);
@@ -753,6 +818,15 @@ class ExtensionBlocks {
         return array[index - 1];
     }
 
+    /**
+     * Remove or replace numbers and/or add new numbers at the index in the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @param {string} args.INDEX - index to operate
+     * @param {string} args.DELETE - count to be deleted
+     * @param {string} args.INSERT - numeric array to be inserted
+     * @returns {string} the modified numeric array
+     */
     spliceNumbers (args) {
         const array = readAsNumericArray(args.ARRAY);
         let index = Number(args.INDEX);
@@ -771,11 +845,25 @@ class ExtensionBlocks {
         return numericArrayToString(array);
     }
 
+    /**
+     * Return the length of the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @returns {number} length of the numeric array
+     */
     lengthOfNumbers (args) {
         const array = readAsNumericArray(args.ARRAY);
         return array.length;
     }
 
+    /**
+     * Read numbers as the type and endian from the array of 8 bit data.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array of 8 bit data
+     * @param {string} args.ENDIAN - endian [little|big] of the number
+     * @param {string} args.TYPE - type [Int16|Uint16] of the number
+     * @returns {string} a numeric array of the converted numbers
+     */
     readBytesAs (args) {
         try {
             const array = readAsNumericArray(args.ARRAY);
@@ -805,6 +893,14 @@ class ExtensionBlocks {
         return '';
     }
 
+    /**
+     * Do the arithmetic operator with the arguments in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.OP - operator
+     * @param {string} args.LEFT - left side value
+     * @param {string} args.RIGHT - right side value
+     * @returns {string} result of this operation
+     */
     int64Operation (args) {
         const op = args.OP;
         const left = integer64From(args.LEFT);
@@ -826,6 +922,14 @@ class ExtensionBlocks {
         }
     }
 
+    /**
+     * Do the bitwise operation with the arguments in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.OP - operator
+     * @param {string} args.LEFT - left side value
+     * @param {string} args.RIGHT - right side value
+     * @returns {string} result of this operation
+     */
     bitOperation (args) {
         const op = args.OP;
         const left = integer64From(args.LEFT);
@@ -847,6 +951,12 @@ class ExtensionBlocks {
         }
     }
 
+    /**
+     * Returns the bitwise NOT in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.VALUE - value to be operated
+     * @returns {string} result of this operation
+     */
     bitNot (args) {
         const bits = integer64From(args.VALUE);
         return bits.not().toString();
@@ -1604,6 +1714,10 @@ class ExtensionBlocks {
         };
     }
 
+    /**
+     * Returns menu items for board state.
+     * @returns {Array<object>} menu items
+     */
     getBoardStateMenu () {
         return [
             {
@@ -1623,6 +1737,10 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to select digital connectors.
+     * @returns {Array<object>} menu items
+     */
     getDigitalConnectorMenu () {
         const digitalPrefix = formatMessage({
             id: 'g2s.digitalConnector.prefix',
@@ -1648,6 +1766,10 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to set digital level.
+     * @returns {Array<object>} menu items
+     */
     getDigitalLevelMenu () {
         return [
             {
@@ -1669,6 +1791,10 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to select digital input pin.
+     * @returns {Array<object>} menu items
+     */
     getInputPinsMenu () {
         const digitalPrefix = formatMessage({
             id: 'g2s.digitalConnector.prefix',
@@ -1694,6 +1820,10 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to set input bias.
+     * @returns {Array<object>} menu items
+     */
     getInputBiasMenu () {
         return [
             {
@@ -1715,6 +1845,10 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to select axis for acceleration.
+     * @returns {Array<object>} menu items
+     */
     getAccelerationAxisMenu () {
         return [
             {
