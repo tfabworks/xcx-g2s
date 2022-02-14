@@ -53,7 +53,7 @@ var entry = {
       defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    }), " (v0.8.0)");
+    }), " (v0.8.1)");
   },
 
   featured: true,
@@ -8223,17 +8223,11 @@ var firmata = bindTransport;
 function _typeof(obj) {
   "@babel/helpers - typeof";
 
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function _typeof(obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof(obj);
+  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  }, _typeof(obj);
 }
 
 var inherits;
@@ -11317,9 +11311,9 @@ var common$1 = setup$1;
   };
 })(browser$1, browser$1.exports);
 
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var stream = require$$0;
 var util = require$$1;
 var debug$1 = browser$1.exports('serialport/stream'); //  VALIDATION
@@ -13241,9 +13235,9 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
 
 var lib$1 = AbstractBinding$1;
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function _createSuper$2(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct$2(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
@@ -13832,7 +13826,7 @@ function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeRefl
 function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var PING_SENSOR_COMMAND = 0x01;
 /**
- * Return a Promise which will reject after the delay time passed.
+ * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
  * @returns {Promise<string>} Promise which will reject with reason after the delay.
  */
@@ -13848,6 +13842,10 @@ var timeoutReject = function timeoutReject(delay) {
 
 lib$2.Binding = lib;
 var Firmata = firmata(lib$2); // eslint-disable-next-line prefer-const
+/**
+ * Gamma values table for NeoPixel.
+ * @type {Array<number>}
+ */
 
 var neoPixelGammaTable = function (steps, gamma) {
   var gammaTable = new Array(steps);
@@ -13858,6 +13856,13 @@ var neoPixelGammaTable = function (steps, gamma) {
 
   return gammaTable;
 }(256, 2.8);
+/**
+ * Convert colors to gamma corrected value for NeoPixel.
+ * @param {Array<number>} colors - color values [red, green, blue]
+ * @param {Array<number>} gammaTable - gamma values
+ * @returns {number} value for NeoPixel
+ */
+
 
 var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
   // colors are assumed to be an array of [r, g, b] bytes
@@ -13872,6 +13877,10 @@ var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
   gammaCorrectedColor[2] = gammaTable[gammaCorrectedColor[2]];
   return (gammaCorrectedColor[0] << 16) + (gammaCorrectedColor[1] << 8) + gammaCorrectedColor[2];
 };
+/**
+ * This class represents a board communicating with Firmata protocol.
+ */
+
 
 var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   _inherits(FirmataBoard, _EventEmitter);
@@ -13911,21 +13920,25 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     _this.firmata = null;
     /**
      * The serial port for transporting of Firmata.
+     * @type {SerialPort}
      */
 
     _this.port = null;
     /**
      * ID of the extension which requested to open port.
+     * @type {string}
      */
 
     _this.extensionId = null;
     /**
      * shortest interval time between digital input readings
+     * @type {number}
      */
 
     _this.digitalReadInterval = 20;
     /**
      * shortest interval time between analog input readings
+     * @type {number}
      */
 
     _this.analogReadInterval = 20;
@@ -13937,30 +13950,45 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     _this.sendingInterval = 10;
     /**
      * Waiting time for response of digital input reading in milliseconds.
+     * @type {number}
      */
 
     _this.updateDigitalInputWaitingTime = 100;
     /**
      * Waiting time for response of analog input reading in milliseconds.
+     * @type {number}
      */
 
     _this.updateAnalogInputWaitingTime = 100;
     /**
      * Waiting time for response of I2C reading in milliseconds.
+     * @type {number}
      */
 
     _this.i2cReadWaitingTime = 100;
     /**
      * Waiting time for response of OneWire reading in milliseconds.
+     * @type {number}
      */
 
     _this.oneWireReadWaitingTime = 100;
     /**
      * Waiting time for response of ping sensor reading in milliseconds.
+     * @type {number}
      */
 
     _this.pingSensorWaitingTime = 100;
+    /**
+     * Port information of the connected serial port.
+     * @type {object}
+     */
+
     _this.portInfo = null;
+    /**
+     * Parameters of the NeoPixel module.
+     * @type {object}
+     */
+
     _this.neoPixel = null;
     return _this;
   }
@@ -14075,6 +14103,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
       return requestPort;
     }()
+    /**
+     * Called when a board was ready.
+     */
+
   }, {
     key: "onBoarReady",
     value: function onBoarReady() {
@@ -14083,16 +14115,30 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       this.firmata.i2cConfig();
       this.state = 'ready';
     }
+    /**
+     * Whether a board is connected.
+     * @returns {boolean} true if a board is connected
+     */
+
   }, {
     key: "isConnected",
     value: function isConnected() {
       return this.state === 'connect' || this.state === 'ready';
     }
+    /**
+     * Whether the board is ready to operate.
+     * @returns {boolean} true if the board is ready
+     */
+
   }, {
     key: "isReady",
     value: function isReady() {
       return this.state === 'ready';
     }
+    /**
+     * Release resources of the board then emit released-event.
+     */
+
   }, {
     key: "releaseBoard",
     value: function () {
@@ -14127,6 +14173,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
       return releaseBoard;
     }()
+    /**
+     * Disconnect current connected board.
+     */
+
   }, {
     key: "disconnect",
     value: function disconnect() {
@@ -14147,7 +14197,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
      * Disconnect the device, and if the extension using this object has a
      * reset callback, call it.
      *
-     * @param {*} error - cause of the error
+     * @param {string} error - cause of the error
      * @returns {undefined}
      */
 
@@ -14163,6 +14213,13 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       });
       this.disconnect();
     }
+    /**
+     * Asks the board to set the pin to a certain mode.
+     * @param {number} pin - The pin you want to change the mode of.
+     * @param {number} mode - The mode you want to set. Must be one of board.MODES
+     * @returns {undefined}
+     */
+
   }, {
     key: "pinMode",
     value: function pinMode(pin, mode) {
@@ -14263,21 +14320,35 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         _this5.pins[pin].updating = false;
       });
     }
+    /**
+     * Asks the board to read digital data.
+     * @param {number} pin - pin number to read
+     * @param {function(number)} callback - the function to call when data has been received
+     * @returns {undefined}
+     */
+
   }, {
     key: "digitalRead",
     value: function digitalRead(pin, callback) {
       return this.firmata.digitalRead(pin, callback);
     }
+    /**
+     * Set reporting on pin
+     * @param {number} pin - The pin to turn on/off reporting
+     * @param {number} value - Binary value to turn reporting on/off
+     * @returns {undefined}
+     */
+
   }, {
     key: "reportDigitalPin",
     value: function reportDigitalPin(pin, value) {
       return this.firmata.reportDigitalPin(pin, value);
     }
     /**
-     * Asks the arduino to write a value to a digital pin
-     * @param {number} pin The pin you want to write a value to.
-     * @param {number} value The value you want to write. Must be board.HIGH or board.LOW
-     * @param {boolean} enqueue When true, the local state is updated but the command is not sent to the Arduino
+     * Asks the board to write a value to a digital pin
+     * @param {number} pin - The pin you want to write a value to.
+     * @param {number} value - The value you want to write. Must be board.HIGH or board.LOW
+     * @param {boolean} enqueue - When true, the local state is updated but the command is not sent to the board
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
@@ -14295,9 +14366,9 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       });
     }
     /**
-     * Set PWM to the valu on the pin
-     * @param {number} pin pin number to set
-     * @param {number} value PWM level
+     * Set PWM to the value on the pin
+     * @param {number} pin - pin number to set
+     * @param {number} value - PWM level
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
@@ -14315,9 +14386,9 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       });
     }
     /**
-     * Asks the arduino to move a servo
-     * @param {number} pin The pin the servo is connected to
-     * @param {number} value The degrees to move the servo to.
+     * Asks the board to move a servo
+     * @param {number} pin - the pin the servo is connected to
+     * @param {number} value - the degrees to move the servo to.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
@@ -14340,6 +14411,13 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         }, _this8.sendingInterval);
       });
     }
+    /**
+     * Asks the board to read digital data.
+     * @param {number} pin - pin number to read
+     * @param {function(number)} callback - the function to call when data has been received
+     * @returns {undefined}
+     */
+
   }, {
     key: "analogRead",
     value: function analogRead(pin, callback) {
@@ -14351,10 +14429,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       return this.firmata.reportAnalogPin(pin, value);
     }
     /**
-     * Write data to the register
-     * @param {number} address The address of the I2C device.
-     * @param {number} register The register to write
-     * @param {Array} inBytes An array of bytes
+     * Write multiple bytes to an I2C module
+     * @param {number} address - address of the I2C device.
+     * @param {number} register - register to write
+     * @param {Array<number>} inBytes - bytes to be wrote
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
@@ -14376,6 +14454,15 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function i2cStop(options) {
       return this.firmata.i2cStop(options);
     }
+    /**
+     * Read multiple bytes from an I2C module
+     * @param {number} address - address of the I2C device
+     * @param {number} register - register to write
+     * @param {number} readLength - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
+
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(address, register, readLength, timeout) {
@@ -14390,7 +14477,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       return Promise.race([request, timeoutReject(timeout)]);
     }
     /**
-     * Resets all devices on the bus.
+     * Resets all devices on the OneWire bus.
      * @param {number} pin pin number to reset
      * @returns {Promise} a Promise which resolves when the message was sent
      */
@@ -14408,6 +14495,12 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         }, _this11.sendingInterval);
       });
     }
+    /**
+     * Return found IDs on the OneWire bus.
+     * @param {number} pin - pin number to search
+     * @returns {Promise<Array<number>>} a Promise which resolves found device IDs
+     */
+
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
@@ -14434,6 +14527,13 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         resolve(_this12.oneWireDevices);
       });
     }
+    /**
+     * Write bytes to the first OneWire module on the pin
+     * @param {number} pin - pin number of the bus
+     * @param {Array<number>} data - bytes to be wrote
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
@@ -14443,6 +14543,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         _this13.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
+    /**
+     * Read bytes from the first OneWire module on the pin.
+     * @param {number} pin - pin number of the bus
+     * @param {number} length - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
+
   }, {
     key: "oneWireRead",
     value: function oneWireRead(pin, length, timeout) {
@@ -14459,6 +14567,15 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       });
       return Promise.race([request, timeoutReject(timeout)]);
     }
+    /**
+     * Write then read from the first OneWire module on the pin.
+     * @param {number} pin - pin number of the bus
+     * @param {Array<number>} data - bytes to read
+     * @param {number} readLength - byte size to read
+     * @param {number} timeout - time to abort [milliseconds]
+     * @returns {Promise<Array<number>>} a Promise which resolves read data
+     */
+
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
@@ -14475,6 +14592,13 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       });
       return Promise.race([request, timeoutReject(timeout)]);
     }
+    /**
+     * Configure a NeoPixel module which have several LEDs.
+     * @param {number} pin - pin number of the module
+     * @param {number} length - amount of LEDs
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
@@ -14500,6 +14624,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         });
       });
     }
+    /**
+     * Set color to an LED on the current NeoPixel module.
+     * LED does not change the actual color until neoPixelShow() was sent.
+     * @param {number} index - index of LED to be set
+     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "neoPixelSetColor",
     value: function neoPixelSetColor(index, color) {
@@ -14525,6 +14657,11 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
         });
       });
     }
+    /**
+     * Turn off the all LEDs on the current NeoPixel module.
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "neoPixelClear",
     value: function () {
@@ -14575,6 +14712,11 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
       return neoPixelClear;
     }()
+    /**
+     * Update color of LEDs on the current NeoPixel module.
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
@@ -14626,21 +14768,41 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     get: function get() {
       return this.firmata.pins;
     }
+    /**
+     * All pin mode types
+     * @types {object<string, number>}
+     */
+
   }, {
     key: "MODES",
     get: function get() {
       return this.firmata.MODES;
     }
+    /**
+     * Value for hight in digital signal
+     * @types {number}
+     */
+
   }, {
     key: "HIGH",
     get: function get() {
       return this.firmata.HIGH;
     }
+    /**
+     * Value for low in digital signal
+     * @types {number}
+     */
+
   }, {
     key: "LOW",
     get: function get() {
       return this.firmata.LOW;
     }
+    /**
+     * Resolution values for ADC, DAC, PWA.
+     * @types {object<string, number>}
+     */
+
   }, {
     key: "RESOLUTION",
     get: function get() {
@@ -17024,6 +17186,13 @@ var BME280 = /*#__PURE__*/function () {
   return BME280;
 }();
 
+/**
+ * Returns a Long Integer converted from the value.
+ * @param {number|string} value - value to be converted
+ * @param {boolean} unsigned - true for unsigned long
+ * @returns {Long} converted Long value
+ */
+
 var integer64From = function integer64From(value, unsigned) {
   if (!value) return unsigned ? Long.UZERO : Long.ZERO;
   var radix = 10;
@@ -17053,10 +17222,22 @@ var integer64From = function integer64From(value, unsigned) {
 
   return Long.fromValue(value, unsigned);
 };
+/**
+ * Make a String separated with ',' from a numeric Array
+ * @param {Array} array - numeric array to be converted
+ * @returns {string} converted string
+ */
+
 
 var numericArrayToString = function numericArrayToString(array) {
   return array.join(', ');
 };
+/**
+ * Returns a numeric Array made from the string expression.
+ * @param {string} stringExp - string to be converted
+ * @returns {Array} numeric array from the string
+ */
+
 
 var readAsNumericArray = function readAsNumericArray(stringExp) {
   if (typeof stringExp !== 'string') return [Number(stringExp)];
@@ -17243,12 +17424,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function disconnect() {
       this.disconnectBoard();
     }
+    /**
+     * Return whether the board is ready to use or not.
+     * @returns {boolean} true if the board is connected
+     */
+
   }, {
     key: "isConnected",
     value: function isConnected() {
       if (!this.board) return false;
       return this.board.isReady();
     }
+    /**
+     * Connect a firmata board.
+     * @returns {Promise<string>} a promise which resolves the result of this command
+     */
+
   }, {
     key: "connectBoard",
     value: function connectBoard() {
@@ -17262,31 +17453,44 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           path: connectedBoard.portInfo
         });
 
-        return 'connected';
+        return "connected to ".concat(JSON.stringify(connectedBoard.portInfo));
       }).catch(function (reason) {
         if (reason) {
           console.log(reason);
-          return reason;
+        } else {
+          console.log("fail to connect port: ".concat(JSON.stringify(_this3.serialPortOptions)));
         }
 
-        return "fail to connect port: ".concat(JSON.stringify(_this3.serialPortOptions));
+        return Promise.reject(reason);
       });
     }
+    /**
+     * Disconnect from the current connected board.
+     * @returns {undefined}
+     */
+
   }, {
     key: "disconnectBoard",
     value: function disconnectBoard() {
       if (!this.board) return;
       return this.board.disconnect();
     }
+    /**
+     * Whether the current state is same as the argument state.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.STATE - state to detect
+     * @returns {boolean} true if the current state is same as the state
+     */
+
   }, {
     key: "boardStateChanged",
     value: function boardStateChanged(args) {
       return args.STATE === 'connected' === this.isConnected();
     }
     /**
-     * Get the digital level of the pin
+     * Get the digital level [0|1] of the pin.
      * @param {number} pin - pin number to get
-     * @returns {Promise<number>} a Promise which resolves digital value [0|1] of the pin
+     * @returns {Promise<number>} a Promise which resolves digital value of the pin
      */
 
   }, {
@@ -17295,14 +17499,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return Promise.resolve(0);
       return this.board.updateDigitalInput(pin).catch(function (reason) {
         console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
-        return false;
+        return 0;
       });
     }
     /**
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise} a Promise which resolves boolean when the response was returned
+     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
      */
 
   }, {
@@ -17315,8 +17519,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
-     * The level of digital A1 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital A1 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
 
   }, {
@@ -17325,8 +17529,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getDigitalLevel(10);
     }
     /**
-     * The level of digital A2 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital A2 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
 
   }, {
@@ -17335,8 +17539,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getDigitalLevel(11);
     }
     /**
-     * The level of digital B1 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital B1 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
 
   }, {
@@ -17345,8 +17549,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getDigitalLevel(6);
     }
     /**
-     * The level of digital B2 connector
-     * @returns {Promise} - a Promise which resolves digital level of the pin
+     * The level [0|1] of digital B2 connector
+     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
      */
 
   }, {
@@ -17408,7 +17612,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.digitalWrite(pin, value);
     }
     /**
-     * The level (0...100) of the connector as analog input.
+     * The level of the connector as analog input.
      * @param {number} analogPin - pin number of the connector
      * @returns {Promise} - a Promise which resolves analog level when the response was returned
      */
@@ -17425,8 +17629,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
-     * The level of analog A1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
 
   }, {
@@ -17435,8 +17639,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getAnalogLevel(0);
     }
     /**
-     * The level of analog A2 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A2 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
 
   }, {
@@ -17445,8 +17649,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getAnalogLevel(1);
     }
     /**
-     * The level of analog B1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog B1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
 
   }, {
@@ -17455,8 +17659,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getAnalogLevel(2);
     }
     /**
-     * The level of analog A1 connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A1 connector
+     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
      */
 
   }, {
@@ -17465,7 +17669,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.getAnalogLevel(3);
     }
     /**
-     * Set the connector to power (%) as PWM.
+     * Set the connector to power [%] as PWM.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
@@ -17483,7 +17687,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.pwmWrite(pin, value);
     }
     /**
-     * Turn the servo motor to the degrees.
+     * Turn the servo motor to the degrees (-90...90).
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {number} args.ANGLE - degrees to the servo to turn
@@ -17506,7 +17710,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @param {object} args - the block's arguments.
      * @param {number} args.ADDRESS - I2C address
      * @param {number} args.REGISTER - register which write to
-     * @param {Array<number>} args.DATA - bytes to be written
+     * @param {Array<string>} args.DATA - bytes to be written
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
@@ -17519,6 +17723,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var data = readAsNumericArray(args.DATA);
       return this.board.i2cWrite(address, register, data);
     }
+    /**
+     * Read data from I2C once.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.ADDRESS - I2C address
+     * @param {number} args.REGISTER - register to read
+     * @returns {Promise<string>} a Promise which resolves read data
+     */
+
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(args) {
@@ -17547,6 +17759,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var pin = parseInt(args.CONNECTOR, 10);
       return this.board.sendOneWireReset(pin);
     }
+    /**
+     * Writ data to the first OneWire module.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {Array<string>} args.DATA - bytes to be written
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(args) {
@@ -17562,7 +17782,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * Read on OneWire.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<string>} return a Promise which will resolve with read data
      */
 
@@ -17637,12 +17856,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var b = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.BLUE))) * brightness);
       return this.board.neoPixelSetColor(index, [r, g, b]);
     }
+    /**
+     * Clear all NeoPixel LEDs.
+     * @returns {Promise} return a Promise which will resolve the command was sent
+     */
+
   }, {
     key: "neoPixelClear",
     value: function neoPixelClear() {
       if (!this.isConnected()) return Promise.resolve();
       return this.board.neoPixelClear();
     }
+    /**
+     * Measure distance [mm] using ToF sensor VL53L0X.
+     * @returns {Promise<number>} a Promise which resolves distance
+     */
+
   }, {
     key: "measureDistanceWithLight",
     value: function () {
@@ -17726,7 +17955,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return measureDistanceWithLight;
     }()
     /**
-     * Measure distance with ultrasonic sensor HC-SR04
+     * Measure distance [cm] using ultrasonic sensor HC-SR04.
      * @param {object} args - the block's arguments.
      * @param {number} pin - pin number to trigger the sensor
      * @returns {Promise<number>} a Promise which resolves distance [cm]
@@ -17745,7 +17974,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
-     * Get acceleration for the axis by ADXL345
+     * Get acceleration [m/s^2] for the axis using ADXL345
      * @param {object} args - the block's arguments.
      * @param {number} args.AXIS - axis to get
      * @returns {Promise<number>} return a Promise which resolves acceleration
@@ -18036,6 +18265,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       return getHumidityBME280;
     }()
+    /**
+     * Return a number at the index [one-based] in the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @returns {string} a number at the index
+     */
+
   }, {
     key: "numberAtIndex",
     value: function numberAtIndex(args) {
@@ -18050,6 +18286,16 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       index = Math.floor(index);
       return array[index - 1];
     }
+    /**
+     * Remove or replace numbers and/or add new numbers at the index in the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @param {string} args.INDEX - index to operate
+     * @param {string} args.DELETE - count to be deleted
+     * @param {string} args.INSERT - numeric array to be inserted
+     * @returns {string} the modified numeric array
+     */
+
   }, {
     key: "spliceNumbers",
     value: function spliceNumbers(args) {
@@ -18073,12 +18319,28 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       array.splice.apply(array, [index > 0 ? index - 1 : index, deleteCount].concat(_toConsumableArray(newNumbers)));
       return numericArrayToString(array);
     }
+    /**
+     * Return the length of the numeric array.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array
+     * @returns {number} length of the numeric array
+     */
+
   }, {
     key: "lengthOfNumbers",
     value: function lengthOfNumbers(args) {
       var array = readAsNumericArray(args.ARRAY);
       return array.length;
     }
+    /**
+     * Read numbers as the type and endian from the array of 8 bit data.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.ARRAY - numeric array of 8 bit data
+     * @param {string} args.ENDIAN - endian [little|big] of the number
+     * @param {string} args.TYPE - type [Int16|Uint16] of the number
+     * @returns {string} a numeric array of the converted numbers
+     */
+
   }, {
     key: "readBytesAs",
     value: function readBytesAs(args) {
@@ -18117,6 +18379,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       return '';
     }
+    /**
+     * Do the arithmetic operator with the arguments in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.OP - operator
+     * @param {string} args.LEFT - left side value
+     * @param {string} args.RIGHT - right side value
+     * @returns {string} result of this operation
+     */
+
   }, {
     key: "int64Operation",
     value: function int64Operation(args) {
@@ -18144,6 +18415,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         return left.modulo(right).toString(10);
       }
     }
+    /**
+     * Do the bitwise operation with the arguments in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.OP - operator
+     * @param {string} args.LEFT - left side value
+     * @param {string} args.RIGHT - right side value
+     * @returns {string} result of this operation
+     */
+
   }, {
     key: "bitOperation",
     value: function bitOperation(args) {
@@ -18171,6 +18451,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         return left.xor(right).toString(10);
       }
     }
+    /**
+     * Returns the bitwise NOT in 64 bit integer.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.VALUE - value to be operated
+     * @returns {string} result of this operation
+     */
+
   }, {
     key: "bitNot",
     value: function bitNot(args) {
@@ -18861,6 +19148,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         }
       };
     }
+    /**
+     * Returns menu items for board state.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getBoardStateMenu",
     value: function getBoardStateMenu() {
@@ -18878,6 +19170,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         value: 'disconnected'
       }];
     }
+    /**
+     * Returns menu items to select digital connectors.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getDigitalConnectorMenu",
     value: function getDigitalConnectorMenu() {
@@ -18899,6 +19196,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         value: '9'
       }];
     }
+    /**
+     * Returns menu items to set digital level.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getDigitalLevelMenu",
     value: function getDigitalLevelMenu() {
@@ -18918,6 +19220,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         value: 'true'
       }];
     }
+    /**
+     * Returns menu items to select digital input pin.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getInputPinsMenu",
     value: function getInputPinsMenu() {
@@ -18939,6 +19246,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         value: '9'
       }];
     }
+    /**
+     * Returns menu items to set input bias.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getInputBiasMenu",
     value: function getInputBiasMenu() {
@@ -18958,6 +19270,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         value: 'pullUp'
       }];
     }
+    /**
+     * Returns menu items to select axis for acceleration.
+     * @returns {Array<object>} menu items
+     */
+
   }, {
     key: "getAccelerationAxisMenu",
     value: function getAccelerationAxisMenu() {
@@ -18989,7 +19306,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
   }], [{
     key: "formatMessage",
-    set: function set(formatter) {
+    set:
+    /**
+     * A translation object which is used in this class.
+     * @param {FormatObject} formatter - translation object
+     */
+    function set(formatter) {
       formatMessage = formatter;
     }
     /**
