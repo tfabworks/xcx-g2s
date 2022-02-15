@@ -738,6 +738,68 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get roll [degree] using ADXL345.
+     * @returns {Promise<number>} a Promise which resolves roll
+     */
+    async getRollADXL345 () {
+        if (!this.isConnected()) return 0;
+        if (!this.adxl345) {
+            const newSensor = new ADXL345(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return 0;
+            }
+            this.adxl345 = newSensor;
+        }
+        return this.adxl345.getAcceleration()
+            .then(acceleration =>
+                Math.atan2(acceleration.y, acceleration.z) * 180.0 / Math.PI
+            )
+            .catch(reason => {
+                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
+                this.adxl345 = null;
+                return 0;
+            });
+    }
+
+    /**
+     * Get pitch [degree] using ADXL345.
+     * @returns {Promise<number>} a Promise which resolves pitch
+     */
+    async getPitchADXL345 () {
+        if (!this.isConnected()) return 0;
+        if (!this.adxl345) {
+            const newSensor = new ADXL345(this.board);
+            try {
+                await newSensor.init();
+            } catch (error) {
+                // fail to create instance
+                console.log(error);
+                return 0;
+            }
+            this.adxl345 = newSensor;
+        }
+        return this.adxl345.getAcceleration()
+            .then(acceleration => {
+                const angle = Math.atan2(
+                    acceleration.x,
+                    Math.sqrt((acceleration.y * acceleration.y) + (acceleration.z * acceleration.z))
+                ) *
+                180.0 / Math.PI;
+                if (acceleration.z > 0) return angle;
+                return ((angle > 0) ? 180 : -180) - angle;
+            })
+            .catch(reason => {
+                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
+                this.adxl345 = null;
+                return 0;
+            });
+    }
+
+    /**
      * Get temperature from BME280
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
@@ -1490,6 +1552,32 @@ class ExtensionBlocks {
                     }
                 },
                 '---',
+                {
+                    opcode: 'getPitch',
+                    func: 'getPitchADXL345',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getPitch',
+                        default: 'pitch (degree)',
+                        description: 'report pitch angle'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getRoll',
+                    func: 'getRollADXL345',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getRoll',
+                        default: 'roll (degree)',
+                        description: 'report roll angle'
+                    }),
+                    arguments: {
+                    }
+                },
                 {
                     opcode: 'getAcceleration',
                     func: 'getAccelerationADXL345',
