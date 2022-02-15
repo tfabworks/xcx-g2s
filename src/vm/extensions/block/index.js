@@ -614,21 +614,35 @@ class ExtensionBlocks {
     /**
      * Set color of the LED
      * @param {object} args - the block's arguments.
-     * @param {number} args.POSITION - position of the LED on the module start at 1
-     * @param {number} args.RED - value for red [0...255]
-     * @param {number} args.GREEN - value for green [0...255]
-     * @param {number} args.BLUE - value for blue [0...255]
-     * @param {number} args.BRIGHTNESS - brightness fo the LED [%]
+     * @param {string} args.POSITION - position of the LED on the module start at 1
+     * @param {string} args.COLOR - color values [r, g, b]
+     * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
      * @returns {Promise} return a Promise which will resolve the command was sent
      */
     neoPixelSetColor (args) {
         if (!this.isConnected()) return Promise.resolve();
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
-        const r = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.RED))) * brightness);
-        const g = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.GREEN))) * brightness);
-        const b = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.BLUE))) * brightness);
+        const color = readAsNumericArray(args.COLOR);
+        const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
+        const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
+        const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
         return this.board.neoPixelSetColor(index, [r, g, b]);
+    }
+
+    /**
+     * Return color values for NeoPixel.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.RED - value for red [0...255]
+     * @param {string} args.GREEN - value for green [0...255]
+     * @param {string} args.BLUE - value for blue [0...255]
+     * @returns {string} color value [r, g, b] in string
+     */
+    neoPixelColor (args) {
+        const r = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.RED))));
+        const g = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.GREEN))));
+        const b = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.BLUE))));
+        return numericArrayToString([r, g, b]);
     }
 
     /**
@@ -1381,7 +1395,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'full color LED [POSITION] R [RED] G [GREEN] B [BLUE] brightness [BRIGHTNESS]',
+                        default: 'set full color LED [POSITION] RGB [COLOR] brightness [BRIGHTNESS]',
                         description: 'set full color LED color'
                     }),
                     arguments: {
@@ -1389,6 +1403,25 @@ class ExtensionBlocks {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
                         },
+                        COLOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelColorMenu'
+                        },
+                        BRIGHTNESS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '50'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelColor',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelColor',
+                        default: 'full color LED RGB R [RED] G [GREEN] B [BLUE]',
+                        description: 'full color LED color values'
+                    }),
+                    arguments: {
                         RED: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '255'
@@ -1400,10 +1433,6 @@ class ExtensionBlocks {
                         BLUE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '255'
-                        },
-                        BRIGHTNESS: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: '100'
                         }
                     }
                 },
@@ -1690,6 +1719,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
                 },
+                neoPixelColorMenu: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelColorMenu()
+                },
                 accelerationAxisMenu: {
                     acceptReporters: false,
                     items: this.getAccelerationAxisMenu()
@@ -1841,6 +1874,81 @@ class ExtensionBlocks {
                     description: 'label for pull up in input bias menu for g2s'
                 }),
                 value: 'pullUp'
+            }
+        ];
+    }
+
+    getNeoPixelColorMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.red',
+                    default: 'red'
+                }),
+                value: '0xff, 0, 0'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.orange',
+                    default: 'orange'
+                }),
+                value: '0xff, 0xa5, 0'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.yellow',
+                    default: 'yellow'
+                }),
+                value: '0xff, 0xff, 0'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.green',
+                    default: 'green'
+                }),
+                value: '0, 0xff, 0'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.blue',
+                    default: 'blue'
+                }),
+                value: '0, 0, 0xff'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.indigo',
+                    default: 'indigo'
+                }),
+                value: '0x4b, 0, 0x82'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.violet',
+                    default: 'violet'
+                }),
+                value: '0xee, 0x82, 0xee'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.purple',
+                    default: 'purple'
+                }),
+                value: '0x80, 0, 0x80'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.white',
+                    default: 'white'
+                }),
+                value: '0xff, 0xff, 0xff'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.black',
+                    default: 'black'
+                }),
+                value: '0, 0, 0'
             }
         ];
     }
