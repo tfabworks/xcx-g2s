@@ -683,19 +683,33 @@ class ExtensionBlocks {
 
     /**
      * Measure distance [cm] using ultrasonic sensor HC-SR04.
-     * @param {object} args - the block's arguments.
      * @param {number} pin - pin number to trigger the sensor
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
-    measureDistanceWithUltrasonic (args) {
+    measureDistanceWithUltrasonic (pin) {
         if (!this.isConnected()) return Promise.resolve(0);
-        const pin = parseInt(args.CONNECTOR, 10);
         return this.board.pingSensor(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
                 return 0;
             });
+    }
+
+    /**
+     * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     */
+    measureDistanceWithUltrasonicA () {
+        return this.measureDistanceWithUltrasonic(10);
+    }
+
+    /**
+     * Measure distance [cm] using ultrasonic sensor on Digital B.
+     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     */
+    measureDistanceWithUltrasonicB () {
+        return this.measureDistanceWithUltrasonic(6);
     }
 
     /**
@@ -1525,7 +1539,7 @@ class ExtensionBlocks {
                     opcode: 'measureDistanceWithLight',
                     func: 'measureDistanceWithLight',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.measureDistanceWithLight',
                         default: 'distance (mm) - light',
@@ -1535,20 +1549,29 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'measureDistanceWithUltrasonic',
-                    func: 'measureDistanceWithUltrasonic',
+                    opcode: 'measureDistanceWithUltrasonicA',
+                    func: 'measureDistanceWithUltrasonicA',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
-                        id: 'g2s.measureDistanceWithUltrasonic',
-                        default: 'distance (cm) - Ultrasonic [CONNECTOR]',
-                        description: 'report distance by ultrasonic'
+                        id: 'g2s.measureDistanceWithUltrasonicA',
+                        default: 'distance by ultrasonic on Digital A (cm)',
+                        description: 'report distance by ultrasonic on Digital A'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
+                    }
+                },
+                {
+                    opcode: 'measureDistanceWithUltrasonicB',
+                    func: 'measureDistanceWithUltrasonicB',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.measureDistanceWithUltrasonicB',
+                        default: 'distance by ultrasonic on Digital B (cm)',
+                        description: 'report distance by ultrasonic on Digital B'
+                    }),
+                    arguments: {
                     }
                 },
                 '---',
