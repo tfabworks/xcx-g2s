@@ -1953,19 +1953,19 @@ class ExtensionBlocks {
         });
         return [
             {
-                text: `${digitalPrefix} A1`,
+                text: `${digitalPrefix}A (A1)`,
                 value: '10'
             },
             {
-                text: `${digitalPrefix} A2`,
+                text: `${digitalPrefix}A (A2)`,
                 value: '11'
             },
             {
-                text: `${digitalPrefix} B1`,
+                text: `${digitalPrefix}B (B1)`,
                 value: '6'
             },
             {
-                text: `${digitalPrefix} B2`,
+                text: `${digitalPrefix}B (B2)`,
                 value: '9'
             }
         ];
@@ -2007,19 +2007,19 @@ class ExtensionBlocks {
         });
         return [
             {
-                text: `${digitalPrefix} A1`,
+                text: `${digitalPrefix}A (A1)`,
                 value: '10'
             },
             {
-                text: `${digitalPrefix} A2`,
+                text: `${digitalPrefix}A (A2)`,
                 value: '11'
             },
             {
-                text: `${digitalPrefix} B1`,
+                text: `${digitalPrefix}B (B1)`,
                 value: '6'
             },
             {
-                text: `${digitalPrefix} B2`,
+                text: `${digitalPrefix}B (B2)`,
                 value: '9'
             }
         ];
