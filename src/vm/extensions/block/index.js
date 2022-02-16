@@ -714,13 +714,11 @@ class ExtensionBlocks {
 
     /**
      * Get acceleration [m/s^2] for the axis using ADXL345
-     * @param {object} args - the block's arguments.
-     * @param {number} args.AXIS - axis to get
+     * @param {string} axis - axis to get
      * @returns {Promise<number>} return a Promise which resolves acceleration
      */
-    async getAccelerationADXL345 (args) {
+    async getAccelerationADXL345 (axis) {
         if (!this.isConnected()) return Promise.resolve(0);
-        const axis = args.AXIS;
         if (!this.adxl345) {
             const newSensor = new ADXL345(this.board);
             try {
@@ -749,6 +747,38 @@ class ExtensionBlocks {
                 this.adxl345 = null;
                 return 0;
             });
+    }
+
+    /**
+     * Get acceleration [m/s^2] for axis X
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+    getAccelerationX () {
+        return this.getAccelerationADXL345('x');
+    }
+
+    /**
+     * Get acceleration [m/s^2] for axis Y
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+    getAccelerationY () {
+        return this.getAccelerationADXL345('y');
+    }
+
+    /**
+     * Get acceleration [m/s^2] for axis Z
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+    getAccelerationZ () {
+        return this.getAccelerationADXL345('z');
+    }
+
+    /**
+     * Get absolute acceleration [m/s^2]
+     * @returns {Promise<number>} return a Promise which resolves acceleration
+     */
+    getAccelerationAbsolute () {
+        return this.getAccelerationADXL345('absolute');
     }
 
     /**
@@ -1602,20 +1632,55 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'getAcceleration',
-                    func: 'getAccelerationADXL345',
+                    opcode: 'getAccelerationX',
+                    func: 'getAccelerationX',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
-                        id: 'g2s.getAcceleration',
-                        default: 'acceleration [AXIS] (m/s^2)',
-                        description: 'report acceleration'
+                        id: 'g2s.getAccelerationX',
+                        default: 'acceleration X on I2C (m/s^2)',
+                        description: 'report acceleration X'
                     }),
                     arguments: {
-                        AXIS: {
-                            type: ArgumentType.STRING,
-                            menu: 'accelerationAxisMenu'
-                        }
+                    }
+                },
+                {
+                    opcode: 'getAccelerationY',
+                    func: 'getAccelerationY',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationY',
+                        default: 'acceleration Y on I2C (m/s^2)',
+                        description: 'report acceleration Y'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationZ',
+                    func: 'getAccelerationZ',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationZ',
+                        default: 'acceleration Z on I2C (m/s^2)',
+                        description: 'report acceleration Z'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationAbsolute',
+                    func: 'getAccelerationAbsolute',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationAbsolute',
+                        default: 'acceleration absolute on I2C (m/s^2)',
+                        description: 'report acceleration absolute'
+                    }),
+                    arguments: {
                     }
                 },
                 '---',
@@ -1833,10 +1898,6 @@ class ExtensionBlocks {
                 neoPixelColorMenu: {
                     acceptReporters: true,
                     items: this.getNeoPixelColorMenu()
-                },
-                accelerationAxisMenu: {
-                    acceptReporters: false,
-                    items: this.getAccelerationAxisMenu()
                 },
                 bytesTypeMenu: {
                     acceptReporters: false,
@@ -2060,43 +2121,6 @@ class ExtensionBlocks {
                     default: 'black'
                 }),
                 value: '0, 0, 0'
-            }
-        ];
-    }
-
-    /**
-     * Returns menu items to select axis for acceleration.
-     * @returns {Array<object>} menu items
-     */
-    getAccelerationAxisMenu () {
-        return [
-            {
-                text: formatMessage({
-                    id: 'g2s.accelerationAxisMenu.x',
-                    default: 'x'
-                }),
-                value: 'x'
-            },
-            {
-                text: formatMessage({
-                    id: 'g2s.accelerationAxisMenu.y',
-                    default: 'y'
-                }),
-                value: 'y'
-            },
-            {
-                text: formatMessage({
-                    id: 'g2s.accelerationAxisMenu.z',
-                    default: 'z'
-                }),
-                value: 'z'
-            },
-            {
-                text: formatMessage({
-                    id: 'g2s.accelerationAxisMenu.absolute',
-                    default: 'absolute'
-                }),
-                value: 'absolute'
             }
         ];
     }
