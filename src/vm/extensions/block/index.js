@@ -923,6 +923,24 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get water temperature on Digital A.
+     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     */
+    async getWaterTemperatureA () {
+        // TODO: not implemented yet
+        return 0;
+    }
+
+    /**
+     * Get water temperature on Digital B.
+     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     */
+    async getWaterTemperatureB () {
+        // TODO: not implemented yet
+        return 0;
+    }
+
+    /**
      * Return a number at the index [one-based] in the numeric array.
      * @param {object} args - the block's arguments.
      * @param {string} args.ARRAY - numeric array
@@ -1239,6 +1257,33 @@ class ExtensionBlocks {
                         id: 'g2s.getHumidity',
                         default: 'environment I2C humidity (%)',
                         description: 'report humidity'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'getWaterTemperatureA',
+                    func: 'getWaterTemperatureA',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getWaterTemperatureA',
+                        default: 'water temperature on Digital A (°C)',
+                        description: 'report water temperature on Digital A'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getWaterTemperatureB',
+                    func: 'getWaterTemperatureB',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getWaterTemperatureB',
+                        default: 'water temperature on Digital B (°C)',
+                        description: 'report water temperature on Digital B'
                     }),
                     arguments: {
                     }
