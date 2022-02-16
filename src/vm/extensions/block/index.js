@@ -1482,7 +1482,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelConfigStrip',
-                        default: 'full color LED [CONNECTOR] length [LENGTH]',
+                        default: 'set full color LED [CONNECTOR] length [LENGTH]',
                         description: 'configure full color LED on the connector'
                     }),
                     arguments: {
@@ -1501,10 +1501,14 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'set full color LED [POSITION] RGB [COLOR] brightness [BRIGHTNESS]',
+                        default: 'full color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]',
                         description: 'set full color LED color'
                     }),
                     arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
                         POSITION: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
@@ -1524,20 +1528,20 @@ class ExtensionBlocks {
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.neoPixelColor',
-                        default: 'full color LED RGB R [RED] G [GREEN] B [BLUE]',
+                        default: 'full color LED color R [RED] G [GREEN] B [BLUE]',
                         description: 'full color LED color values'
                     }),
                     arguments: {
                         RED: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.STRING,
                             defaultValue: '255'
                         },
                         GREEN: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.STRING,
                             defaultValue: '255'
                         },
                         BLUE: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.STRING,
                             defaultValue: '255'
                         }
                     }
@@ -1547,10 +1551,14 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelShow',
-                        default: 'full color LED show',
+                        default: 'full color LED [CONNECTOR] show',
                         description: 'show full color LED'
                     }),
                     arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
                     }
                 },
                 {
@@ -1558,10 +1566,14 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelClear',
-                        default: 'full color LED clear',
+                        default: 'full color LED [CONNECTOR] clear',
                         description: 'clear full color LED'
                     }),
                     arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
                     }
                 },
                 '---',
