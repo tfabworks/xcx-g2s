@@ -941,6 +941,15 @@ class ExtensionBlocks {
     }
 
     /**
+     * Return whether the accelerometer was shaken.
+     * @returns {boolean} true when the accelerometer was shaken
+     */
+    whenShaken () {
+        // TODO: not implementd yet
+        return false;
+    }
+
+    /**
      * Return a number at the index [one-based] in the numeric array.
      * @param {object} args - the block's arguments.
      * @param {string} args.ARRAY - numeric array
@@ -1284,6 +1293,18 @@ class ExtensionBlocks {
                         id: 'g2s.getWaterTemperatureB',
                         default: 'water temperature on Digital B (°C)',
                         description: 'report water temperature on Digital B'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'whenShaken',
+                    blockType: BlockType.HAT,
+                    text: formatMessage({
+                        id: 'g2s.whenShaken',
+                        default: 'When acceleration I2C was shaken',
+                        description: 'catch event when the accelerometer was shaken'
                     }),
                     arguments: {
                     }
