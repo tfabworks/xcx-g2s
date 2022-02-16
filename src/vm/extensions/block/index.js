@@ -673,6 +673,7 @@ class ExtensionBlocks {
             this.vl53l0x = newSensor;
         }
         const distance = await this.vl53l0x.readRangeContinuousMillimeters()
+            .then(mm => mm / 10)
             .catch(reason => {
                 console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
                 this.vl53l0x = null;
