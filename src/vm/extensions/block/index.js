@@ -1151,7 +1151,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.analogLevelA1',
-                        default: 'level of analog A1',
+                        default: 'value of AnalogA(A1)',
                         description: 'report analog level of the connector'
                     }),
                     arguments: {
@@ -1163,7 +1163,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.analogLevelA2',
-                        default: 'level of analog A2',
+                        default: 'value of AnalogA(A2)',
                         description: 'report analog level of the connector'
                     }),
                     arguments: {
@@ -1175,7 +1175,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.analogLevelB1',
-                        default: 'level of analog B1',
+                        default: 'value of AnalogB(B1)',
                         description: 'report analog level of the connector'
                     }),
                     arguments: {
@@ -1187,7 +1187,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.analogLevelB2',
-                        default: 'level of analog B2',
+                        default: 'value of AnalogB(B2)',
                         description: 'report analog level of the connector'
                     }),
                     arguments: {
@@ -1200,7 +1200,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.digitalLevelA1',
-                        default: 'level of digital A1',
+                        default: 'value of DigitalA(A1)',
                         description: 'report digital level of the connector'
                     }),
                     arguments: {
@@ -1212,7 +1212,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.digitalLevelA2',
-                        default: 'level of digital A2',
+                        default: 'value of DigitalA(A2)',
                         description: 'report digital level of the connector'
                     }),
                     arguments: {
@@ -1224,7 +1224,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.digitalLevelB1',
-                        default: 'level of digital B1',
+                        default: 'value of DigitalB(B1)',
                         description: 'report digital level of the connector'
                     }),
                     arguments: {
@@ -1236,7 +1236,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.digitalLevelB2',
-                        default: 'level of digital B2',
+                        default: 'value of DigitalB(B2)',
                         description: 'report digital level of the connector'
                     }),
                     arguments: {
@@ -1248,7 +1248,7 @@ class ExtensionBlocks {
                     blockType: BlockType.BOOLEAN,
                     text: formatMessage({
                         id: 'g2s.digitalIsHigh',
-                        default: '[CONNECTOR] is HIGH',
+                        default: '[CONNECTOR] value is 1',
                         description: 'whether the digital level of the connector is high or not'
                     }),
                     arguments: {
@@ -1320,7 +1320,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.analogLevelSet',
-                        default: '[CONNECTOR] to analog [LEVEL]',
+                        default: 'PWM [CONNECTOR] set duty cycle [LEVEL] %',
                         description: 'set analog level of the connector'
                     }),
                     arguments: {
@@ -1340,7 +1340,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.servoTurn',
-                        default: 'Servo [CONNECTOR] turn [ANGLE]',
+                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
                         description: 'turn servo motor'
                     }),
                     arguments: {
@@ -1585,7 +1585,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.measureDistanceWithLight',
-                        default: 'distance (mm) - light',
+                        default: 'distance by laser on I2C (cm)',
                         description: 'report distance by light'
                     }),
                     arguments: {
@@ -1625,7 +1625,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getPitch',
-                        default: 'pitch (degree)',
+                        default: 'acceleration I2C pitch (degree)',
                         description: 'report pitch angle'
                     }),
                     arguments: {
@@ -1638,7 +1638,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getRoll',
-                        default: 'roll (degree)',
+                        default: 'acceleration I2C roll (degree)',
                         description: 'report roll angle'
                     }),
                     arguments: {
@@ -1651,7 +1651,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getAccelerationX',
-                        default: 'acceleration X on I2C (m/s^2)',
+                        default: 'acceleration I2C X (m/s^2)',
                         description: 'report acceleration X'
                     }),
                     arguments: {
@@ -1664,7 +1664,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getAccelerationY',
-                        default: 'acceleration Y on I2C (m/s^2)',
+                        default: 'acceleration I2C Y (m/s^2)',
                         description: 'report acceleration Y'
                     }),
                     arguments: {
@@ -1677,7 +1677,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getAccelerationZ',
-                        default: 'acceleration Z on I2C (m/s^2)',
+                        default: 'acceleration I2C Z (m/s^2)',
                         description: 'report acceleration Z'
                     }),
                     arguments: {
@@ -1690,7 +1690,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getAccelerationAbsolute',
-                        default: 'acceleration absolute on I2C (m/s^2)',
+                        default: 'acceleration I2C Absolute (m/s^2)',
                         description: 'report acceleration absolute'
                     }),
                     arguments: {
@@ -1704,7 +1704,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getTemperature',
-                        default: 'temperature (°C)',
+                        default: 'environment I2C temperature (°C)',
                         description: 'report temperature'
                     }),
                     arguments: {
@@ -1717,7 +1717,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getPressure',
-                        default: 'pressure (hPa)',
+                        default: 'environment I2C pressure (hPa)',
                         description: 'report pressure'
                     }),
                     arguments: {
@@ -1730,7 +1730,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getHumidity',
-                        default: 'humidity (%)',
+                        default: 'environment I2C humidity (%)',
                         description: 'report humidity'
                     }),
                     arguments: {
@@ -1993,7 +1993,7 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.digitalLevelMenu.low',
-                    default: 'Low',
+                    default: '0',
                     description: 'label for low value in digital output menu for g2s'
                 }),
                 value: 'false'
@@ -2001,7 +2001,7 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.digitalLevelMenu.high',
-                    default: 'High',
+                    default: '1',
                     description: 'label for high value in digital output menu for g2s'
                 }),
                 value: 'true'
