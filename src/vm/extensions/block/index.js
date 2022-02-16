@@ -1688,7 +1688,7 @@ class ExtensionBlocks {
                     opcode: 'getTemperature',
                     func: 'getTemperatureBME280',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getTemperature',
                         default: 'temperature (°C)',
@@ -1701,7 +1701,7 @@ class ExtensionBlocks {
                     opcode: 'getPressure',
                     func: 'getPressureBME280',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getPressure',
                         default: 'pressure (hPa)',
@@ -1714,7 +1714,7 @@ class ExtensionBlocks {
                     opcode: 'getHumidity',
                     func: 'getHumidityBME280',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true,
+                    disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getHumidity',
                         default: 'humidity (%)',
