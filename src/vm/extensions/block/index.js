@@ -1107,6 +1107,21 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'boardStateChanged',
+                    blockType: BlockType.HAT,
+                    text: formatMessage({
+                        id: 'g2s.boardStateChanged',
+                        default: 'When board is [STATE]',
+                        description: 'catch event when the board state was changed'
+                    }),
+                    arguments: {
+                        STATE: {
+                            type: ArgumentType.STRING,
+                            menu: 'boardStateMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'disconnectBoard',
                     blockType: BlockType.COMMAND,
                     blockAllThreads: false,
@@ -1129,18 +1144,281 @@ class ExtensionBlocks {
                     arguments: {
                     }
                 },
+                '---',
                 {
-                    opcode: 'boardStateChanged',
-                    blockType: BlockType.HAT,
+                    opcode: 'servoTurn',
+                    blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'g2s.boardStateChanged',
-                        default: 'When board is [STATE]',
-                        description: 'catch event when the board state was changed'
+                        id: 'g2s.servoTurn',
+                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
+                        description: 'turn servo motor'
                     }),
                     arguments: {
-                        STATE: {
+                        CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'boardStateMenu'
+                            menu: 'digitalConnectorMenu'
+                        },
+                        ANGLE: {
+                            type: ArgumentType.ANGLE
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'measureDistanceWithUltrasonicA',
+                    func: 'measureDistanceWithUltrasonicA',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.measureDistanceWithUltrasonicA',
+                        default: 'distance by ultrasonic on Digital A (cm)',
+                        description: 'report distance by ultrasonic on Digital A'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'measureDistanceWithUltrasonicB',
+                    func: 'measureDistanceWithUltrasonicB',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.measureDistanceWithUltrasonicB',
+                        default: 'distance by ultrasonic on Digital B (cm)',
+                        description: 'report distance by ultrasonic on Digital B'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'measureDistanceWithLight',
+                    func: 'measureDistanceWithLight',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.measureDistanceWithLight',
+                        default: 'distance by laser on I2C (cm)',
+                        description: 'report distance by light'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'getTemperature',
+                    func: 'getTemperatureBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getTemperature',
+                        default: 'environment I2C temperature (°C)',
+                        description: 'report temperature'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getPressure',
+                    func: 'getPressureBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getPressure',
+                        default: 'environment I2C pressure (hPa)',
+                        description: 'report pressure'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getHumidity',
+                    func: 'getHumidityBME280',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getHumidity',
+                        default: 'environment I2C humidity (%)',
+                        description: 'report humidity'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'getPitch',
+                    func: 'getPitchADXL345',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getPitch',
+                        default: 'acceleration I2C pitch (degree)',
+                        description: 'report pitch angle'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getRoll',
+                    func: 'getRollADXL345',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getRoll',
+                        default: 'acceleration I2C roll (degree)',
+                        description: 'report roll angle'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationX',
+                    func: 'getAccelerationX',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationX',
+                        default: 'acceleration I2C X (m/s^2)',
+                        description: 'report acceleration X'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationY',
+                    func: 'getAccelerationY',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationY',
+                        default: 'acceleration I2C Y (m/s^2)',
+                        description: 'report acceleration Y'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationZ',
+                    func: 'getAccelerationZ',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationZ',
+                        default: 'acceleration I2C Z (m/s^2)',
+                        description: 'report acceleration Z'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAccelerationAbsolute',
+                    func: 'getAccelerationAbsolute',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAccelerationAbsolute',
+                        default: 'acceleration I2C Absolute (m/s^2)',
+                        description: 'report acceleration absolute'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'neoPixelConfigStrip',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelConfigStrip',
+                        default: 'set full color LED [CONNECTOR] length [LENGTH]',
+                        description: 'configure full color LED on the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        LENGTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '16'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelSetColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelSetColor',
+                        default: 'full color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]',
+                        description: 'set full color LED color'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        POSITION: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        },
+                        COLOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelColorMenu'
+                        },
+                        BRIGHTNESS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '50'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelColor',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelColor',
+                        default: 'full color LED color R [RED] G [GREEN] B [BLUE]',
+                        description: 'full color LED color values'
+                    }),
+                    arguments: {
+                        RED: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '255'
+                        },
+                        GREEN: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '255'
+                        },
+                        BLUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '255'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelShow',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelShow',
+                        default: 'full color LED [CONNECTOR] show',
+                        description: 'show full color LED'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelClear',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelClear',
+                        default: 'full color LED [CONNECTOR] clear',
+                        description: 'clear full color LED'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
                         }
                     }
                 },
@@ -1244,6 +1522,25 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'digitalLevelSet',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.digitalLevelSet',
+                        default: '[CONNECTOR] to digital [LEVEL]',
+                        description: 'set digital level of the connector'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalConnectorMenu'
+                        },
+                        LEVEL: {
+                            type: ArgumentType.STRING,
+                            menu: 'digitalLevelMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'digitalIsHigh',
                     blockType: BlockType.BOOLEAN,
                     text: formatMessage({
@@ -1296,25 +1593,7 @@ class ExtensionBlocks {
                         }
                     }
                 },
-                {
-                    opcode: 'digitalLevelSet',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.digitalLevelSet',
-                        default: '[CONNECTOR] to digital [LEVEL]',
-                        description: 'set digital level of the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        LEVEL: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalLevelMenu'
-                        }
-                    }
-                },
+                '---',
                 {
                     opcode: 'analogLevelSet',
                     blockType: BlockType.COMMAND,
@@ -1331,25 +1610,6 @@ class ExtensionBlocks {
                         LEVEL: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'servoTurn',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.servoTurn',
-                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
-                        description: 'turn servo motor'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        ANGLE: {
-                            type: ArgumentType.ANGLE
                         }
                     }
                 },
@@ -1475,265 +1735,6 @@ class ExtensionBlocks {
                             type: ArgumentType.NUMBER,
                             defaultValue: 1
                         }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'neoPixelConfigStrip',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.neoPixelConfigStrip',
-                        default: 'set full color LED [CONNECTOR] length [LENGTH]',
-                        description: 'configure full color LED on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        LENGTH: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: '16'
-                        }
-                    }
-                },
-                {
-                    opcode: 'neoPixelSetColor',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.neoPixelSetColor',
-                        default: 'full color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]',
-                        description: 'set full color LED color'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        POSITION: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: '1'
-                        },
-                        COLOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'neoPixelColorMenu'
-                        },
-                        BRIGHTNESS: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: '50'
-                        }
-                    }
-                },
-                {
-                    opcode: 'neoPixelColor',
-                    blockType: BlockType.REPORTER,
-                    text: formatMessage({
-                        id: 'g2s.neoPixelColor',
-                        default: 'full color LED color R [RED] G [GREEN] B [BLUE]',
-                        description: 'full color LED color values'
-                    }),
-                    arguments: {
-                        RED: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '255'
-                        },
-                        GREEN: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '255'
-                        },
-                        BLUE: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '255'
-                        }
-                    }
-                },
-                {
-                    opcode: 'neoPixelShow',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.neoPixelShow',
-                        default: 'full color LED [CONNECTOR] show',
-                        description: 'show full color LED'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
-                    }
-                },
-                {
-                    opcode: 'neoPixelClear',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.neoPixelClear',
-                        default: 'full color LED [CONNECTOR] clear',
-                        description: 'clear full color LED'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
-                    }
-                },
-                '---',
-                {
-                    opcode: 'measureDistanceWithLight',
-                    func: 'measureDistanceWithLight',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.measureDistanceWithLight',
-                        default: 'distance by laser on I2C (cm)',
-                        description: 'report distance by light'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'measureDistanceWithUltrasonicA',
-                    func: 'measureDistanceWithUltrasonicA',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.measureDistanceWithUltrasonicA',
-                        default: 'distance by ultrasonic on Digital A (cm)',
-                        description: 'report distance by ultrasonic on Digital A'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'measureDistanceWithUltrasonicB',
-                    func: 'measureDistanceWithUltrasonicB',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.measureDistanceWithUltrasonicB',
-                        default: 'distance by ultrasonic on Digital B (cm)',
-                        description: 'report distance by ultrasonic on Digital B'
-                    }),
-                    arguments: {
-                    }
-                },
-                '---',
-                {
-                    opcode: 'getPitch',
-                    func: 'getPitchADXL345',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getPitch',
-                        default: 'acceleration I2C pitch (degree)',
-                        description: 'report pitch angle'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getRoll',
-                    func: 'getRollADXL345',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getRoll',
-                        default: 'acceleration I2C roll (degree)',
-                        description: 'report roll angle'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getAccelerationX',
-                    func: 'getAccelerationX',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getAccelerationX',
-                        default: 'acceleration I2C X (m/s^2)',
-                        description: 'report acceleration X'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getAccelerationY',
-                    func: 'getAccelerationY',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getAccelerationY',
-                        default: 'acceleration I2C Y (m/s^2)',
-                        description: 'report acceleration Y'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getAccelerationZ',
-                    func: 'getAccelerationZ',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getAccelerationZ',
-                        default: 'acceleration I2C Z (m/s^2)',
-                        description: 'report acceleration Z'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getAccelerationAbsolute',
-                    func: 'getAccelerationAbsolute',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getAccelerationAbsolute',
-                        default: 'acceleration I2C Absolute (m/s^2)',
-                        description: 'report acceleration absolute'
-                    }),
-                    arguments: {
-                    }
-                },
-                '---',
-                {
-                    opcode: 'getTemperature',
-                    func: 'getTemperatureBME280',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getTemperature',
-                        default: 'environment I2C temperature (°C)',
-                        description: 'report temperature'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getPressure',
-                    func: 'getPressureBME280',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getPressure',
-                        default: 'environment I2C pressure (hPa)',
-                        description: 'report pressure'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'getHumidity',
-                    func: 'getHumidityBME280',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    text: formatMessage({
-                        id: 'g2s.getHumidity',
-                        default: 'environment I2C humidity (%)',
-                        description: 'report humidity'
-                    }),
-                    arguments: {
                     }
                 },
                 '---',
