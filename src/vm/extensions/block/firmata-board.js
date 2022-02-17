@@ -3,11 +3,10 @@ import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
 import {
-    START_SYSEX,
-    END_SYSEX,
     FIRMATA_7BIT_MASK,
     COLOR_ORDER,
     PIXEL_COMMAND,
+    PIXEL_OFF,
     PIXEL_CONFIG,
     PIXEL_SET_PIXEL,
     PIXEL_SHOW
@@ -175,10 +174,16 @@ class FirmataBoard extends EventEmitter {
         this.portInfo = null;
 
         /**
-         * Parameters of the NeoPixel module.
-         * @type {object}
+         * Parameters of the NeoPixel strips.
+         * @type {Array<object>}
          */
-        this.neoPixel = null;
+        this.neoPixel = [];
+
+        /**
+         * Default length for NeoPixel module.
+         * @type {number}
+         */
+        this.defaultNeoPixelLength = 32;
     }
 
     /**
@@ -272,7 +277,7 @@ class FirmataBoard extends EventEmitter {
      */
     async releaseBoard () {
         this.state = 'disconnect';
-        this.neoPixel = null;
+        this.neoPixel = [];
         if (this.port && this.port.isOpen) {
             this.port.close();
         }
@@ -627,80 +632,80 @@ class FirmataBoard extends EventEmitter {
      * Configure a NeoPixel module which have several LEDs.
      * @param {number} pin - pin number of the module
      * @param {number} length - amount of LEDs
-     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
-        // now send the config message with length and data point.
-        this.neoPixel = {pin: pin, length: length};
-        const data = new Array(7);
-        data[0] = START_SYSEX;
-        data[1] = PIXEL_COMMAND;
-        data[2] = PIXEL_CONFIG;
-        data[3] = ((COLOR_ORDER.GRB << 5) | pin);
-        data[4] = (length & FIRMATA_7BIT_MASK);
-        data[5] = ((length >> 7) & FIRMATA_7BIT_MASK);
-        data[6] = (END_SYSEX);
-        return new Promise(
-            resolve => {
-                this.port.write(data, () => resolve());
-            });
+        this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
+        this.neoPixel.push({pin: pin, length: length});
+        const message = [];
+        message[0] = PIXEL_COMMAND;
+        message[1] = PIXEL_CONFIG;
+        this.neoPixel.forEach(aStrip => {
+            message.push((COLOR_ORDER.GRB << 5) | aStrip.pin);
+            message.push(aStrip.length & FIRMATA_7BIT_MASK);
+            message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
+        });
+        this.firmata.sysexCommand(message);
     }
 
     /**
      * Set color to an LED on the current NeoPixel module.
      * LED does not change the actual color until neoPixelShow() was sent.
+     * This method will configure a new module with default length if it hasn't done yet.
+     * @param {number} pin - pin number of the module
      * @param {number} index - index of LED to be set
      * @param {Array<numbers>} color - color value to be set [r, g, b]
-     * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelSetColor (index, color) {
-        if (!this.neoPixel) return Promise.resolve();
-        const address = Math.min(this.neoPixel.length, Math.max(0, index));
-        const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
-        const data = new Array(10);
-        data[0] = (START_SYSEX);
-        data[1] = (PIXEL_COMMAND);
-        data[2] = (PIXEL_SET_PIXEL);
-        data[3] = (address & FIRMATA_7BIT_MASK);
-        data[4] = ((address >> 7) & FIRMATA_7BIT_MASK);
-        data[5] = (colorValue & FIRMATA_7BIT_MASK);
-        data[6] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
-        data[7] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
-        data[8] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        data[9] = (END_SYSEX);
-        return new Promise(
-            resolve => {
-                this.port.write(data, () => resolve());
-            });
-    }
-
-    /**
-     * Turn off the all LEDs on the current NeoPixel module.
-     * @returns {Promise} a Promise which resolves when the message was sent
-     */
-    async neoPixelClear () {
-        if (!this.neoPixel) return Promise.resolve();
-        for (let index = 0; index < this.neoPixel.length; index++) {
-            await this.neoPixelSetColor(index, [0, 0, 0]);
+    neoPixelSetColor (pin, index, color) {
+        let address = 0;
+        let prevStrip = true;
+        this.neoPixel.forEach(aStrip => {
+            if (aStrip.pin === pin) {
+                address += Math.max(0, index % aStrip.length);
+                prevStrip = false;
+            }
+            if (prevStrip) {
+                address += aStrip.length;
+            }
+        });
+        if (prevStrip) {
+            // A module at the pin has not configured yet.
+            this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
         }
-        return this.neoPixelShow();
+        const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
+        const message = new Array(8);
+        message[0] = (PIXEL_COMMAND);
+        message[1] = (PIXEL_SET_PIXEL);
+        message[2] = (address & FIRMATA_7BIT_MASK);
+        message[3] = ((address >> 7) & FIRMATA_7BIT_MASK);
+        message[4] = (colorValue & FIRMATA_7BIT_MASK);
+        message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
+        message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
+        message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
+        this.firmata.sysexCommand(message);
     }
 
     /**
-     * Update color of LEDs on the current NeoPixel module.
-     * @returns {Promise} a Promise which resolves when the message was sent
+     * Turn off the all LEDs on the NeoPixel module on the pin.
+     * @param {number} pin - pin number of the module
      */
-    neoPixelShow () {
-        const data = [];
-        data[0] = START_SYSEX;
-        data[1] = PIXEL_COMMAND;
-        data[2] = PIXEL_SHOW;
-        data[3] = END_SYSEX;
-        return new Promise(
-            resolve => {
-                this.port.write(data, () => resolve());
-            });
+    neoPixelClear (pin) {
+        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        const length = strip ? strip.length : this.defaultNeoPixelLength;
+        for (let index = 0; index < length; index++) {
+            this.neoPixelSetColor(pin, index, [0, 0, 0]);
+        }
+        this.neoPixelShow();
+    }
+
+    /**
+     * Update color of LEDs on the all of NeoPixel modules.
+     */
+    async neoPixelShow () {
+        const message = new Array(2);
+        message[0] = PIXEL_COMMAND;
+        message[1] = PIXEL_SHOW;
+        this.firmata.sysexCommand(message);
     }
 
     /**
