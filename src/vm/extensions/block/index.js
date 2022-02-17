@@ -599,35 +599,45 @@ class ExtensionBlocks {
     }
 
 
+    /**
+     * Configure a NeoPixel module on the pin.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.CONNECTOR - pin number of the connector
+     * @param {string} args.LENGTH - length of LEDs on the module
+     */
     neoPixelConfigStrip (args) {
-        if (!this.isConnected()) return Promise.resolve();
+        if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        return this.board.neoPixelConfigStrip(pin, length);
+        this.board.neoPixelConfigStrip(pin, length);
     }
 
+    /**
+     * Update color of LEDs on the all of NeoPixel modules.
+     */
     neoPixelShow () {
-        if (!this.isConnected()) return Promise.resolve();
-        return this.board.neoPixelShow();
+        if (!this.isConnected()) return;
+        this.board.neoPixelShow();
     }
 
     /**
      * Set color of the LED
      * @param {object} args - the block's arguments.
+     * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string} args.POSITION - position of the LED on the module start at 1
      * @param {string} args.COLOR - color values [r, g, b]
      * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
-     * @returns {Promise} return a Promise which will resolve the command was sent
      */
     neoPixelSetColor (args) {
-        if (!this.isConnected()) return Promise.resolve();
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
         const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
         const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
         const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
-        return this.board.neoPixelSetColor(index, [r, g, b]);
+        this.board.neoPixelSetColor(pin, index, [r, g, b]);
     }
 
     /**
@@ -646,12 +656,14 @@ class ExtensionBlocks {
     }
 
     /**
-     * Clear all NeoPixel LEDs.
-     * @returns {Promise} return a Promise which will resolve the command was sent
+     * Turn off the all LEDs on the NeoPixel module on the pin.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.CONNECTOR - pin number of the connector
      */
-    neoPixelClear () {
-        if (!this.isConnected()) return Promise.resolve();
-        return this.board.neoPixelClear();
+    neoPixelClear (args) {
+        if (!this.isConnected()) return;
+        const pin = parseInt(args.CONNECTOR, 10);
+        this.board.neoPixelClear(pin);
     }
 
     /**
