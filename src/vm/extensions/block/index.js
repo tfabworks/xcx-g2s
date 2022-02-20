@@ -935,21 +935,41 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get water temperature on Digital A.
+     * Get temperature using DS18B20 on the pin.
+     * @param {number} pin - pin number to use
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
-    async getWaterTemperatureA () {
-        // TODO: not implemented yet
-        return 0;
+    getTemperatureDS18B20 (pin) {
+        return this.board.sendOneWireReset(pin)
+            .then(() => this.board.oneWireWrite(pin, 0x44))
+            .then(() => this.board.sendOneWireReset(pin))
+            .then(() => this.board.oneWireWriteAndRead(pin, 0xBE, 9))
+            .then(readData => {
+                const buffer = new Uint8Array(readData).buffer;
+                const dataView = new DataView(buffer);
+                const rawTemp = dataView.getInt16(0, true);
+                return Math.round((rawTemp / 16) * 10) / 10;
+            });
     }
 
     /**
-     * Get water temperature on Digital B.
+     * Get water temperature on Digital A1.
+     * Return 0 if it was not connected.
+     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     */
+    getWaterTemperatureA () {
+        if (!this.isConnected()) return Promise.resolve(0);
+        return this.getTemperatureDS18B20(10); // Digital A1: 10
+    }
+
+    /**
+     * Get water temperature on Digital B1.
+     * Return 0 if it was not connected.
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
     async getWaterTemperatureB () {
-        // TODO: not implemented yet
-        return 0;
+        if (!this.isConnected()) return Promise.resolve(0);
+        return this.getTemperatureDS18B20(6); // Digital B1: 6
     }
 
     /**
