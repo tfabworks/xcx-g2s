@@ -1758,83 +1758,84 @@ class ExtensionBlocks {
                         }
                     }
                 },
-                '---',
-                {
-                    opcode: 'oneWireReset',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.oneWireReset',
-                        default: 'reset OneWire [CONNECTOR]',
-                        description: 'Reset OneWire on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        }
-                    }
-                },
-                {
-                    opcode: 'oneWireWrite',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.oneWireWrite',
-                        default: 'OneWire [CONNECTOR] write [DATA]',
-                        description: 'write OneWire data to the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        DATA: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '0x00, 0x00'
-                        }
-                    }
-                },
-                {
-                    opcode: 'oneWireRead',
-                    blockType: BlockType.REPORTER,
-                    text: formatMessage({
-                        id: 'g2s.oneWireRead',
-                        default: 'OneWire [CONNECTOR] read [LENGTH] bytes',
-                        description: 'read OneWire data from the device on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        LENGTH: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
-                        }
-                    }
-                },
-                {
-                    opcode: 'oneWireWriteAndRead',
-                    blockType: BlockType.REPORTER,
-                    text: formatMessage({
-                        id: 'g2s.oneWireWriteAndRead',
-                        default: 'OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes',
-                        description: 'write OneWire data then read at the device on the connector'
-                    }),
-                    arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
-                        },
-                        DATA: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '0x00, 0x00'
-                        },
-                        LENGTH: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
-                        }
-                    }
-                },
+                // // comment out for future reference
+                // '---',
+                // {
+                //     opcode: 'oneWireReset',
+                //     blockType: BlockType.COMMAND,
+                //     text: formatMessage({
+                //         id: 'g2s.oneWireReset',
+                //         default: 'reset OneWire [CONNECTOR]',
+                //         description: 'Reset OneWire on the connector'
+                //     }),
+                //     arguments: {
+                //         CONNECTOR: {
+                //             type: ArgumentType.STRING,
+                //             menu: 'digitalConnectorMenu'
+                //         }
+                //     }
+                // },
+                // {
+                //     opcode: 'oneWireWrite',
+                //     blockType: BlockType.COMMAND,
+                //     text: formatMessage({
+                //         id: 'g2s.oneWireWrite',
+                //         default: 'OneWire [CONNECTOR] write [DATA]',
+                //         description: 'write OneWire data to the connector'
+                //     }),
+                //     arguments: {
+                //         CONNECTOR: {
+                //             type: ArgumentType.STRING,
+                //             menu: 'digitalConnectorMenu'
+                //         },
+                //         DATA: {
+                //             type: ArgumentType.STRING,
+                //             defaultValue: '0x00, 0x00'
+                //         }
+                //     }
+                // },
+                // {
+                //     opcode: 'oneWireRead',
+                //     blockType: BlockType.REPORTER,
+                //     text: formatMessage({
+                //         id: 'g2s.oneWireRead',
+                //         default: 'OneWire [CONNECTOR] read [LENGTH] bytes',
+                //         description: 'read OneWire data from the device on the connector'
+                //     }),
+                //     arguments: {
+                //         CONNECTOR: {
+                //             type: ArgumentType.STRING,
+                //             menu: 'digitalConnectorMenu'
+                //         },
+                //         LENGTH: {
+                //             type: ArgumentType.NUMBER,
+                //             defaultValue: 1
+                //         }
+                //     }
+                // },
+                // {
+                //     opcode: 'oneWireWriteAndRead',
+                //     blockType: BlockType.REPORTER,
+                //     text: formatMessage({
+                //         id: 'g2s.oneWireWriteAndRead',
+                //         default: 'OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes',
+                //         description: 'write OneWire data then read at the device on the connector'
+                //     }),
+                //     arguments: {
+                //         CONNECTOR: {
+                //             type: ArgumentType.STRING,
+                //             menu: 'digitalConnectorMenu'
+                //         },
+                //         DATA: {
+                //             type: ArgumentType.STRING,
+                //             defaultValue: '0x00, 0x00'
+                //         },
+                //         LENGTH: {
+                //             type: ArgumentType.NUMBER,
+                //             defaultValue: 1
+                //         }
+                //     }
+                // },
                 '---',
                 {
                     opcode: 'numberAtIndex',
