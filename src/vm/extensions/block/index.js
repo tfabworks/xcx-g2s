@@ -1426,8 +1426,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelConfigStrip',
-                        default: 'set full color LED [CONNECTOR] length [LENGTH]',
-                        description: 'configure full color LED on the connector'
+                        default: 'set color LED [CONNECTOR] length [LENGTH]',
+                        description: 'configure color LED on the connector'
                     }),
                     arguments: {
                         CONNECTOR: {
@@ -1445,8 +1445,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelSetColor',
-                        default: 'full color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]',
-                        description: 'set full color LED color'
+                        default: 'color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]',
+                        description: 'set color LED color'
                     }),
                     arguments: {
                         CONNECTOR: {
@@ -1472,8 +1472,8 @@ class ExtensionBlocks {
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.neoPixelColor',
-                        default: 'full color LED color R [RED] G [GREEN] B [BLUE]',
-                        description: 'full color LED color values'
+                        default: 'color LED color R [RED] G [GREEN] B [BLUE]',
+                        description: 'color LED color values'
                     }),
                     arguments: {
                         RED: {
@@ -1495,8 +1495,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelShow',
-                        default: 'full color LED [CONNECTOR] show',
-                        description: 'show full color LED'
+                        default: 'color LED [CONNECTOR] show',
+                        description: 'show color LED'
                     }),
                     arguments: {
                         CONNECTOR: {
@@ -1510,8 +1510,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelClear',
-                        default: 'full color LED [CONNECTOR] clear',
-                        description: 'clear full color LED'
+                        default: 'color LED [CONNECTOR] clear',
+                        description: 'clear color LED'
                     }),
                     arguments: {
                         CONNECTOR: {
