@@ -275,7 +275,7 @@ class FirmataBoard extends EventEmitter {
     /**
      * Release resources of the board then emit released-event.
      */
-    async releaseBoard () {
+    releaseBoard () {
         this.state = 'disconnect';
         this.neoPixel = [];
         if (this.port && this.port.isOpen) {
@@ -431,16 +431,6 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Set reporting on pin
-     * @param {number} pin - The pin to turn on/off reporting
-     * @param {number} value - Binary value to turn reporting on/off
-     * @returns {undefined}
-     */
-    reportDigitalPin (pin, value) {
-        return this.firmata.reportDigitalPin(pin, value);
-    }
-
-    /**
      * Asks the board to write a value to a digital pin
      * @param {number} pin - The pin you want to write a value to.
      * @param {number} value - The value you want to write. Must be board.HIGH or board.LOW
@@ -490,10 +480,6 @@ class FirmataBoard extends EventEmitter {
         return this.firmata.analogRead(pin, callback);
     }
 
-    reportAnalogPin (pin, value) {
-        return this.firmata.reportAnalogPin(pin, value);
-    }
-
     /**
      * Write multiple bytes to an I2C module
      * @param {number} address - address of the I2C device.
@@ -506,10 +492,6 @@ class FirmataBoard extends EventEmitter {
             this.firmata.i2cWrite(address, register, inBytes);
             setTimeout(() => resolve(), this.sendingInterval);
         });
-    }
-
-    i2cStop (options) {
-        return this.firmata.i2cStop(options);
     }
 
     /**
@@ -701,7 +683,7 @@ class FirmataBoard extends EventEmitter {
     /**
      * Update color of LEDs on the all of NeoPixel modules.
      */
-    async neoPixelShow () {
+    neoPixelShow () {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
@@ -709,10 +691,10 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Trigger the sensor to measure
+     * Trigger the sensor to measure distance
      * @param {number} pin - trigger pin of the sensor
      * @param {number} timeout - waiting time for the response
-     * @returns {Promise<boolean>} a Promise which resolves value from the sensor
+     * @returns {Promise<number>} a Promise which resolves value from the sensor
      */
     pingSensor (pin, timeout) {
         timeout = timeout ? timeout : this.pingSensorWaitingTime;
