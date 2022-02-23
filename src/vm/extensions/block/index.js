@@ -213,7 +213,7 @@ class ExtensionBlocks {
 
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
-            this.neoPixelClear();
+            this.neoPixelClearAll();
         });
     }
 
@@ -227,6 +227,14 @@ class ExtensionBlocks {
             .forEach(pin => {
                 this.board.pinMode(pin, this.board.MODES.INPUT);
             });
+    }
+
+    /**
+     * Turn off the all NeoPixel strips.
+     */
+    neoPixelClearAll () {
+        if (!this.isConnected()) return;
+        this.board.neoPixelClearAll();
     }
 
     /**
