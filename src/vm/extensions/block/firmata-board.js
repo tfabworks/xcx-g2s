@@ -681,6 +681,13 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
+     * Clear all strips.
+     */
+    neoPixelClearAll () {
+        this.neoPixel.forEach(aStrip => this.neoPixelClear(aStrip.pin));
+    }
+
+    /**
      * Update color of LEDs on the all of NeoPixel modules.
      */
     neoPixelShow () {
