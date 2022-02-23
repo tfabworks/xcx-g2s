@@ -16340,6 +16340,19 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       this.neoPixelShow();
     }
     /**
+     * Clear all strips.
+     */
+
+  }, {
+    key: "neoPixelClearAll",
+    value: function neoPixelClearAll() {
+      var _this16 = this;
+
+      this.neoPixel.forEach(function (aStrip) {
+        return _this16.neoPixelClear(aStrip.pin);
+      });
+    }
+    /**
      * Update color of LEDs on the all of NeoPixel modules.
      */
 
@@ -16361,20 +16374,20 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pingSensor",
     value: function pingSensor(pin, timeout) {
-      var _this16 = this;
+      var _this17 = this;
 
       timeout = timeout ? timeout : this.pingSensorWaitingTime;
       this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
       var request = new Promise(function (resolve) {
-        _this16.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
+        _this17.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
           var value = Firmata.decode([data[1], data[2]]);
           resolve(value);
         });
 
-        _this16.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        _this17.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).finally(function () {
-        _this16.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+        _this17.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
       });
     }
     /**
@@ -18989,7 +19002,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     this.runtime.on('PROJECT_STOP_ALL', function () {
       _this.resetPinMode();
 
-      _this.neoPixelClear();
+      _this.neoPixelClearAll();
     });
   }
   /**
@@ -19007,6 +19020,16 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       [6, 9, 10, 11].forEach(function (pin) {
         _this2.board.pinMode(pin, _this2.board.MODES.INPUT);
       });
+    }
+    /**
+     * Turn off the all NeoPixel strips.
+     */
+
+  }, {
+    key: "neoPixelClearAll",
+    value: function neoPixelClearAll() {
+      if (!this.isConnected()) return;
+      this.board.neoPixelClearAll();
     }
     /**
      * Update connected board
