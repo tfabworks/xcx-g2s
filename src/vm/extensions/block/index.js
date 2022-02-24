@@ -318,6 +318,19 @@ class ExtensionBlocks {
     }
 
     /**
+     * Return the version information of the connected board.
+     * @returns {string} version info
+     */
+    boardVersion () {
+        if (!this.isConnected()) return '';
+        return this.board.boardVersion()
+            .catch(reason => {
+                console.log(`boardVersion() was rejected by ${reason}`);
+                return Promise.reject(reason);
+            });
+    }
+
+    /**
      * Get the digital level [0|1] of the pin.
      * @param {number} pin - pin number to get
      * @returns {Promise<number>} a Promise which resolves digital value of the pin
@@ -2001,6 +2014,18 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: '0x01'
                         }
+                    }
+                },
+                {
+                    opcode: 'boardVersion',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.boardVersion',
+                        default: 'board version',
+                        description: 'version of the board'
+                    }),
+                    arguments: {
                     }
                 }
             ],
