@@ -705,32 +705,45 @@ class ExtensionBlocks {
     /**
      * Measure distance [cm] using ultrasonic sensor HC-SR04.
      * @param {number} pin - pin number to trigger the sensor
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
-    measureDistanceWithUltrasonic (pin) {
+    measureDistanceWithUltrasonic (pin, util) {
         if (!this.isConnected()) return Promise.resolve(0);
+        if (this.pingSensing) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.pingSensing = true;
         return this.board.pingSensor(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
                 return 0;
+            })
+            .finally(() => {
+                this.pingSensing = false;
             });
     }
 
     /**
      * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
-    measureDistanceWithUltrasonicA () {
-        return this.measureDistanceWithUltrasonic(10);
+    measureDistanceWithUltrasonicA (_args, util) {
+        return this.measureDistanceWithUltrasonic(10, util);
     }
 
     /**
      * Measure distance [cm] using ultrasonic sensor on Digital B.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
-    measureDistanceWithUltrasonicB () {
-        return this.measureDistanceWithUltrasonic(6);
+    measureDistanceWithUltrasonicB (_args, util) {
+        return this.measureDistanceWithUltrasonic(6, util);
     }
 
     /**
