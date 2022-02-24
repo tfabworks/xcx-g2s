@@ -19630,39 +19630,56 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     /**
      * Measure distance [cm] using ultrasonic sensor HC-SR04.
      * @param {number} pin - pin number to trigger the sensor
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
 
   }, {
     key: "measureDistanceWithUltrasonic",
-    value: function measureDistanceWithUltrasonic(pin) {
+    value: function measureDistanceWithUltrasonic(pin, util) {
+      var _this5 = this;
+
       if (!this.isConnected()) return Promise.resolve(0);
+
+      if (this.pingSensing) {
+        util.yield(); // re-try this call after a while.
+
+        return; // Do not return Promise.resolve() to re-try.
+      }
+
+      this.pingSensing = true;
       return this.board.pingSensor(pin).then(function (value) {
         return Math.round(value / 10);
       }).catch(function (reason) {
         console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
         return 0;
+      }).finally(function () {
+        _this5.pingSensing = false;
       });
     }
     /**
      * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
 
   }, {
     key: "measureDistanceWithUltrasonicA",
-    value: function measureDistanceWithUltrasonicA() {
-      return this.measureDistanceWithUltrasonic(10);
+    value: function measureDistanceWithUltrasonicA(_args, util) {
+      return this.measureDistanceWithUltrasonic(10, util);
     }
     /**
      * Measure distance [cm] using ultrasonic sensor on Digital B.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves distance [cm]
      */
 
   }, {
     key: "measureDistanceWithUltrasonicB",
-    value: function measureDistanceWithUltrasonicB() {
-      return this.measureDistanceWithUltrasonic(6);
+    value: function measureDistanceWithUltrasonicB(_args, util) {
+      return this.measureDistanceWithUltrasonic(6, util);
     }
     /**
      * Get acceleration [m/s^2] for the axis using ADXL345
@@ -19674,7 +19691,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getAccelerationADXL345",
     value: function () {
       var _getAccelerationADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(axis) {
-        var _this5 = this;
+        var _this6 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee2$(_context2) {
@@ -19722,7 +19739,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return acceleration[axis];
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this5.adxl345 = null;
+                  _this6.adxl345 = null;
                   return 0;
                 }));
 
@@ -19789,7 +19806,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getRollADXL345",
     value: function () {
       var _getRollADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
-        var _this6 = this;
+        var _this7 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee3$(_context3) {
@@ -19833,7 +19850,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.atan2(acceleration.y, acceleration.z) * 180.0 / Math.PI;
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this6.adxl345 = null;
+                  _this7.adxl345 = null;
                   return 0;
                 }));
 
@@ -19860,7 +19877,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPitchADXL345",
     value: function () {
       var _getPitchADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this7 = this;
+        var _this8 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
@@ -19906,7 +19923,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return (angle > 0 ? 180 : -180) - angle;
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this7.adxl345 = null;
+                  _this8.adxl345 = null;
                   return 0;
                 }));
 
@@ -19933,7 +19950,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getTemperatureBME280",
     value: function () {
       var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this8 = this;
+        var _this9 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee5$(_context5) {
@@ -19977,7 +19994,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this8.bme280 = null;
+                  _this9.bme280 = null;
                   return 0;
                 }));
 
@@ -20004,7 +20021,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPressureBME280",
     value: function () {
       var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var _this9 = this;
+        var _this10 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee6$(_context6) {
@@ -20048,7 +20065,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this9.bme280 = null;
+                  _this10.bme280 = null;
                   return 0;
                 }));
 
@@ -20075,7 +20092,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getHumidityBME280",
     value: function () {
       var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-        var _this10 = this;
+        var _this11 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee7$(_context7) {
@@ -20119,7 +20136,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this10.bme280 = null;
+                  _this11.bme280 = null;
                   return 0;
                 }));
 
@@ -20146,14 +20163,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getTemperatureDS18B20",
     value: function getTemperatureDS18B20(pin) {
-      var _this11 = this;
+      var _this12 = this;
 
       return this.board.sendOneWireReset(pin).then(function () {
-        return _this11.board.oneWireWrite(pin, 0x44);
+        return _this12.board.oneWireWrite(pin, 0x44);
       }).then(function () {
-        return _this11.board.sendOneWireReset(pin);
+        return _this12.board.sendOneWireReset(pin);
       }).then(function () {
-        return _this11.board.oneWireWriteAndRead(pin, 0xBE, 9);
+        return _this12.board.oneWireWriteAndRead(pin, 0xBE, 9);
       }).then(function (readData) {
         var buffer = new Uint8Array(readData).buffer;
         var dataView = new DataView(buffer);
