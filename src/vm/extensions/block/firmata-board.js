@@ -14,6 +14,8 @@ import {
 
 const PING_SENSOR_COMMAND = 0x01;
 
+const BOARD_VERSION_QUERY = 0x0F;
+
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -319,6 +321,27 @@ class FirmataBoard extends EventEmitter {
             extensionId: this.extensionId
         });
         this.disconnect();
+    }
+
+    /**
+     * Query the version information of the connected board.
+     * @returns {string} version info
+     */
+    boardVersion () {
+        const request = new Promise(resolve => {
+            this.firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
+                const value = Firmata.decode([data[0], data[1]]);
+                const minor = value & 0x3F;
+                const major = (value >> 6) & 0x0F;
+                const type = (value >> 10) & 0x0F;
+                resolve(`${type}.${major}.${minor}`);
+            });
+            this.firmata.sysexCommand([BOARD_VERSION_QUERY]);
+        });
+        return Promise.race([request, timeoutReject(100)])
+            .finally(() => {
+                this.firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+            });
     }
 
     /**
