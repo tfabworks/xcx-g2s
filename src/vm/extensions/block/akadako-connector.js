@@ -1,10 +1,10 @@
 import {EventEmitter} from 'events';
-import AkadakoBoard from './akadako-board';
+import AkaDakoBoard from './akadako-board';
 
 /**
- * Manager object which serves akadako boards.
+ * Manager object which serves AkaDako boards.
  */
-export class AkadakoConnector extends EventEmitter {
+export class AkaDakoConnector extends EventEmitter {
 
     /**
      * Event name for reporting that a board removed.
@@ -37,7 +37,7 @@ export class AkadakoConnector extends EventEmitter {
 
         /**
          * Available boards
-         * @type {Array<AkadakoBoard>}
+         * @type {Array<AkaDakoBoard>}
          */
         this.boards = [];
     }
@@ -46,7 +46,7 @@ export class AkadakoConnector extends EventEmitter {
      * Return connected board which is confirmed with the options.
      * @param {object} options serial port options
      * @param {Array<{usbVendorId, usbProductId}>} options.filters allay of filters
-     * @returns {AkadakoBoard?} first board which confirmed with options
+     * @returns {AkaDakoBoard?} first board which confirmed with options
      */
     findBoard (options) {
         if (this.boards.length === 0) return;
@@ -58,29 +58,29 @@ export class AkadakoConnector extends EventEmitter {
 
     /**
      * Add a board to the boards holder.
-     * @param {AkadakoBoard} newBoard the board to be added
+     * @param {AkaDakoBoard} newBoard the board to be added
      */
     addBoard (newBoard) {
         this.boards.push(newBoard);
-        this.emit(AkadakoConnector.BOARD_ADDED, newBoard);
+        this.emit(AkaDakoConnector.BOARD_ADDED, newBoard);
     }
 
     /**
      * Remove a board from the boards holder.
-     * @param {AkadakoBoard} removal the board to be removed
+     * @param {AkaDakoBoard} removal the board to be removed
      */
     removeBoard (removal) {
         const indexOfRemoval = this.boards.indexOf(removal);
         if (indexOfRemoval < 0) return; // not found
         this.boards.splice(indexOfRemoval, 1);
-        this.emit(AkadakoConnector.BOARD_ADDED, removal);
+        this.emit(AkaDakoConnector.BOARD_ADDED, removal);
     }
 
     /**
-     * Return a connected akadako board which is confirmed with the options
+     * Return a connected AkaDako board which is confirmed with the options
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
     connect (extensionId, options) {
         if (!('serial' in navigator)) {
@@ -92,8 +92,8 @@ export class AkadakoConnector extends EventEmitter {
             // share a board object
             return Promise.resolve(connectedBoard);
         }
-        const newBoard = new AkadakoBoard(this.runtime);
-        newBoard.once(AkadakoBoard.RELEASED, () => {
+        const newBoard = new AkaDakoBoard(this.runtime);
+        newBoard.once(AkaDakoBoard.RELEASED, () => {
             this.removeBoard(newBoard);
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
                 name: newBoard.name,
@@ -109,13 +109,13 @@ export class AkadakoConnector extends EventEmitter {
 }
 
 /**
- * Return a shared akadako connector object
+ * Return a shared AkaDako connector object
  * @param {Runtime} runtime - Scratch runtime object
- * @returns {AkadakoConnector} a akadako connector object
+ * @returns {AkaDakoConnector} a AkaDako connector object
  */
-export const getAkadakoConnector = runtime => {
-    if (!runtime.akadakoConnector) {
-        runtime.akadakoConnector = new AkadakoConnector(runtime);
+export const getAkaDakoConnector = runtime => {
+    if (!runtime.akaDakoConnector) {
+        runtime.akaDakoConnector = new AkaDakoConnector(runtime);
     }
-    return runtime.akadakoConnector;
+    return runtime.akaDakoConnector;
 };

@@ -60,12 +60,12 @@ const BME280_REG_HUMIDITYDATA = 0xFD;
 export default class BME280 {
     /**
      * Constructor of BME280 instance.
-     * @param {AkadakoBoard} board - connecting akadako board
+     * @param {AkaDakoBoard} board - connecting AkaDako board
      */
     constructor (board) {
 
         /**
-         * Connecting akadako board
+         * Connecting AkaDako board
          * @type {import('./akadako-board').default}
          */
         this.board = board;
