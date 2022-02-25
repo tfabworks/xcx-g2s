@@ -1,5 +1,5 @@
 import {EventEmitter} from 'events';
-import AkadakoBoard from './firmata-board';
+import AkadakoBoard from './akadako-board';
 
 /**
  * Manager object which serves akadako boards.

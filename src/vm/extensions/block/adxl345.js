@@ -24,7 +24,7 @@ export default class ADXL345 {
 
         /**
          * Connecting akadako board
-         * @type {import('./firmata-board').default}
+         * @type {import('./akadako-board').default}
          */
         this.board = board;
 

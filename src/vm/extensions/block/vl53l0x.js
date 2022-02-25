@@ -128,7 +128,7 @@ export default class VL53L0X {
 
         /**
          * Connecting akadako board
-         * @type {import('./firmata-board').default}
+         * @type {import('./akadako-board').default}
          */
         this.board = board;
 
