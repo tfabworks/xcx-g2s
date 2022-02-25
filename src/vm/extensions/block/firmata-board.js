@@ -70,7 +70,7 @@ const neoPixelColorValue = (colors, gammaTable) => {
 /**
  * This class represents a board communicating with Firmata protocol.
  */
-class FirmataBoard extends EventEmitter {
+class AkadakoBoard extends EventEmitter {
 
     /**
      * Event name for reporting that this board has been released.
@@ -81,13 +81,13 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Construct a firmata board object.
+     * Construct a akadako board object.
      * @param {Runtime} runtime - the Scratch runtime
      */
     constructor (runtime) {
         super();
 
-        this.name = 'FirmataBoard';
+        this.name = 'AkadakoBoard';
 
         /**
          * The Scratch runtime to register event listeners.
@@ -103,7 +103,7 @@ class FirmataBoard extends EventEmitter {
         this.state = 'disconnect';
 
         /**
-         * The Firmata board for reading/writing peripheral data.
+         * The Firmata for reading/writing peripheral data.
          * @type {Firmata}
          * @private
          */
@@ -189,10 +189,10 @@ class FirmataBoard extends EventEmitter {
     }
 
     /**
-     * Open a port to connect a firmata board.
+     * Open a port to connect a akadako board.
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
      */
     async requestPort (extensionId, options) {
         if (this.port) return Promise.resolve(this); // already opened
@@ -286,7 +286,7 @@ class FirmataBoard extends EventEmitter {
         this.port = null;
         this.oneWireDevices = null;
         this.extensionId = null;
-        this.emit(FirmataBoard.RELEASED);
+        this.emit(AkadakoBoard.RELEASED);
     }
 
     /**
@@ -782,4 +782,4 @@ class FirmataBoard extends EventEmitter {
     }
 }
 
-export default FirmataBoard;
+export default AkadakoBoard;
