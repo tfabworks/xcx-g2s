@@ -53,7 +53,7 @@ var entry = {
       defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    }), " (v0.8.1)");
+    }), " (v0.9.0)");
   },
 
   featured: true,
@@ -1539,6 +1539,7 @@ var en = {
 	"g2s.name": "AkaDako",
 	"g2s.connectBoard": "connect board",
 	"g2s.disconnectBoard": "disconnect board",
+	"g2s.boardVersion": "board version",
 	"g2s.isConnected": "board is connected",
 	"g2s.boardState.connected": "connected",
 	"g2s.boardState.disconnected": "disconnected",
@@ -1611,6 +1612,7 @@ var ja = {
 	"g2s.name": "AkaDako",
 	"g2s.connectBoard": "ボードを接続する",
 	"g2s.disconnectBoard": "ボードを切断する",
+	"g2s.boardVersion": "ボードのバージョン",
 	"g2s.isConnected": "ボードに接続している",
 	"g2s.boardState.connected": "接続された",
 	"g2s.boardState.disconnected": "切断された",
@@ -1686,6 +1688,7 @@ var translations = {
 	"g2s.name": "AkaDako",
 	"g2s.connectBoard": "ボードをせつぞくする",
 	"g2s.disconnectBoard": "ボードをせつだんする",
+	"g2s.boardVersion": "ボードのバージョン",
 	"g2s.isConnected": "ボードにせつぞくている",
 	"g2s.boardState.connected": "せつぞくされた",
 	"g2s.boardState.disconnected": "せつだんされた",
@@ -15519,6 +15522,7 @@ function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeRefl
 
 function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var PING_SENSOR_COMMAND = 0x01;
+var BOARD_VERSION_QUERY = 0x0F;
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -15576,22 +15580,22 @@ var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
  */
 
 
-var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(FirmataBoard, _EventEmitter);
+var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(AkadakoBoard, _EventEmitter);
 
-  var _super = _createSuper$1(FirmataBoard);
+  var _super = _createSuper$1(AkadakoBoard);
 
   /**
-   * Construct a firmata board object.
+   * Construct a akadako board object.
    * @param {Runtime} runtime - the Scratch runtime
    */
-  function FirmataBoard(runtime) {
+  function AkadakoBoard(runtime) {
     var _this;
 
-    _classCallCheck(this, FirmataBoard);
+    _classCallCheck(this, AkadakoBoard);
 
     _this = _super.call(this);
-    _this.name = 'FirmataBoard';
+    _this.name = 'AkadakoBoard';
     /**
      * The Scratch runtime to register event listeners.
      * @type {Runtime}
@@ -15606,7 +15610,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.state = 'disconnect';
     /**
-     * The Firmata board for reading/writing peripheral data.
+     * The Firmata for reading/writing peripheral data.
      * @type {Firmata}
      * @private
      */
@@ -15693,14 +15697,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     return _this;
   }
   /**
-   * Open a port to connect a firmata board.
+   * Open a port to connect a akadako board.
    * @param {string} extensionId - ID of the extension which is requesting
    * @param {object} options - serial port options
-   * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+   * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
    */
 
 
-  _createClass(FirmataBoard, [{
+  _createClass(AkadakoBoard, [{
     key: "requestPort",
     value: function () {
       var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
@@ -15852,7 +15856,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       this.port = null;
       this.oneWireDevices = null;
       this.extensionId = null;
-      this.emit(FirmataBoard.RELEASED);
+      this.emit(AkadakoBoard.RELEASED);
     }
     /**
      * Disconnect current connected board.
@@ -15895,6 +15899,31 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
       this.disconnect();
     }
     /**
+     * Query the version information of the connected board.
+     * @returns {string} version info
+     */
+
+  }, {
+    key: "boardVersion",
+    value: function boardVersion() {
+      var _this3 = this;
+
+      var request = new Promise(function (resolve) {
+        _this3.firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
+          var value = Firmata.decode([data[0], data[1]]);
+          var minor = value & 0x3F;
+          var major = value >> 6 & 0x0F;
+          var type = value >> 10 & 0x0F;
+          resolve("".concat(type, ".").concat(major, ".").concat(minor));
+        });
+
+        _this3.firmata.sysexCommand([BOARD_VERSION_QUERY]);
+      });
+      return Promise.race([request, timeoutReject(100)]).finally(function () {
+        _this3.firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+      });
+    }
+    /**
      * Asks the board to set the pin to a certain mode.
      * @param {number} pin - The pin you want to change the mode of.
      * @param {number} mode - The mode you want to set. Must be one of board.MODES
@@ -15915,7 +15944,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "updateDigitalInput",
     value: function updateDigitalInput(pin) {
-      var _this3 = this;
+      var _this4 = this;
 
       if (typeof this.pins[pin].mode !== 'undefined' && this.pins[pin].mode !== this.firmata.MODES.INPUT && this.pins[pin].mode !== this.firmata.MODES.PULLUP) {
         return Promise.resolve(this.pins[pin].value);
@@ -15927,23 +15956,23 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
       this.pins[pin].updating = true;
       var request = new Promise(function (resolve) {
-        if (_this3.pins[pin].inputBias !== _this3.firmata.MODES.PULLUP) {
-          _this3.pins[pin].inputBias = _this3.firmata.MODES.INPUT;
+        if (_this4.pins[pin].inputBias !== _this4.firmata.MODES.PULLUP) {
+          _this4.pins[pin].inputBias = _this4.firmata.MODES.INPUT;
         }
 
-        _this3.firmata.pinMode(pin, _this3.pins[pin].inputBias);
+        _this4.firmata.pinMode(pin, _this4.pins[pin].inputBias);
 
-        _this3.firmata.digitalRead(pin, function (value) {
-          _this3.pins[pin].value = value;
-          _this3.pins[pin].updateTime = Date.now();
-          resolve(_this3.pins[pin].value);
+        _this4.firmata.digitalRead(pin, function (value) {
+          _this4.pins[pin].value = value;
+          _this4.pins[pin].updateTime = Date.now();
+          resolve(_this4.pins[pin].value);
         });
       });
       return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
-        _this3.pins[pin].value = 0;
+        _this4.pins[pin].value = 0;
         return Promise.reject(reason);
       }).finally(function () {
-        _this3.pins[pin].updating = false;
+        _this4.pins[pin].updating = false;
       });
     }
     /**
@@ -15956,15 +15985,15 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "setInputBias",
     value: function setInputBias(pin, pullUp) {
-      var _this4 = this;
+      var _this5 = this;
 
       this.pins[pin].inputBias = pullUp ? this.MODES.PULLUP : this.MODES.INPUT;
       return new Promise(function (resolve) {
-        _this4.pinMode(pin, _this4.pins[pin].inputBias);
+        _this5.pinMode(pin, _this5.pins[pin].inputBias);
 
         setTimeout(function () {
           return resolve();
-        }, _this4.sendingInterval);
+        }, _this5.sendingInterval);
       });
     }
     /**
@@ -15976,7 +16005,7 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "updateAnalogInput",
     value: function updateAnalogInput(analogPin) {
-      var _this5 = this;
+      var _this6 = this;
 
       var pin = this.firmata.analogPins[analogPin];
 
@@ -15986,19 +16015,19 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
 
       this.pins[pin].updating = true;
       var request = new Promise(function (resolve) {
-        _this5.firmata.pinMode(analogPin, _this5.MODES.ANALOG);
+        _this6.firmata.pinMode(analogPin, _this6.MODES.ANALOG);
 
-        _this5.firmata.analogRead(analogPin, function (value) {
-          _this5.pins[pin].value = value;
-          _this5.pins[pin].updateTime = Date.now();
-          resolve(_this5.pins[pin].value);
+        _this6.firmata.analogRead(analogPin, function (value) {
+          _this6.pins[pin].value = value;
+          _this6.pins[pin].updateTime = Date.now();
+          resolve(_this6.pins[pin].value);
         });
       });
       return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)]).catch(function (reason) {
-        _this5.pins[pin].value = 0;
+        _this6.pins[pin].value = 0;
         return Promise.reject(reason);
       }).finally(function () {
-        _this5.pins[pin].updating = false;
+        _this6.pins[pin].updating = false;
       });
     }
     /**
@@ -16024,14 +16053,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "digitalWrite",
     value: function digitalWrite(pin, value, enqueue) {
-      var _this6 = this;
+      var _this7 = this;
 
       return new Promise(function (resolve) {
-        _this6.firmata.digitalWrite(pin, value, enqueue);
+        _this7.firmata.digitalWrite(pin, value, enqueue);
 
         setTimeout(function () {
           return resolve();
-        }, _this6.sendingInterval);
+        }, _this7.sendingInterval);
       });
     }
     /**
@@ -16044,14 +16073,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pwmWrite",
     value: function pwmWrite(pin, value) {
-      var _this7 = this;
+      var _this8 = this;
 
       return new Promise(function (resolve) {
-        _this7.firmata.pwmWrite(pin, value);
+        _this8.firmata.pwmWrite(pin, value);
 
         setTimeout(function () {
           return resolve();
-        }, _this7.sendingInterval);
+        }, _this8.sendingInterval);
       });
     }
     /**
@@ -16064,20 +16093,20 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "servoWrite",
     value: function servoWrite() {
-      var _this8 = this;
+      var _this9 = this;
 
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
       return new Promise(function (resolve) {
-        var _this8$firmata;
+        var _this9$firmata;
 
-        (_this8$firmata = _this8.firmata).servoWrite.apply(_this8$firmata, args);
+        (_this9$firmata = _this9.firmata).servoWrite.apply(_this9$firmata, args);
 
         setTimeout(function () {
           return resolve();
-        }, _this8.sendingInterval);
+        }, _this9.sendingInterval);
       });
     }
     /**
@@ -16103,14 +16132,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cWrite",
     value: function i2cWrite(address, register, inBytes) {
-      var _this9 = this;
+      var _this10 = this;
 
       return new Promise(function (resolve) {
-        _this9.firmata.i2cWrite(address, register, inBytes);
+        _this10.firmata.i2cWrite(address, register, inBytes);
 
         setTimeout(function () {
           return resolve();
-        }, _this9.sendingInterval);
+        }, _this10.sendingInterval);
       });
     }
     /**
@@ -16125,11 +16154,11 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(address, register, readLength, timeout) {
-      var _this10 = this;
+      var _this11 = this;
 
       timeout = timeout ? timeout : this.i2cReadWaitingTime;
       var request = new Promise(function (resolve) {
-        _this10.firmata.i2cReadOnce(address, register, readLength, function (data) {
+        _this11.firmata.i2cReadOnce(address, register, readLength, function (data) {
           resolve(data);
         });
       });
@@ -16144,14 +16173,14 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendOneWireReset",
     value: function sendOneWireReset(pin) {
-      var _this11 = this;
+      var _this12 = this;
 
       return new Promise(function (resolve) {
-        _this11.firmata.sendOneWireReset(pin);
+        _this12.firmata.sendOneWireReset(pin);
 
         setTimeout(function () {
           return resolve();
-        }, _this11.sendingInterval);
+        }, _this12.sendingInterval);
       });
     }
     /**
@@ -16163,27 +16192,27 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
-      var _this12 = this;
+      var _this13 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this12.firmata.pins[pin].mode !== _this12.firmata.MODES.ONEWIRE) {
-          _this12.firmata.sendOneWireConfig(pin, true);
+        if (_this13.firmata.pins[pin].mode !== _this13.firmata.MODES.ONEWIRE) {
+          _this13.firmata.sendOneWireConfig(pin, true);
 
-          return _this12.firmata.sendOneWireSearch(pin, function (error, founds) {
+          return _this13.firmata.sendOneWireSearch(pin, function (error, founds) {
             if (error) return reject(error);
             if (founds.length < 1) return reject(new Error('no device'));
 
-            _this12.firmata.pinMode(pin, _this12.firmata.MODES.ONEWIRE);
+            _this13.firmata.pinMode(pin, _this13.firmata.MODES.ONEWIRE);
 
-            _this12.oneWireDevices = founds;
+            _this13.oneWireDevices = founds;
 
-            _this12.firmata.sendOneWireDelay(pin, 1);
+            _this13.firmata.sendOneWireDelay(pin, 1);
 
-            resolve(_this12.oneWireDevices);
+            resolve(_this13.oneWireDevices);
           });
         }
 
-        resolve(_this12.oneWireDevices);
+        resolve(_this13.oneWireDevices);
       });
     }
     /**
@@ -16196,10 +16225,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
-      var _this13 = this;
+      var _this14 = this;
 
       return this.searchOneWireDevices(pin).then(function (devices) {
-        _this13.firmata.sendOneWireWrite(pin, devices[0], data);
+        _this14.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
     /**
@@ -16213,12 +16242,12 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireRead",
     value: function oneWireRead(pin, length, timeout) {
-      var _this14 = this;
+      var _this15 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this14.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+          _this15.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
             if (readError) return reject(readError);
             resolve(data);
           });
@@ -16238,12 +16267,12 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
-      var _this15 = this;
+      var _this16 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this15.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
+          _this16.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
             if (readError) return reject(readError);
             resolve(readData);
           });
@@ -16346,10 +16375,10 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClearAll",
     value: function neoPixelClearAll() {
-      var _this16 = this;
+      var _this17 = this;
 
       this.neoPixel.forEach(function (aStrip) {
-        return _this16.neoPixelClear(aStrip.pin);
+        return _this17.neoPixelClear(aStrip.pin);
       });
     }
     /**
@@ -16374,20 +16403,20 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pingSensor",
     value: function pingSensor(pin, timeout) {
-      var _this17 = this;
+      var _this18 = this;
 
       timeout = timeout ? timeout : this.pingSensorWaitingTime;
       this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
       var request = new Promise(function (resolve) {
-        _this17.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
+        _this18.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
           var value = Firmata.decode([data[1], data[2]]);
           resolve(value);
         });
 
-        _this17.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        _this18.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).finally(function () {
-        _this17.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+        _this18.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
       });
     }
     /**
@@ -16451,29 +16480,29 @@ var FirmataBoard = /*#__PURE__*/function (_EventEmitter) {
     }
   }]);
 
-  return FirmataBoard;
+  return AkadakoBoard;
 }(EventEmitter$1);
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 /**
- * Manager object which serves firmata boards.
+ * Manager object which serves akadako boards.
  */
 
-var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(FirmataConnector, _EventEmitter);
+var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(AkadakoConnector, _EventEmitter);
 
-  var _super = _createSuper(FirmataConnector);
+  var _super = _createSuper(AkadakoConnector);
 
   /**
    * Constructor of this instance.
    * @param {Runtime} runtime - Scratch runtime object
    */
-  function FirmataConnector(runtime) {
+  function AkadakoConnector(runtime) {
     var _this;
 
-    _classCallCheck(this, FirmataConnector);
+    _classCallCheck(this, AkadakoConnector);
 
     _this = _super.call(this);
     /**
@@ -16484,7 +16513,7 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
     _this.runtime = runtime;
     /**
      * Available boards
-     * @type {Array<FirmataBoard>}
+     * @type {Array<AkadakoBoard>}
      */
 
     _this.boards = [];
@@ -16494,11 +16523,11 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
    * Return connected board which is confirmed with the options.
    * @param {object} options serial port options
    * @param {Array<{usbVendorId, usbProductId}>} options.filters allay of filters
-   * @returns {FirmataBoard?} first board which confirmed with options
+   * @returns {AkadakoBoard?} first board which confirmed with options
    */
 
 
-  _createClass(FirmataConnector, [{
+  _createClass(AkadakoConnector, [{
     key: "findBoard",
     value: function findBoard(options) {
       if (this.boards.length === 0) return;
@@ -16511,18 +16540,18 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
     }
     /**
      * Add a board to the boards holder.
-     * @param {FirmataBoard} newBoard the board to be added
+     * @param {AkadakoBoard} newBoard the board to be added
      */
 
   }, {
     key: "addBoard",
     value: function addBoard(newBoard) {
       this.boards.push(newBoard);
-      this.emit(FirmataConnector.BOARD_ADDED, newBoard);
+      this.emit(AkadakoConnector.BOARD_ADDED, newBoard);
     }
     /**
      * Remove a board from the boards holder.
-     * @param {FirmataBoard} removal the board to be removed
+     * @param {AkadakoBoard} removal the board to be removed
      */
 
   }, {
@@ -16532,13 +16561,13 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
       if (indexOfRemoval < 0) return; // not found
 
       this.boards.splice(indexOfRemoval, 1);
-      this.emit(FirmataConnector.BOARD_ADDED, removal);
+      this.emit(AkadakoConnector.BOARD_ADDED, removal);
     }
     /**
-     * Return a connected firmata board which is confirmed with the options
+     * Return a connected akadako board which is confirmed with the options
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
      */
 
   }, {
@@ -16558,8 +16587,8 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
         return Promise.resolve(connectedBoard);
       }
 
-      var newBoard = new FirmataBoard(this.runtime);
-      newBoard.once(FirmataBoard.RELEASED, function () {
+      var newBoard = new AkadakoBoard(this.runtime);
+      newBoard.once(AkadakoBoard.RELEASED, function () {
         _this2.removeBoard(newBoard);
 
         _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_DISCONNECTED, {
@@ -16595,20 +16624,20 @@ var FirmataConnector = /*#__PURE__*/function (_EventEmitter) {
     }
   }]);
 
-  return FirmataConnector;
+  return AkadakoConnector;
 }(EventEmitter$1);
 /**
- * Return a shared firmata connector object
+ * Return a shared akadako connector object
  * @param {Runtime} runtime - Scratch runtime object
- * @returns {FirmataConnector} a firmata connector object
+ * @returns {AkadakoConnector} a akadako connector object
  */
 
-var getFirmataConnector = function getFirmataConnector(runtime) {
-  if (!runtime.firmataConnector) {
-    runtime.firmataConnector = new FirmataConnector(runtime);
+var getAkadakoConnector = function getAkadakoConnector(runtime) {
+  if (!runtime.akadakoConnector) {
+    runtime.akadakoConnector = new AkadakoConnector(runtime);
   }
 
-  return runtime.firmataConnector;
+  return runtime.akadakoConnector;
 };
 
 /**
@@ -16688,15 +16717,15 @@ var VL53L0X = /*#__PURE__*/function () {
 
   /**
    * Constructor of VL53L0X instance.
-   * @param {FirmataBoard} board - connecting firmata board
+   * @param {AkadakoBoard} board - connecting akadako board
    * @param {*} address - I2C address of the sensor
    */
   function VL53L0X(board, address) {
     _classCallCheck(this, VL53L0X);
 
     /**
-     * Connecting firmata board
-     * @type {import('./firmata-board').default}
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
      */
     this.board = board;
     /**
@@ -18229,14 +18258,14 @@ var MEASURE = 0x08;
 var ADXL345 = /*#__PURE__*/function () {
   /**
    * Constructor of ADXL345 instance.
-   * @param {FirmataBoard} board - connecting firmata board
+   * @param {AkadakoBoard} board - connecting akadako board
    */
   function ADXL345(board) {
     _classCallCheck(this, ADXL345);
 
     /**
-     * Connecting firmata board
-     * @type {import('./firmata-board').default}
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
      */
     this.board = board;
     /**
@@ -18362,14 +18391,14 @@ var BME280_REG_HUMIDITYDATA = 0xFD;
 var BME280 = /*#__PURE__*/function () {
   /**
    * Constructor of BME280 instance.
-   * @param {FirmataBoard} board - connecting firmata board
+   * @param {AkadakoBoard} board - connecting akadako board
    */
   function BME280(board) {
     _classCallCheck(this, BME280);
 
     /**
-     * Connecting firmata board
-     * @type {import('./firmata-board').default}
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
      */
     this.board = board;
     /**
@@ -18950,8 +18979,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       formatMessage = runtime.formatMessage;
     }
     /**
-     * Current connected board object with firmata protocol
-     * @type {FirmataBoard}
+     * Current connected board object with akadako protocol
+     * @type {AkadakoBoard}
      */
 
 
@@ -18963,15 +18992,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.vl53l0x = null;
     /**
-     * Manager of firmata boards
-     * @type {FirmataConnector}
+     * Manager of akadako boards
+     * @type {AkadakoConnector}
      */
 
-    this.firmataConnector = getFirmataConnector(runtime);
-    this.firmataConnector.addListener(FirmataConnector.BOARD_ADDED, function () {
+    this.akadakoConnector = getAkadakoConnector(runtime);
+    this.akadakoConnector.addListener(AkadakoConnector.BOARD_ADDED, function () {
       return _this.updateBoard();
     });
-    this.firmataConnector.addListener(FirmataConnector.BOARD_REMOVED, function () {
+    this.akadakoConnector.addListener(AkadakoConnector.BOARD_REMOVED, function () {
       return _this.updateBoard();
     });
     /**
@@ -19040,7 +19069,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function updateBoard() {
       if (this.board && this.board.isConnected()) return;
       var prev = this.board;
-      this.board = this.firmataConnector.findBoard(this.serialPortOptions);
+      this.board = this.akadakoConnector.findBoard(this.serialPortOptions);
       if (prev === this.board) return;
       this.vl53l0x = null;
       this.adxl345 = null;
@@ -19077,7 +19106,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.isReady();
     }
     /**
-     * Connect a firmata board.
+     * Connect a akadako board.
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
 
@@ -19088,7 +19117,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       if (this.board && this.board.isConnected()) return; // Already connected
 
-      return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
+      return this.akadakoConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
         _this3.runtime.emit(_this3.runtime.constructor.PERIPHERAL_CONNECTED, {
           name: connectedBoard.name,
           path: connectedBoard.portInfo
@@ -19127,6 +19156,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "boardStateChanged",
     value: function boardStateChanged(args) {
       return args.STATE === 'connected' === this.isConnected();
+    }
+    /**
+     * Return the version information of the connected board.
+     * @returns {string} version info
+     */
+
+  }, {
+    key: "boardVersion",
+    value: function boardVersion() {
+      if (!this.isConnected()) return '';
+      return this.board.boardVersion().catch(function (reason) {
+        console.log("boardVersion() was rejected by ".concat(reason));
+        return Promise.reject(reason);
+      });
     }
     /**
      * Get the digital level [0|1] of the pin.
@@ -20491,7 +20534,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           text: formatMessage({
             id: 'g2s.isConnected',
             default: 'board is connected',
-            description: 'firmata board is connected'
+            description: 'whether a board is connected'
           }),
           arguments: {}
         }, '---', {
@@ -21194,6 +21237,16 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               defaultValue: '0x01'
             }
           }
+        }, {
+          opcode: 'boardVersion',
+          blockType: blockType.REPORTER,
+          disableMonitor: true,
+          text: formatMessage({
+            id: 'g2s.boardVersion',
+            default: 'board version',
+            description: 'version of the board'
+          }),
+          arguments: {}
         }],
         menus: {
           boardStateMenu: {
