@@ -70,7 +70,7 @@ const neoPixelColorValue = (colors, gammaTable) => {
 /**
  * This class represents a board communicating with Firmata protocol.
  */
-class AkadakoBoard extends EventEmitter {
+class AkaDakoBoard extends EventEmitter {
 
     /**
      * Event name for reporting that this board has been released.
@@ -81,13 +81,13 @@ class AkadakoBoard extends EventEmitter {
     }
 
     /**
-     * Construct a akadako board object.
+     * Construct a AkaDako board object.
      * @param {Runtime} runtime - the Scratch runtime
      */
     constructor (runtime) {
         super();
 
-        this.name = 'AkadakoBoard';
+        this.name = 'AkaDakoBoard';
 
         /**
          * The Scratch runtime to register event listeners.
@@ -189,10 +189,10 @@ class AkadakoBoard extends EventEmitter {
     }
 
     /**
-     * Open a port to connect a akadako board.
+     * Open a port to connect a AkaDako board.
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
     async requestPort (extensionId, options) {
         if (this.port) return Promise.resolve(this); // already opened
@@ -286,7 +286,7 @@ class AkadakoBoard extends EventEmitter {
         this.port = null;
         this.oneWireDevices = null;
         this.extensionId = null;
-        this.emit(AkadakoBoard.RELEASED);
+        this.emit(AkaDakoBoard.RELEASED);
     }
 
     /**
@@ -782,4 +782,4 @@ class AkadakoBoard extends EventEmitter {
     }
 }
 
-export default AkadakoBoard;
+export default AkaDakoBoard;

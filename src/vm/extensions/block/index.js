@@ -6,7 +6,7 @@ import blockIcon from './block-icon.png';
 
 import Long from 'long';
 
-import {AkadakoConnector, getAkadakoConnector} from './akadako-connector';
+import {AkaDakoConnector, getAkaDakoConnector} from './akadako-connector';
 import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
@@ -172,8 +172,8 @@ class ExtensionBlocks {
         }
 
         /**
-         * Current connected board object with akadako protocol
-         * @type {AkadakoBoard}
+         * Current connected board object with AkaDako protocol
+         * @type {AkaDakoBoard}
          */
         this.board = null;
 
@@ -184,12 +184,12 @@ class ExtensionBlocks {
         this.vl53l0x = null;
 
         /**
-         * Manager of akadako boards
-         * @type {AkadakoConnector}
+         * Manager of AkaDako boards
+         * @type {AkaDakoConnector}
          */
-        this.akadakoConnector = getAkadakoConnector(runtime);
-        this.akadakoConnector.addListener(AkadakoConnector.BOARD_ADDED, () => this.updateBoard());
-        this.akadakoConnector.addListener(AkadakoConnector.BOARD_REMOVED, () => this.updateBoard());
+        this.boardConnector = getAkaDakoConnector(runtime);
+        this.boardConnector.addListener(AkaDakoConnector.BOARD_ADDED, () => this.updateBoard());
+        this.boardConnector.addListener(AkaDakoConnector.BOARD_REMOVED, () => this.updateBoard());
 
         /**
          * state holder of the all pins
@@ -243,7 +243,7 @@ class ExtensionBlocks {
     updateBoard () {
         if (this.board && this.board.isConnected()) return;
         const prev = this.board;
-        this.board = this.akadakoConnector.findBoard(this.serialPortOptions);
+        this.board = this.boardConnector.findBoard(this.serialPortOptions);
         if (prev === this.board) return;
         this.vl53l0x = null;
         this.adxl345 = null;
@@ -275,12 +275,12 @@ class ExtensionBlocks {
     }
 
     /**
-     * Connect a akadako board.
+     * Connect a AkaDako board.
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
         if (this.board && this.board.isConnected()) return; // Already connected
-        return this.akadakoConnector.connect(EXTENSION_ID, this.serialPortOptions)
+        return this.boardConnector.connect(EXTENSION_ID, this.serialPortOptions)
             .then(connectedBoard => {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
                     name: connectedBoard.name,
