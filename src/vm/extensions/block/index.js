@@ -6,7 +6,7 @@ import blockIcon from './block-icon.png';
 
 import Long from 'long';
 
-import {AkadakoConnector, getAkadakoConnector} from './firmata-connector';
+import {AkadakoConnector, getAkadakoConnector} from './akadako-connector';
 import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
