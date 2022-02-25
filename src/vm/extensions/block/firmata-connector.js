@@ -1,10 +1,10 @@
 import {EventEmitter} from 'events';
-import FirmataBoard from './firmata-board';
+import AkadakoBoard from './firmata-board';
 
 /**
- * Manager object which serves firmata boards.
+ * Manager object which serves akadako boards.
  */
-export class FirmataConnector extends EventEmitter {
+export class AkadakoConnector extends EventEmitter {
 
     /**
      * Event name for reporting that a board removed.
@@ -37,7 +37,7 @@ export class FirmataConnector extends EventEmitter {
 
         /**
          * Available boards
-         * @type {Array<FirmataBoard>}
+         * @type {Array<AkadakoBoard>}
          */
         this.boards = [];
     }
@@ -46,7 +46,7 @@ export class FirmataConnector extends EventEmitter {
      * Return connected board which is confirmed with the options.
      * @param {object} options serial port options
      * @param {Array<{usbVendorId, usbProductId}>} options.filters allay of filters
-     * @returns {FirmataBoard?} first board which confirmed with options
+     * @returns {AkadakoBoard?} first board which confirmed with options
      */
     findBoard (options) {
         if (this.boards.length === 0) return;
@@ -58,29 +58,29 @@ export class FirmataConnector extends EventEmitter {
 
     /**
      * Add a board to the boards holder.
-     * @param {FirmataBoard} newBoard the board to be added
+     * @param {AkadakoBoard} newBoard the board to be added
      */
     addBoard (newBoard) {
         this.boards.push(newBoard);
-        this.emit(FirmataConnector.BOARD_ADDED, newBoard);
+        this.emit(AkadakoConnector.BOARD_ADDED, newBoard);
     }
 
     /**
      * Remove a board from the boards holder.
-     * @param {FirmataBoard} removal the board to be removed
+     * @param {AkadakoBoard} removal the board to be removed
      */
     removeBoard (removal) {
         const indexOfRemoval = this.boards.indexOf(removal);
         if (indexOfRemoval < 0) return; // not found
         this.boards.splice(indexOfRemoval, 1);
-        this.emit(FirmataConnector.BOARD_ADDED, removal);
+        this.emit(AkadakoConnector.BOARD_ADDED, removal);
     }
 
     /**
-     * Return a connected firmata board which is confirmed with the options
+     * Return a connected akadako board which is confirmed with the options
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<FirmataBoard>} a Promise which resolves a connected firmata board or reject with reason
+     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
      */
     connect (extensionId, options) {
         if (!('serial' in navigator)) {
@@ -92,8 +92,8 @@ export class FirmataConnector extends EventEmitter {
             // share a board object
             return Promise.resolve(connectedBoard);
         }
-        const newBoard = new FirmataBoard(this.runtime);
-        newBoard.once(FirmataBoard.RELEASED, () => {
+        const newBoard = new AkadakoBoard(this.runtime);
+        newBoard.once(AkadakoBoard.RELEASED, () => {
             this.removeBoard(newBoard);
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
                 name: newBoard.name,
@@ -109,13 +109,13 @@ export class FirmataConnector extends EventEmitter {
 }
 
 /**
- * Return a shared firmata connector object
+ * Return a shared akadako connector object
  * @param {Runtime} runtime - Scratch runtime object
- * @returns {FirmataConnector} a firmata connector object
+ * @returns {AkadakoConnector} a akadako connector object
  */
-export const getFirmataConnector = runtime => {
-    if (!runtime.firmataConnector) {
-        runtime.firmataConnector = new FirmataConnector(runtime);
+export const getAkadakoConnector = runtime => {
+    if (!runtime.akadakoConnector) {
+        runtime.akadakoConnector = new AkadakoConnector(runtime);
     }
-    return runtime.firmataConnector;
+    return runtime.akadakoConnector;
 };

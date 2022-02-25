@@ -121,13 +121,13 @@ export default class VL53L0X {
     // eslint-disable-next-line valid-jsdoc
     /**
      * Constructor of VL53L0X instance.
-     * @param {FirmataBoard} board - connecting firmata board
+     * @param {AkadakoBoard} board - connecting akadako board
      * @param {*} address - I2C address of the sensor
      */
     constructor (board, address) {
 
         /**
-         * Connecting firmata board
+         * Connecting akadako board
          * @type {import('./firmata-board').default}
          */
         this.board = board;

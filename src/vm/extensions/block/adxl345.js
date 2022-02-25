@@ -18,12 +18,12 @@ const MEASURE = 0x08;
 export default class ADXL345 {
     /**
      * Constructor of ADXL345 instance.
-     * @param {FirmataBoard} board - connecting firmata board
+     * @param {AkadakoBoard} board - connecting akadako board
      */
     constructor (board) {
 
         /**
-         * Connecting firmata board
+         * Connecting akadako board
          * @type {import('./firmata-board').default}
          */
         this.board = board;

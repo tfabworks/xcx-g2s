@@ -60,12 +60,12 @@ const BME280_REG_HUMIDITYDATA = 0xFD;
 export default class BME280 {
     /**
      * Constructor of BME280 instance.
-     * @param {FirmataBoard} board - connecting firmata board
+     * @param {AkadakoBoard} board - connecting akadako board
      */
     constructor (board) {
 
         /**
-         * Connecting firmata board
+         * Connecting akadako board
          * @type {import('./firmata-board').default}
          */
         this.board = board;

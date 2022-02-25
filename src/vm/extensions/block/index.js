@@ -6,7 +6,7 @@ import blockIcon from './block-icon.png';
 
 import Long from 'long';
 
-import {FirmataConnector, getFirmataConnector} from './firmata-connector';
+import {AkadakoConnector, getAkadakoConnector} from './firmata-connector';
 import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
@@ -172,8 +172,8 @@ class ExtensionBlocks {
         }
 
         /**
-         * Current connected board object with firmata protocol
-         * @type {FirmataBoard}
+         * Current connected board object with akadako protocol
+         * @type {AkadakoBoard}
          */
         this.board = null;
 
@@ -184,12 +184,12 @@ class ExtensionBlocks {
         this.vl53l0x = null;
 
         /**
-         * Manager of firmata boards
-         * @type {FirmataConnector}
+         * Manager of akadako boards
+         * @type {AkadakoConnector}
          */
-        this.firmataConnector = getFirmataConnector(runtime);
-        this.firmataConnector.addListener(FirmataConnector.BOARD_ADDED, () => this.updateBoard());
-        this.firmataConnector.addListener(FirmataConnector.BOARD_REMOVED, () => this.updateBoard());
+        this.akadakoConnector = getAkadakoConnector(runtime);
+        this.akadakoConnector.addListener(AkadakoConnector.BOARD_ADDED, () => this.updateBoard());
+        this.akadakoConnector.addListener(AkadakoConnector.BOARD_REMOVED, () => this.updateBoard());
 
         /**
          * state holder of the all pins
@@ -243,7 +243,7 @@ class ExtensionBlocks {
     updateBoard () {
         if (this.board && this.board.isConnected()) return;
         const prev = this.board;
-        this.board = this.firmataConnector.findBoard(this.serialPortOptions);
+        this.board = this.akadakoConnector.findBoard(this.serialPortOptions);
         if (prev === this.board) return;
         this.vl53l0x = null;
         this.adxl345 = null;
@@ -275,12 +275,12 @@ class ExtensionBlocks {
     }
 
     /**
-     * Connect a firmata board.
+     * Connect a akadako board.
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
         if (this.board && this.board.isConnected()) return; // Already connected
-        return this.firmataConnector.connect(EXTENSION_ID, this.serialPortOptions)
+        return this.akadakoConnector.connect(EXTENSION_ID, this.serialPortOptions)
             .then(connectedBoard => {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
                     name: connectedBoard.name,
@@ -1232,7 +1232,7 @@ class ExtensionBlocks {
                     text: formatMessage({
                         id: 'g2s.isConnected',
                         default: 'board is connected',
-                        description: 'firmata board is connected'
+                        description: 'whether a board is connected'
                     }),
                     arguments: {
                     }
