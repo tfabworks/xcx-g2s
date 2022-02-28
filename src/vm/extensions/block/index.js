@@ -638,20 +638,22 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {string} args.CONNECTOR - pin number of the connector
      * @param {string} args.LENGTH - length of LEDs on the module
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelConfigStrip (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        this.board.neoPixelConfigStrip(pin, length);
+        return this.board.neoPixelConfigStrip(pin, length);
     }
 
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelShow () {
         if (!this.isConnected()) return;
-        this.board.neoPixelShow();
+        return this.board.neoPixelShow();
     }
 
     /**
@@ -693,11 +695,12 @@ class ExtensionBlocks {
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {object} args - the block's arguments.
      * @param {string} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelClear (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
-        this.board.neoPixelClear(pin);
+        return this.board.neoPixelClear(pin);
     }
 
     /**

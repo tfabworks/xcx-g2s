@@ -636,6 +636,7 @@ class AkaDakoBoard extends EventEmitter {
      * Configure a NeoPixel module which have several LEDs.
      * @param {number} pin - pin number of the module
      * @param {number} length - amount of LEDs
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
@@ -649,7 +650,10 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         });
-        this.firmata.sysexCommand(message);
+        return new Promise(resolve => {
+            this.firmata.sysexCommand(message);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     /**
@@ -659,8 +663,9 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} pin - pin number of the module
      * @param {number} index - index of LED to be set
      * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelSetColor (pin, index, color) {
+    async neoPixelSetColor (pin, index, color) {
         let address = 0;
         let prevStrip = true;
         this.neoPixel.forEach(aStrip => {
@@ -674,7 +679,7 @@ class AkaDakoBoard extends EventEmitter {
         });
         if (prevStrip) {
             // A module at the pin has not configured yet.
-            this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
+            await this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
         }
         const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
         const message = new Array(8);
@@ -686,37 +691,50 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        this.firmata.sysexCommand(message);
+        return new Promise(resolve => {
+            this.firmata.sysexCommand(message);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
     }
 
     /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {number} pin - pin number of the module
      */
-    neoPixelClear (pin) {
+    async neoPixelClear (pin) {
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         const length = strip ? strip.length : this.defaultNeoPixelLength;
         for (let index = 0; index < length; index++) {
-            this.neoPixelSetColor(pin, index, [0, 0, 0]);
+            await this.neoPixelSetColor(pin, index, [0, 0, 0]);
         }
-        this.neoPixelShow();
+        return this.neoPixelShow();
     }
 
     /**
      * Clear all strips.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelClearAll () {
-        this.neoPixel.forEach(aStrip => this.neoPixelClear(aStrip.pin));
+        return Promise.all(
+            this.neoPixel.map(
+                aStrip => this.neoPixelClear(aStrip.pin)
+            )
+        );
     }
 
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelShow () {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        this.firmata.sysexCommand(message);
+        return new Promise(resolve => {
+            this.firmata.sysexCommand(message);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
+
     }
 
     /**
