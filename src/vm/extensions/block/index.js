@@ -118,6 +118,7 @@ class ExtensionBlocks {
      */
     static set formatMessage (formatter) {
         formatMessage = formatter;
+        if (formatMessage) setupTranslations();
     }
 
     /**
