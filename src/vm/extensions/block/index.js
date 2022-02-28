@@ -215,6 +215,18 @@ class ExtensionBlocks {
             this.resetPinMode();
             this.neoPixelClearAll();
         });
+
+        /**
+         * Threshold value for shake event [m/s^2]
+         * @type {number}
+         */
+        this.shakeEventThreshold = 4.0;
+
+        /**
+         * Interval time to check shake event [milliseconds]
+         * @type {number}
+         */
+        this.shakeEventInterval = 100;
     }
 
     /**
@@ -1011,8 +1023,21 @@ class ExtensionBlocks {
      * @returns {boolean} true when the accelerometer was shaken
      */
     whenShaken () {
-        // TODO: not implementd yet
-        return false;
+        if (!this.resetShakeEventTimer) {
+            this.getAccelerationADXL345('absolute')
+                .then(prev => {
+                    setTimeout(() => {
+                        this.getAccelerationADXL345('absolute')
+                            .then(next => {
+                                this.shaken = ((next - prev) > this.shakeEventThreshold);
+                                this.resetShakeEventTimer = setTimeout(() => {
+                                    this.resetShakeEventTimer = null;
+                                }, this.runtime.currentStepTime);
+                            });
+                    }, this.shakeEventInterval);
+                });
+        }
+        return !!this.shaken;
     }
 
     /**
