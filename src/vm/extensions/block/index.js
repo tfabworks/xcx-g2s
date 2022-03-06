@@ -1009,7 +1009,8 @@ class ExtensionBlocks {
      */
     getWaterTemperatureA () {
         if (!this.isConnected()) return Promise.resolve(0);
-        return this.getTemperatureDS18B20(10); // Digital A1: 10
+        return this.getTemperatureDS18B20(10) // Digital A1: 10
+            .catch(() => 0);
     }
 
     /**
@@ -1019,7 +1020,8 @@ class ExtensionBlocks {
      */
     async getWaterTemperatureB () {
         if (!this.isConnected()) return Promise.resolve(0);
-        return this.getTemperatureDS18B20(6); // Digital B1: 6
+        return this.getTemperatureDS18B20(6) // Digital B1: 6
+            .catch(() => 0);
     }
 
     /**
