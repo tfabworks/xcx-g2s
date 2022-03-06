@@ -1005,23 +1005,43 @@ class ExtensionBlocks {
     /**
      * Get water temperature on Digital A1.
      * Return 0 if it was not connected.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
-    getWaterTemperatureA () {
+    getWaterTemperatureA (_args, util) {
         if (!this.isConnected()) return Promise.resolve(0);
+        if (this.waterTemperatureASensing) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.waterTemperatureASensing = true;
         return this.getTemperatureDS18B20(10) // Digital A1: 10
-            .catch(() => 0);
+            .catch(() => 0)
+            .finally(() => {
+                this. waterTemperatureASensing = false;
+            });
     }
 
     /**
      * Get water temperature on Digital B1.
      * Return 0 if it was not connected.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
-    async getWaterTemperatureB () {
+    async getWaterTemperatureB (_args, util) {
         if (!this.isConnected()) return Promise.resolve(0);
+        if (this.waterTemperatureBSensing) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.waterTemperatureBSensing = true;
         return this.getTemperatureDS18B20(6) // Digital B1: 6
-            .catch(() => 0);
+            .catch(() => 0)
+            .finally(() => {
+                this. waterTemperatureBSensing = false;
+            });
     }
 
     /**
