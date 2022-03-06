@@ -209,7 +209,7 @@ class AkaDakoBoard extends EventEmitter {
             autoOpen: false
         });
         this.portInfo = this.port.path.getInfo();
-        this.firmata = new Firmata(this.port);
+        this.firmata = new Firmata(this.port, {reportVersionTimeout: 0});
         this.firmata.once('open', () => {
             this.state = 'connect';
         });
