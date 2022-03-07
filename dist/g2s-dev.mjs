@@ -15580,22 +15580,22 @@ var neoPixelColorValue = function neoPixelColorValue(colors, gammaTable) {
  */
 
 
-var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(AkadakoBoard, _EventEmitter);
+var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(AkaDakoBoard, _EventEmitter);
 
-  var _super = _createSuper$1(AkadakoBoard);
+  var _super = _createSuper$1(AkaDakoBoard);
 
   /**
-   * Construct a akadako board object.
+   * Construct a AkaDako board object.
    * @param {Runtime} runtime - the Scratch runtime
    */
-  function AkadakoBoard(runtime) {
+  function AkaDakoBoard(runtime) {
     var _this;
 
-    _classCallCheck(this, AkadakoBoard);
+    _classCallCheck(this, AkaDakoBoard);
 
     _this = _super.call(this);
-    _this.name = 'AkadakoBoard';
+    _this.name = 'AkaDakoBoard';
     /**
      * The Scratch runtime to register event listeners.
      * @type {Runtime}
@@ -15697,14 +15697,14 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
     return _this;
   }
   /**
-   * Open a port to connect a akadako board.
+   * Open a port to connect a AkaDako board.
    * @param {string} extensionId - ID of the extension which is requesting
    * @param {object} options - serial port options
-   * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
+   * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
    */
 
 
-  _createClass(AkadakoBoard, [{
+  _createClass(AkaDakoBoard, [{
     key: "requestPort",
     value: function () {
       var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
@@ -15756,7 +15756,9 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   autoOpen: false
                 });
                 this.portInfo = this.port.path.getInfo();
-                this.firmata = new Firmata(this.port);
+                this.firmata = new Firmata(this.port, {
+                  reportVersionTimeout: 0
+                });
                 this.firmata.once('open', function () {
                   _this2.state = 'connect';
                 });
@@ -15856,7 +15858,7 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
       this.port = null;
       this.oneWireDevices = null;
       this.extensionId = null;
-      this.emit(AkadakoBoard.RELEASED);
+      this.emit(AkaDakoBoard.RELEASED);
     }
     /**
      * Disconnect current connected board.
@@ -16284,11 +16286,14 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * Configure a NeoPixel module which have several LEDs.
      * @param {number} pin - pin number of the module
      * @param {number} length - amount of LEDs
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
+      var _this17 = this;
+
       this.pins[pin].mode = nodePixelConstants.PIXEL_COMMAND;
       this.neoPixel = this.neoPixel.filter(function (aStrip) {
         return aStrip.pin !== pin;
@@ -16305,7 +16310,13 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
         message.push(aStrip.length & nodePixelConstants.FIRMATA_7BIT_MASK);
         message.push(aStrip.length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK);
       });
-      this.firmata.sysexCommand(message);
+      return new Promise(function (resolve) {
+        _this17.firmata.sysexCommand(message);
+
+        setTimeout(function () {
+          return resolve();
+        }, _this17.sendingInterval);
+      });
     }
     /**
      * Set color to an LED on the current NeoPixel module.
@@ -16314,41 +16325,74 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * @param {number} pin - pin number of the module
      * @param {number} index - index of LED to be set
      * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelSetColor",
-    value: function neoPixelSetColor(pin, index, color) {
-      var address = 0;
-      var prevStrip = true;
-      this.neoPixel.forEach(function (aStrip) {
-        if (aStrip.pin === pin) {
-          address += Math.max(0, index % aStrip.length);
-          prevStrip = false;
-        }
+    value: function () {
+      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(pin, index, color) {
+        var _this18 = this;
 
-        if (prevStrip) {
-          address += aStrip.length;
-        }
-      });
+        var address, prevStrip, colorValue, message;
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                address = 0;
+                prevStrip = true;
+                this.neoPixel.forEach(function (aStrip) {
+                  if (aStrip.pin === pin) {
+                    address += Math.max(0, index % aStrip.length);
+                    prevStrip = false;
+                  }
 
-      if (prevStrip) {
-        // A module at the pin has not configured yet.
-        this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
+                  if (prevStrip) {
+                    address += aStrip.length;
+                  }
+                });
+
+                if (!prevStrip) {
+                  _context2.next = 6;
+                  break;
+                }
+
+                _context2.next = 6;
+                return this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
+
+              case 6:
+                colorValue = neoPixelColorValue(color, neoPixelGammaTable);
+                message = new Array(8);
+                message[0] = nodePixelConstants.PIXEL_COMMAND;
+                message[1] = nodePixelConstants.PIXEL_SET_PIXEL;
+                message[2] = address & nodePixelConstants.FIRMATA_7BIT_MASK;
+                message[3] = address >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
+                message[4] = colorValue & nodePixelConstants.FIRMATA_7BIT_MASK;
+                message[5] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
+                message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
+                message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
+                return _context2.abrupt("return", new Promise(function (resolve) {
+                  _this18.firmata.sysexCommand(message);
+
+                  setTimeout(function () {
+                    return resolve();
+                  }, _this18.sendingInterval);
+                }));
+
+              case 17:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function neoPixelSetColor(_x3, _x4, _x5) {
+        return _neoPixelSetColor.apply(this, arguments);
       }
 
-      var colorValue = neoPixelColorValue(color, neoPixelGammaTable);
-      var message = new Array(8);
-      message[0] = nodePixelConstants.PIXEL_COMMAND;
-      message[1] = nodePixelConstants.PIXEL_SET_PIXEL;
-      message[2] = address & nodePixelConstants.FIRMATA_7BIT_MASK;
-      message[3] = address >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
-      message[4] = colorValue & nodePixelConstants.FIRMATA_7BIT_MASK;
-      message[5] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
-      message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
-      message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
-      this.firmata.sysexCommand(message);
-    }
+      return neoPixelSetColor;
+    }()
     /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {number} pin - pin number of the module
@@ -16356,42 +16400,84 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
   }, {
     key: "neoPixelClear",
-    value: function neoPixelClear(pin) {
-      var strip = this.neoPixel.find(function (aStrip) {
-        return aStrip.pin === pin;
-      });
-      var length = strip ? strip.length : this.defaultNeoPixelLength;
+    value: function () {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(pin) {
+        var strip, length, index;
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                strip = this.neoPixel.find(function (aStrip) {
+                  return aStrip.pin === pin;
+                });
+                length = strip ? strip.length : this.defaultNeoPixelLength;
+                index = 0;
 
-      for (var index = 0; index < length; index++) {
-        this.neoPixelSetColor(pin, index, [0, 0, 0]);
+              case 3:
+                if (!(index < length)) {
+                  _context3.next = 9;
+                  break;
+                }
+
+                _context3.next = 6;
+                return this.neoPixelSetColor(pin, index, [0, 0, 0]);
+
+              case 6:
+                index++;
+                _context3.next = 3;
+                break;
+
+              case 9:
+                return _context3.abrupt("return", this.neoPixelShow());
+
+              case 10:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function neoPixelClear(_x6) {
+        return _neoPixelClear.apply(this, arguments);
       }
 
-      this.neoPixelShow();
-    }
+      return neoPixelClear;
+    }()
     /**
      * Clear all strips.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelClearAll",
     value: function neoPixelClearAll() {
-      var _this17 = this;
+      var _this19 = this;
 
-      this.neoPixel.forEach(function (aStrip) {
-        return _this17.neoPixelClear(aStrip.pin);
-      });
+      return Promise.all(this.neoPixel.map(function (aStrip) {
+        return _this19.neoPixelClear(aStrip.pin);
+      }));
     }
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
+      var _this20 = this;
+
       var message = new Array(2);
       message[0] = nodePixelConstants.PIXEL_COMMAND;
       message[1] = nodePixelConstants.PIXEL_SHOW;
-      this.firmata.sysexCommand(message);
+      return new Promise(function (resolve) {
+        _this20.firmata.sysexCommand(message);
+
+        setTimeout(function () {
+          return resolve();
+        }, _this20.sendingInterval);
+      });
     }
     /**
      * Trigger the sensor to measure distance
@@ -16403,20 +16489,20 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pingSensor",
     value: function pingSensor(pin, timeout) {
-      var _this18 = this;
+      var _this21 = this;
 
       timeout = timeout ? timeout : this.pingSensorWaitingTime;
       this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
       var request = new Promise(function (resolve) {
-        _this18.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
+        _this21.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
           var value = Firmata.decode([data[1], data[2]]);
           resolve(value);
         });
 
-        _this18.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        _this21.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).finally(function () {
-        _this18.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+        _this21.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
       });
     }
     /**
@@ -16480,29 +16566,29 @@ var AkadakoBoard = /*#__PURE__*/function (_EventEmitter) {
     }
   }]);
 
-  return AkadakoBoard;
+  return AkaDakoBoard;
 }(EventEmitter$1);
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 /**
- * Manager object which serves akadako boards.
+ * Manager object which serves AkaDako boards.
  */
 
-var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(AkadakoConnector, _EventEmitter);
+var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(AkaDakoConnector, _EventEmitter);
 
-  var _super = _createSuper(AkadakoConnector);
+  var _super = _createSuper(AkaDakoConnector);
 
   /**
    * Constructor of this instance.
    * @param {Runtime} runtime - Scratch runtime object
    */
-  function AkadakoConnector(runtime) {
+  function AkaDakoConnector(runtime) {
     var _this;
 
-    _classCallCheck(this, AkadakoConnector);
+    _classCallCheck(this, AkaDakoConnector);
 
     _this = _super.call(this);
     /**
@@ -16513,7 +16599,7 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
     _this.runtime = runtime;
     /**
      * Available boards
-     * @type {Array<AkadakoBoard>}
+     * @type {Array<AkaDakoBoard>}
      */
 
     _this.boards = [];
@@ -16523,11 +16609,11 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
    * Return connected board which is confirmed with the options.
    * @param {object} options serial port options
    * @param {Array<{usbVendorId, usbProductId}>} options.filters allay of filters
-   * @returns {AkadakoBoard?} first board which confirmed with options
+   * @returns {AkaDakoBoard?} first board which confirmed with options
    */
 
 
-  _createClass(AkadakoConnector, [{
+  _createClass(AkaDakoConnector, [{
     key: "findBoard",
     value: function findBoard(options) {
       if (this.boards.length === 0) return;
@@ -16540,18 +16626,18 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
     }
     /**
      * Add a board to the boards holder.
-     * @param {AkadakoBoard} newBoard the board to be added
+     * @param {AkaDakoBoard} newBoard the board to be added
      */
 
   }, {
     key: "addBoard",
     value: function addBoard(newBoard) {
       this.boards.push(newBoard);
-      this.emit(AkadakoConnector.BOARD_ADDED, newBoard);
+      this.emit(AkaDakoConnector.BOARD_ADDED, newBoard);
     }
     /**
      * Remove a board from the boards holder.
-     * @param {AkadakoBoard} removal the board to be removed
+     * @param {AkaDakoBoard} removal the board to be removed
      */
 
   }, {
@@ -16561,13 +16647,13 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
       if (indexOfRemoval < 0) return; // not found
 
       this.boards.splice(indexOfRemoval, 1);
-      this.emit(AkadakoConnector.BOARD_ADDED, removal);
+      this.emit(AkaDakoConnector.BOARD_ADDED, removal);
     }
     /**
-     * Return a connected akadako board which is confirmed with the options
+     * Return a connected AkaDako board which is confirmed with the options
      * @param {string} extensionId - ID of the extension which is requesting
      * @param {object} options - serial port options
-     * @returns {Promise<AkadakoBoard>} a Promise which resolves a connected akadako board or reject with reason
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
 
   }, {
@@ -16587,8 +16673,8 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
         return Promise.resolve(connectedBoard);
       }
 
-      var newBoard = new AkadakoBoard(this.runtime);
-      newBoard.once(AkadakoBoard.RELEASED, function () {
+      var newBoard = new AkaDakoBoard(this.runtime);
+      newBoard.once(AkaDakoBoard.RELEASED, function () {
         _this2.removeBoard(newBoard);
 
         _this2.runtime.emit(_this2.runtime.constructor.PERIPHERAL_DISCONNECTED, {
@@ -16624,20 +16710,20 @@ var AkadakoConnector = /*#__PURE__*/function (_EventEmitter) {
     }
   }]);
 
-  return AkadakoConnector;
+  return AkaDakoConnector;
 }(EventEmitter$1);
 /**
- * Return a shared akadako connector object
+ * Return a shared AkaDako connector object
  * @param {Runtime} runtime - Scratch runtime object
- * @returns {AkadakoConnector} a akadako connector object
+ * @returns {AkaDakoConnector} a AkaDako connector object
  */
 
-var getAkadakoConnector = function getAkadakoConnector(runtime) {
-  if (!runtime.akadakoConnector) {
-    runtime.akadakoConnector = new AkadakoConnector(runtime);
+var getAkaDakoConnector = function getAkaDakoConnector(runtime) {
+  if (!runtime.akaDakoConnector) {
+    runtime.akaDakoConnector = new AkaDakoConnector(runtime);
   }
 
-  return runtime.akadakoConnector;
+  return runtime.akaDakoConnector;
 };
 
 /**
@@ -18391,13 +18477,13 @@ var BME280_REG_HUMIDITYDATA = 0xFD;
 var BME280 = /*#__PURE__*/function () {
   /**
    * Constructor of BME280 instance.
-   * @param {AkadakoBoard} board - connecting akadako board
+   * @param {AkaDakoBoard} board - connecting AkaDako board
    */
   function BME280(board) {
     _classCallCheck(this, BME280);
 
     /**
-     * Connecting akadako board
+     * Connecting AkaDako board
      * @type {import('./akadako-board').default}
      */
     this.board = board;
@@ -18979,8 +19065,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       formatMessage = runtime.formatMessage;
     }
     /**
-     * Current connected board object with akadako protocol
-     * @type {AkadakoBoard}
+     * Current connected board object with AkaDako protocol
+     * @type {AkaDakoBoard}
      */
 
 
@@ -18992,15 +19078,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.vl53l0x = null;
     /**
-     * Manager of akadako boards
-     * @type {AkadakoConnector}
+     * Manager of AkaDako boards
+     * @type {AkaDakoConnector}
      */
 
-    this.akadakoConnector = getAkadakoConnector(runtime);
-    this.akadakoConnector.addListener(AkadakoConnector.BOARD_ADDED, function () {
+    this.boardConnector = getAkaDakoConnector(runtime);
+    this.boardConnector.addListener(AkaDakoConnector.BOARD_ADDED, function () {
       return _this.updateBoard();
     });
-    this.akadakoConnector.addListener(AkadakoConnector.BOARD_REMOVED, function () {
+    this.boardConnector.addListener(AkaDakoConnector.BOARD_REMOVED, function () {
       return _this.updateBoard();
     });
     /**
@@ -19033,6 +19119,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       _this.neoPixelClearAll();
     });
+    /**
+     * Threshold value for shake event [m/s^2]
+     * @type {number}
+     */
+
+    this.shakeEventThreshold = 4.0;
+    /**
+     * Interval time to check shake event [milliseconds]
+     * @type {number}
+     */
+
+    this.shakeEventInterval = 100;
   }
   /**
    * Reset pin mode
@@ -19069,7 +19167,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function updateBoard() {
       if (this.board && this.board.isConnected()) return;
       var prev = this.board;
-      this.board = this.akadakoConnector.findBoard(this.serialPortOptions);
+      this.board = this.boardConnector.findBoard(this.serialPortOptions);
       if (prev === this.board) return;
       this.vl53l0x = null;
       this.adxl345 = null;
@@ -19106,7 +19204,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.isReady();
     }
     /**
-     * Connect a akadako board.
+     * Connect a AkaDako board.
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
 
@@ -19117,7 +19215,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       if (this.board && this.board.isConnected()) return; // Already connected
 
-      return this.akadakoConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
+      return this.boardConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
         _this3.runtime.emit(_this3.runtime.constructor.PERIPHERAL_CONNECTED, {
           name: connectedBoard.name,
           path: connectedBoard.portInfo
@@ -19509,6 +19607,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @param {object} args - the block's arguments.
      * @param {string} args.CONNECTOR - pin number of the connector
      * @param {string} args.LENGTH - length of LEDs on the module
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
@@ -19517,17 +19616,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      this.board.neoPixelConfigStrip(pin, length);
+      return this.board.neoPixelConfigStrip(pin, length);
     }
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
       if (!this.isConnected()) return;
-      this.board.neoPixelShow();
+      return this.board.neoPixelShow();
     }
     /**
      * Set color of the LED
@@ -19572,6 +19672,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {object} args - the block's arguments.
      * @param {string} args.CONNECTOR - pin number of the connector
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
@@ -19579,7 +19680,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function neoPixelClear(args) {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
-      this.board.neoPixelClear(pin);
+      return this.board.neoPixelClear(pin);
     }
     /**
      * Measure distance [mm] using ToF sensor VL53L0X.
@@ -20224,25 +20325,46 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     /**
      * Get water temperature on Digital A1.
      * Return 0 if it was not connected.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
 
   }, {
     key: "getWaterTemperatureA",
-    value: function getWaterTemperatureA() {
+    value: function getWaterTemperatureA(_args, util) {
+      var _this13 = this;
+
       if (!this.isConnected()) return Promise.resolve(0);
-      return this.getTemperatureDS18B20(10); // Digital A1: 10
+
+      if (this.waterTemperatureASensing) {
+        util.yield(); // re-try this call after a while.
+
+        return; // Do not return Promise.resolve() to re-try.
+      }
+
+      this.waterTemperatureASensing = true;
+      return this.getTemperatureDS18B20(10) // Digital A1: 10
+      .catch(function () {
+        return 0;
+      }).finally(function () {
+        _this13.waterTemperatureASensing = false;
+      });
     }
     /**
      * Get water temperature on Digital B1.
      * Return 0 if it was not connected.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
      */
 
   }, {
     key: "getWaterTemperatureB",
     value: function () {
-      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(_args, util) {
+        var _this14 = this;
+
         return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
@@ -20255,9 +20377,25 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 return _context8.abrupt("return", Promise.resolve(0));
 
               case 2:
-                return _context8.abrupt("return", this.getTemperatureDS18B20(6));
+                if (!this.waterTemperatureBSensing) {
+                  _context8.next = 5;
+                  break;
+                }
 
-              case 3:
+                util.yield(); // re-try this call after a while.
+
+                return _context8.abrupt("return");
+
+              case 5:
+                this.waterTemperatureBSensing = true;
+                return _context8.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
+                .catch(function () {
+                  return 0;
+                }).finally(function () {
+                  _this14.waterTemperatureBSensing = false;
+                }));
+
+              case 7:
               case "end":
                 return _context8.stop();
             }
@@ -20265,7 +20403,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         }, _callee8, this);
       }));
 
-      function getWaterTemperatureB() {
+      function getWaterTemperatureB(_x2, _x3) {
         return _getWaterTemperatureB.apply(this, arguments);
       }
 
@@ -20279,8 +20417,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "whenShaken",
     value: function whenShaken() {
-      // TODO: not implementd yet
-      return false;
+      var _this15 = this;
+
+      if (!this.resetShakeEventTimer) {
+        this.getAccelerationADXL345('absolute').then(function (prev) {
+          setTimeout(function () {
+            _this15.getAccelerationADXL345('absolute').then(function (next) {
+              _this15.shaken = next - prev > _this15.shakeEventThreshold;
+              _this15.resetShakeEventTimer = setTimeout(function () {
+                _this15.resetShakeEventTimer = null;
+              }, _this15.runtime.currentStepTime);
+            });
+          }, _this15.shakeEventInterval);
+        });
+      }
+
+      return !!this.shaken;
     }
     /**
      * Return a number at the index [one-based] in the numeric array.
@@ -21492,6 +21644,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
     function set(formatter) {
       formatMessage = formatter;
+      if (formatMessage) setupTranslations();
     }
     /**
      * @return {string} - the name of this extension.
