@@ -247,7 +247,11 @@ class ExtensionBlocks {
      */
     neoPixelClearAll () {
         if (!this.isConnected()) return;
-        this.board.neoPixelClearAll();
+        this.neoPixelBusy = true;
+        this.board.neoPixelClearAll()
+            .finally(() => {
+                this.neoPixelBusy = false;
+            });
     }
 
     /**
@@ -636,36 +640,67 @@ class ExtensionBlocks {
     /**
      * Configure a NeoPixel module on the pin.
      * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @param {string} args.CONNECTOR - pin number of the connector
      * @param {string} args.LENGTH - length of LEDs on the module
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelConfigStrip (args) {
+    neoPixelConfigStrip (args, util) {
         if (!this.isConnected()) return;
+        if (this.neoPixelBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
+            }
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        return this.board.neoPixelConfigStrip(pin, length);
+        return this.board.neoPixelConfigStrip(pin, length)
+            .finally(() => {
+                this.neoPixelBusy = false;
+            });
     }
 
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelShow () {
+    neoPixelShow (_args, util) {
         if (!this.isConnected()) return;
-        return this.board.neoPixelShow();
+        if (this.neoPixelBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
+            }
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.neoPixelBusy = true;
+        return this.board.neoPixelShow()
+            .finally(() => {
+                this.neoPixelBusy = false;
+            });
     }
 
     /**
      * Set color of the LED
      * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string} args.POSITION - position of the LED on the module start at 1
      * @param {string} args.COLOR - color values [r, g, b]
      * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
      */
-    neoPixelSetColor (args) {
+    neoPixelSetColor (args, util) {
         if (!this.isConnected()) return;
+        if (this.neoPixelBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
+            }
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
@@ -673,7 +708,10 @@ class ExtensionBlocks {
         const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
         const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
         const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
-        this.board.neoPixelSetColor(pin, index, [r, g, b]);
+        this.board.neoPixelSetColor(pin, index, [r, g, b])
+            .finally(() => {
+                this.neoPixelBusy = false;
+            });
     }
 
     /**
