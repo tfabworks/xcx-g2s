@@ -985,6 +985,41 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get brightness from LTR-303 on I2C
+     * @returns {Promise<number>} a Promise which resolves value of brightness [Lux]
+     */
+    async getBrightnessLTR303 () {
+        if (!this.isConnected()) return Promise.resolve(0);
+        try {
+            const addr = 0x29;
+            await this.board.i2cWrite(addr, 0x88, 1);
+            // const ch1Low = await this.board.i2cReadOnce(addr, 0x88, 1);
+            // const ch1High = await this.board.i2cReadOnce(addr, 0x89, 1);
+            // const ch0Low = await this.board.i2cReadOnce(addr, 0x8A, 1);
+            // const ch0High = await this.board.i2cReadOnce(addr, 0x8B, 1);
+            // const ch0 = (ch0High * 256) + ch0Low;
+            // const ch1 = (ch1High * 256) + ch1Low;
+            const ch0data = await this.board.i2cReadOnce(addr, 0x8A, 2);
+            const ch0 = ch0data[0] | (ch0data[1] << 8);
+            const ch1data = await this.board.i2cReadOnce(addr, 0x88, 2);
+            const ch1 = ch1data[0] | (ch1data[1] << 8);
+            const ratio = ch1 / (ch0 + ch1);
+            let lux = 0;
+            if (ratio < 0.45) {
+                lux = ((1.7743 * ch0) + (1.1059 * ch1));
+            } else if (ratio < 0.64 && ratio >= 0.45) {
+                lux = ((4.2785 * ch0) - (1.9548 * ch1));
+            } else if (ratio < 0.85 && ratio >= 0.64) {
+                lux = ((0.5926 * ch0) + (0.1185 * ch1));
+            }
+            return Math.round(lux * 10) / 10;
+        } catch (error) {
+            console.log(`Reading brightness from LTR-303 I2C was rejected by ${error}`);
+            return 0;
+        }
+    }
+
+    /**
      * Get temperature using DS18B20 on the pin.
      * @param {number} pin - pin number to use
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
@@ -1343,6 +1378,20 @@ class ExtensionBlocks {
                         id: 'g2s.measureDistanceWithLight',
                         default: 'distance by laser on I2C (cm)',
                         description: 'report distance by light'
+                    }),
+                    arguments: {
+                    }
+                },
+                '---',
+                {
+                    opcode: 'getBrightness',
+                    func: 'getBrightnessLTR303',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getBrightness',
+                        default: 'light I2C brightness (Lux)',
+                        description: 'report brightness'
                     }),
                     arguments: {
                     }
