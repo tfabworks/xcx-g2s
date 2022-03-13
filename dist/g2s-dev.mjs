@@ -1594,6 +1594,7 @@ var en = {
 	"g2s.getAccelerationAbsolute": "acceleration I2C Absolute (m/s^2)",
 	"g2s.getPitch": "acceleration I2C pitch (degree)",
 	"g2s.getRoll": "acceleration I2C roll (degree)",
+	"g2s.getBrightness": "light I2C brightness (Lux)",
 	"g2s.getTemperature": "environment I2C temperature (°C)",
 	"g2s.getPressure": "environment I2C pressure (hPa)",
 	"g2s.getHumidity": "environment I2C humidity (%)",
@@ -1667,6 +1668,7 @@ var ja = {
 	"g2s.getAccelerationAbsolute": "加速度I2Cの絶対値(m/s^2)",
 	"g2s.getPitch": "加速度I2Cのピッチ(度)",
 	"g2s.getRoll": "加速度I2Cのロール(度)",
+	"g2s.getBrightness": "光I2Cの明るさ(Lux)",
 	"g2s.getTemperature": "環境I2Cの温度(°C)",
 	"g2s.getPressure": "環境I2Cの気圧(hPa)",
 	"g2s.getHumidity": "環境I2Cの湿度(%)",
@@ -1743,6 +1745,7 @@ var translations = {
 	"g2s.getAccelerationAbsolute": "かそくどI2Cのぜったいち(m/s^2)",
 	"g2s.getPitch": "かそくどI2Cのピッチ(ど)",
 	"g2s.getRoll": "かそくどI2Cのロール(ど)",
+	"g2s.getBrightness": "ひかりI2Cのあかるさ(Lux)",
 	"g2s.getTemperature": "かんきょうI2Cのおんど(°C)",
 	"g2s.getPressure": "かんきょうI2Cのきあつ(hPa)",
 	"g2s.getHumidity": "かんきょうI2Cのしつど(%)",
@@ -19155,8 +19158,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "neoPixelClearAll",
     value: function neoPixelClearAll() {
+      var _this3 = this;
+
       if (!this.isConnected()) return;
-      this.board.neoPixelClearAll();
+      this.neoPixelBusy = true;
+      this.board.neoPixelClearAll().finally(function () {
+        _this3.neoPixelBusy = false;
+      });
     }
     /**
      * Update connected board
@@ -19211,12 +19219,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "connectBoard",
     value: function connectBoard() {
-      var _this3 = this;
+      var _this4 = this;
 
       if (this.board && this.board.isConnected()) return; // Already connected
 
       return this.boardConnector.connect(EXTENSION_ID, this.serialPortOptions).then(function (connectedBoard) {
-        _this3.runtime.emit(_this3.runtime.constructor.PERIPHERAL_CONNECTED, {
+        _this4.runtime.emit(_this4.runtime.constructor.PERIPHERAL_CONNECTED, {
           name: connectedBoard.name,
           path: connectedBoard.portInfo
         });
@@ -19226,7 +19234,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         if (reason) {
           console.log(reason);
         } else {
-          console.log("fail to connect port: ".concat(JSON.stringify(_this3.serialPortOptions)));
+          console.log("fail to connect port: ".concat(JSON.stringify(_this4.serialPortOptions)));
         }
 
         return Promise.reject(reason);
@@ -19605,6 +19613,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     /**
      * Configure a NeoPixel module on the pin.
      * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @param {string} args.CONNECTOR - pin number of the connector
      * @param {string} args.LENGTH - length of LEDs on the module
      * @returns {Promise} a Promise which resolves when the message was sent
@@ -19612,26 +19621,57 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
   }, {
     key: "neoPixelConfigStrip",
-    value: function neoPixelConfigStrip(args) {
+    value: function neoPixelConfigStrip(args, util) {
+      var _this5 = this;
+
       if (!this.isConnected()) return;
+
+      if (this.neoPixelBusy) {
+        if (util) {
+          util.yield(); // re-try this call after a while.
+        }
+
+        return; // Do not return Promise.resolve() to re-try.
+      }
+
+      this.neoPixelBusy = true;
       var pin = parseInt(args.CONNECTOR, 10);
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
-      return this.board.neoPixelConfigStrip(pin, length);
+      return this.board.neoPixelConfigStrip(pin, length).finally(function () {
+        _this5.neoPixelBusy = false;
+      });
     }
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelShow",
-    value: function neoPixelShow() {
+    value: function neoPixelShow(_args, util) {
+      var _this6 = this;
+
       if (!this.isConnected()) return;
-      return this.board.neoPixelShow();
+
+      if (this.neoPixelBusy) {
+        if (util) {
+          util.yield(); // re-try this call after a while.
+        }
+
+        return; // Do not return Promise.resolve() to re-try.
+      }
+
+      this.neoPixelBusy = true;
+      return this.board.neoPixelShow().finally(function () {
+        _this6.neoPixelBusy = false;
+      });
     }
     /**
      * Set color of the LED
      * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string} args.POSITION - position of the LED on the module start at 1
      * @param {string} args.COLOR - color values [r, g, b]
@@ -19640,8 +19680,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
   }, {
     key: "neoPixelSetColor",
-    value: function neoPixelSetColor(args) {
+    value: function neoPixelSetColor(args, util) {
+      var _this7 = this;
+
       if (!this.isConnected()) return;
+
+      if (this.neoPixelBusy) {
+        if (util) {
+          util.yield(); // re-try this call after a while.
+        }
+
+        return; // Do not return Promise.resolve() to re-try.
+      }
+
+      this.neoPixelBusy = true;
       var pin = parseInt(args.CONNECTOR, 10);
       var index = cast.toNumber(args.POSITION) - 1;
       var brightness = Math.max(0, Math.min(100, cast.toNumber(args.BRIGHTNESS))) / 100;
@@ -19649,7 +19701,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
       var g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
       var b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
-      this.board.neoPixelSetColor(pin, index, [r, g, b]);
+      this.board.neoPixelSetColor(pin, index, [r, g, b]).finally(function () {
+        _this7.neoPixelBusy = false;
+      });
     }
     /**
      * Return color values for NeoPixel.
@@ -19691,7 +19745,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "measureDistanceWithLight",
     value: function () {
       var _measureDistanceWithLight = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
-        var _this4 = this;
+        var _this8 = this;
 
         var newSensor, found, distance;
         return regenerator.wrap(function _callee$(_context) {
@@ -19749,7 +19803,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return mm / 10;
                 }).catch(function (reason) {
                   console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(reason));
-                  _this4.vl53l0x = null;
+                  _this8.vl53l0x = null;
                   return 0;
                 });
 
@@ -19781,7 +19835,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "measureDistanceWithUltrasonic",
     value: function measureDistanceWithUltrasonic(pin, util) {
-      var _this5 = this;
+      var _this9 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
 
@@ -19798,7 +19852,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
         return 0;
       }).finally(function () {
-        _this5.pingSensing = false;
+        _this9.pingSensing = false;
       });
     }
     /**
@@ -19835,7 +19889,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getAccelerationADXL345",
     value: function () {
       var _getAccelerationADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(axis) {
-        var _this6 = this;
+        var _this10 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee2$(_context2) {
@@ -19883,7 +19937,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return acceleration[axis];
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this6.adxl345 = null;
+                  _this10.adxl345 = null;
                   return 0;
                 }));
 
@@ -19950,7 +20004,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getRollADXL345",
     value: function () {
       var _getRollADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
-        var _this7 = this;
+        var _this11 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee3$(_context3) {
@@ -19994,7 +20048,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.atan2(acceleration.y, acceleration.z) * 180.0 / Math.PI;
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this7.adxl345 = null;
+                  _this11.adxl345 = null;
                   return 0;
                 }));
 
@@ -20021,7 +20075,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPitchADXL345",
     value: function () {
       var _getPitchADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this8 = this;
+        var _this12 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
@@ -20067,7 +20121,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return (angle > 0 ? 180 : -180) - angle;
                 }).catch(function (reason) {
                   console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this8.adxl345 = null;
+                  _this12.adxl345 = null;
                   return 0;
                 }));
 
@@ -20094,7 +20148,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getTemperatureBME280",
     value: function () {
       var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this9 = this;
+        var _this13 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee5$(_context5) {
@@ -20138,7 +20192,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this9.bme280 = null;
+                  _this13.bme280 = null;
                   return 0;
                 }));
 
@@ -20165,7 +20219,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPressureBME280",
     value: function () {
       var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var _this10 = this;
+        var _this14 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee6$(_context6) {
@@ -20209,7 +20263,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this10.bme280 = null;
+                  _this14.bme280 = null;
                   return 0;
                 }));
 
@@ -20236,7 +20290,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getHumidityBME280",
     value: function () {
       var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-        var _this11 = this;
+        var _this15 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee7$(_context7) {
@@ -20280,7 +20334,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this11.bme280 = null;
+                  _this15.bme280 = null;
                   return 0;
                 }));
 
@@ -20299,6 +20353,79 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getHumidityBME280;
     }()
     /**
+     * Get brightness from LTR-303 on I2C
+     * @returns {Promise<number>} a Promise which resolves value of brightness [Lux]
+     */
+
+  }, {
+    key: "getBrightnessLTR303",
+    value: function () {
+      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+        var addr, ch0data, ch0, ch1data, ch1, ratio, lux;
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context8.next = 2;
+                  break;
+                }
+
+                return _context8.abrupt("return", Promise.resolve(0));
+
+              case 2:
+                _context8.prev = 2;
+                addr = 0x29;
+                _context8.next = 6;
+                return this.board.i2cWrite(addr, 0x88, 1);
+
+              case 6:
+                _context8.next = 8;
+                return this.board.i2cReadOnce(addr, 0x8A, 2);
+
+              case 8:
+                ch0data = _context8.sent;
+                ch0 = ch0data[0] | ch0data[1] << 8;
+                _context8.next = 12;
+                return this.board.i2cReadOnce(addr, 0x88, 2);
+
+              case 12:
+                ch1data = _context8.sent;
+                ch1 = ch1data[0] | ch1data[1] << 8;
+                ratio = ch1 / (ch0 + ch1);
+                lux = 0;
+
+                if (ratio < 0.45) {
+                  lux = 1.7743 * ch0 + 1.1059 * ch1;
+                } else if (ratio < 0.64 && ratio >= 0.45) {
+                  lux = 4.2785 * ch0 - 1.9548 * ch1;
+                } else if (ratio < 0.85 && ratio >= 0.64) {
+                  lux = 0.5926 * ch0 + 0.1185 * ch1;
+                }
+
+                return _context8.abrupt("return", Math.round(lux * 10) / 10);
+
+              case 20:
+                _context8.prev = 20;
+                _context8.t0 = _context8["catch"](2);
+                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context8.t0));
+                return _context8.abrupt("return", 0);
+
+              case 24:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this, [[2, 20]]);
+      }));
+
+      function getBrightnessLTR303() {
+        return _getBrightnessLTR.apply(this, arguments);
+      }
+
+      return getBrightnessLTR303;
+    }()
+    /**
      * Get temperature using DS18B20 on the pin.
      * @param {number} pin - pin number to use
      * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
@@ -20307,14 +20434,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getTemperatureDS18B20",
     value: function getTemperatureDS18B20(pin) {
-      var _this12 = this;
+      var _this16 = this;
 
       return this.board.sendOneWireReset(pin).then(function () {
-        return _this12.board.oneWireWrite(pin, 0x44);
+        return _this16.board.oneWireWrite(pin, 0x44);
       }).then(function () {
-        return _this12.board.sendOneWireReset(pin);
+        return _this16.board.sendOneWireReset(pin);
       }).then(function () {
-        return _this12.board.oneWireWriteAndRead(pin, 0xBE, 9);
+        return _this16.board.oneWireWriteAndRead(pin, 0xBE, 9);
       }).then(function (readData) {
         var buffer = new Uint8Array(readData).buffer;
         var dataView = new DataView(buffer);
@@ -20333,7 +20460,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureA",
     value: function getWaterTemperatureA(_args, util) {
-      var _this13 = this;
+      var _this17 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
 
@@ -20348,7 +20475,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       .catch(function () {
         return 0;
       }).finally(function () {
-        _this13.waterTemperatureASensing = false;
+        _this17.waterTemperatureASensing = false;
       });
     }
     /**
@@ -20362,45 +20489,45 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureB",
     value: function () {
-      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(_args, util) {
-        var _this14 = this;
+      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(_args, util) {
+        var _this18 = this;
 
-        return regenerator.wrap(function _callee8$(_context8) {
+        return regenerator.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context8.next = 2;
+                  _context9.next = 2;
                   break;
                 }
 
-                return _context8.abrupt("return", Promise.resolve(0));
+                return _context9.abrupt("return", Promise.resolve(0));
 
               case 2:
                 if (!this.waterTemperatureBSensing) {
-                  _context8.next = 5;
+                  _context9.next = 5;
                   break;
                 }
 
                 util.yield(); // re-try this call after a while.
 
-                return _context8.abrupt("return");
+                return _context9.abrupt("return");
 
               case 5:
                 this.waterTemperatureBSensing = true;
-                return _context8.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
+                return _context9.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
                 .catch(function () {
                   return 0;
                 }).finally(function () {
-                  _this14.waterTemperatureBSensing = false;
+                  _this18.waterTemperatureBSensing = false;
                 }));
 
               case 7:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function getWaterTemperatureB(_x2, _x3) {
@@ -20417,18 +20544,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "whenShaken",
     value: function whenShaken() {
-      var _this15 = this;
+      var _this19 = this;
 
       if (!this.resetShakeEventTimer) {
         this.getAccelerationADXL345('absolute').then(function (prev) {
           setTimeout(function () {
-            _this15.getAccelerationADXL345('absolute').then(function (next) {
-              _this15.shaken = next - prev > _this15.shakeEventThreshold;
-              _this15.resetShakeEventTimer = setTimeout(function () {
-                _this15.resetShakeEventTimer = null;
-              }, _this15.runtime.currentStepTime);
+            _this19.getAccelerationADXL345('absolute').then(function (next) {
+              _this19.shaken = next - prev > _this19.shakeEventThreshold;
+              _this19.resetShakeEventTimer = setTimeout(function () {
+                _this19.resetShakeEventTimer = null;
+              }, _this19.runtime.currentStepTime);
             });
-          }, _this15.shakeEventInterval);
+          }, _this19.shakeEventInterval);
         });
       }
 
@@ -20737,6 +20864,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             id: 'g2s.measureDistanceWithLight',
             default: 'distance by laser on I2C (cm)',
             description: 'report distance by light'
+          }),
+          arguments: {}
+        }, '---', {
+          opcode: 'getBrightness',
+          func: 'getBrightnessLTR303',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.getBrightness',
+            default: 'light I2C brightness (Lux)',
+            description: 'report brightness'
           }),
           arguments: {}
         }, '---', {
