@@ -1031,16 +1031,10 @@ class ExtensionBlocks {
         try {
             const addr = 0x29;
             await this.board.i2cWrite(addr, 0x80, 1);
-            // const ch1Low = await this.board.i2cReadOnce(addr, 0x88, 1);
-            // const ch1High = await this.board.i2cReadOnce(addr, 0x89, 1);
-            // const ch0Low = await this.board.i2cReadOnce(addr, 0x8A, 1);
-            // const ch0High = await this.board.i2cReadOnce(addr, 0x8B, 1);
-            // const ch0 = (ch0High * 256) + ch0Low;
-            // const ch1 = (ch1High * 256) + ch1Low;
-            const ch0data = await this.board.i2cReadOnce(addr, 0x8A, 2);
-            const ch0 = ch0data[0] | (ch0data[1] << 8);
             const ch1data = await this.board.i2cReadOnce(addr, 0x88, 2);
             const ch1 = ch1data[0] | (ch1data[1] << 8);
+            const ch0data = await this.board.i2cReadOnce(addr, 0x8A, 2);
+            const ch0 = ch0data[0] | (ch0data[1] << 8);
             const ratio = ch1 / (ch0 + ch1);
             let lux = 0;
             if (ratio < 0.45) {
