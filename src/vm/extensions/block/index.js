@@ -1030,7 +1030,7 @@ class ExtensionBlocks {
         if (!this.isConnected()) return Promise.resolve(0);
         try {
             const addr = 0x29;
-            await this.board.i2cWrite(addr, 0x88, 1);
+            await this.board.i2cWrite(addr, 0x80, 1);
             // const ch1Low = await this.board.i2cReadOnce(addr, 0x88, 1);
             // const ch1High = await this.board.i2cReadOnce(addr, 0x89, 1);
             // const ch0Low = await this.board.i2cReadOnce(addr, 0x8A, 1);
