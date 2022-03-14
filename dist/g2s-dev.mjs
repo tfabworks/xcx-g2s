@@ -20377,7 +20377,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 _context8.prev = 2;
                 addr = 0x29;
                 _context8.next = 6;
-                return this.board.i2cWrite(addr, 0x88, 1);
+                return this.board.i2cWrite(addr, 0x80, 1);
 
               case 6:
                 _context8.next = 8;
