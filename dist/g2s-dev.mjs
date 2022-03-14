@@ -20361,7 +20361,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getBrightnessLTR303",
     value: function () {
       var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
-        var addr, ch0data, ch0, ch1data, ch1, ratio, lux;
+        var addr, ch1data, ch1, ch0data, ch0, ratio, lux;
         return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
@@ -20381,17 +20381,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
               case 6:
                 _context8.next = 8;
-                return this.board.i2cReadOnce(addr, 0x8A, 2);
-
-              case 8:
-                ch0data = _context8.sent;
-                ch0 = ch0data[0] | ch0data[1] << 8;
-                _context8.next = 12;
                 return this.board.i2cReadOnce(addr, 0x88, 2);
 
-              case 12:
+              case 8:
                 ch1data = _context8.sent;
                 ch1 = ch1data[0] | ch1data[1] << 8;
+                _context8.next = 12;
+                return this.board.i2cReadOnce(addr, 0x8A, 2);
+
+              case 12:
+                ch0data = _context8.sent;
+                ch0 = ch0data[0] | ch0data[1] << 8;
                 ratio = ch1 / (ch0 + ch1);
                 lux = 0;
 
