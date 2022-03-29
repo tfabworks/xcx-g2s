@@ -32,7 +32,7 @@ const entry = {
             defaultMessage: 'Connect Grove sensors and actuators.',
             description: 'Description for this extension',
             id: 'g2s.entry.description'
-        })} (v0.9.0)`;
+        })} (v0.10.0)`;
     },
     featured: true,
     disabled: false,
