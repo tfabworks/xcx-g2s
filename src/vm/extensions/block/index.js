@@ -1028,12 +1028,18 @@ class ExtensionBlocks {
      */
     async getBrightnessLTR303 () {
         if (!this.isConnected()) return Promise.resolve(0);
+        const i2cAddr = 0x29;
+        const partIDReg = 0x86;
+        const partID = await this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
+        if ((partID[0] & 0xF0) !== 0xA0) {
+            // no LTR-303 on I2C
+            return 0;
+        }
         try {
-            const addr = 0x29;
-            await this.board.i2cWrite(addr, 0x80, 1);
-            const ch1data = await this.board.i2cReadOnce(addr, 0x88, 2);
+            await this.board.i2cWrite(i2cAddr, 0x80, 1);
+            const ch1data = await this.board.i2cReadOnce(i2cAddr, 0x88, 2);
             const ch1 = ch1data[0] | (ch1data[1] << 8);
-            const ch0data = await this.board.i2cReadOnce(addr, 0x8A, 2);
+            const ch0data = await this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
             const ch0 = ch0data[0] | (ch0data[1] << 8);
             const ratio = ch1 / (ch0 + ch1);
             let lux = 0;
