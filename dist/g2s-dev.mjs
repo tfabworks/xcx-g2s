@@ -53,7 +53,7 @@ var entry = {
       defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    }), " (v0.9.0)");
+    }), " (v0.10.0)");
   },
 
   featured: true,
@@ -20361,7 +20361,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getBrightnessLTR303",
     value: function () {
       var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
-        var addr, ch1data, ch1, ch0data, ch0, ratio, lux;
+        var i2cAddr, partIDReg, partID, ch1data, ch1, ch0data, ch0, ratio, lux;
         return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
@@ -20374,22 +20374,37 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 return _context8.abrupt("return", Promise.resolve(0));
 
               case 2:
-                _context8.prev = 2;
-                addr = 0x29;
+                i2cAddr = 0x29;
+                partIDReg = 0x86;
                 _context8.next = 6;
-                return this.board.i2cWrite(addr, 0x80, 1);
+                return this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
 
               case 6:
-                _context8.next = 8;
-                return this.board.i2cReadOnce(addr, 0x88, 2);
+                partID = _context8.sent;
 
-              case 8:
-                ch1data = _context8.sent;
-                ch1 = ch1data[0] | ch1data[1] << 8;
+                if (!((partID[0] & 0xF0) !== 0xA0)) {
+                  _context8.next = 9;
+                  break;
+                }
+
+                return _context8.abrupt("return", 0);
+
+              case 9:
+                _context8.prev = 9;
                 _context8.next = 12;
-                return this.board.i2cReadOnce(addr, 0x8A, 2);
+                return this.board.i2cWrite(i2cAddr, 0x80, 1);
 
               case 12:
+                _context8.next = 14;
+                return this.board.i2cReadOnce(i2cAddr, 0x88, 2);
+
+              case 14:
+                ch1data = _context8.sent;
+                ch1 = ch1data[0] | ch1data[1] << 8;
+                _context8.next = 18;
+                return this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
+
+              case 18:
                 ch0data = _context8.sent;
                 ch0 = ch0data[0] | ch0data[1] << 8;
                 ratio = ch1 / (ch0 + ch1);
@@ -20405,18 +20420,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
                 return _context8.abrupt("return", Math.round(lux * 10) / 10);
 
-              case 20:
-                _context8.prev = 20;
-                _context8.t0 = _context8["catch"](2);
+              case 26:
+                _context8.prev = 26;
+                _context8.t0 = _context8["catch"](9);
                 console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context8.t0));
                 return _context8.abrupt("return", 0);
 
-              case 24:
+              case 30:
               case "end":
                 return _context8.stop();
             }
           }
-        }, _callee8, this, [[2, 20]]);
+        }, _callee8, this, [[9, 26]]);
       }));
 
       function getBrightnessLTR303() {
