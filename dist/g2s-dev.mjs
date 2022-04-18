@@ -19487,6 +19487,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "servoTurn",
     value: function servoTurn(args) {
+      if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
       var angle = cast.toNumber(args.ANGLE);
       var servoValue = 90 - angle; // = 180 - (angle + 90)
