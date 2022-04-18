@@ -524,6 +524,7 @@ class ExtensionBlocks {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     servoTurn (args) {
+        if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
         const angle = Cast.toNumber(args.ANGLE);
         let servoValue = 90 - angle; // = 180 - (angle + 90)
