@@ -228,6 +228,11 @@ class ExtensionBlocks {
          * @type {number}
          */
         this.shakeEventInterval = 100;
+
+        // eslint-disable-next-line no-unused-vars
+        window.addEventListener('beforeunload', e => {
+            this.disconnectBoard();
+        });
     }
 
     /**
