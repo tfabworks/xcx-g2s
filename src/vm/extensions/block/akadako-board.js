@@ -127,6 +127,12 @@ class AkaDakoBoard extends EventEmitter {
         this.digitalReadInterval = 20;
 
         /**
+         * Waiting time to connect the board in milliseconds.
+         * @type {number}
+         */
+        this.connectingWaitingTime = 1000;
+
+        /**
          * shortest interval time between analog input readings
          * @type {number}
          */
@@ -230,12 +236,16 @@ class AkaDakoBoard extends EventEmitter {
                 console.log(data);
             });
         }
-        return new Promise((resolve, reject) => {
+        const request = new Promise((resolve, reject) => {
             this.port.open(error => {
                 if (error) {
-                    this.releaseBoard();
-                    reject(error);
-                    return;
+                    if (error.name !== 'InvalidStateError') {
+                        // fail by unknown reasons
+                        this.releaseBoard();
+                        reject(error);
+                        return;
+                    }
+                    // this port was already opened
                 }
                 this.firmata.once('ready', () => {
                     this.onBoarReady();
@@ -243,6 +253,11 @@ class AkaDakoBoard extends EventEmitter {
                 });
             });
         });
+        return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
+            .catch(reason => {
+                this.releaseBoard();
+                return Promise.reject(reason);
+            });
     }
 
     /**
