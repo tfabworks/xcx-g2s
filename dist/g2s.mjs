@@ -53,7 +53,7 @@ var entry = {
       defaultMessage: 'Connect Grove sensors and actuators.',
       description: 'Description for this extension',
       id: 'g2s.entry.description'
-    }), " (v0.10.1)");
+    }), " (v0.10.2)");
   },
 
   featured: true,
@@ -15638,6 +15638,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.digitalReadInterval = 20;
     /**
+     * Waiting time to connect the board in milliseconds.
+     * @type {number}
+     */
+
+    _this.connectingWaitingTime = 1000;
+    /**
      * shortest interval time between analog input readings
      * @type {number}
      */
@@ -15713,7 +15719,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       var _requestPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(extensionId, options) {
         var _this2 = this;
 
-        var nativePort, permittedPorts;
+        var nativePort, permittedPorts, request;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -15781,13 +15787,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   _this2.handleDisconnectError(error);
                 });
 
-                return _context.abrupt("return", new Promise(function (resolve, reject) {
+                request = new Promise(function (resolve, reject) {
                   _this2.port.open(function (error) {
                     if (error) {
-                      _this2.releaseBoard();
+                      if (error.name !== 'InvalidStateError') {
+                        // fail by unknown reasons
+                        _this2.releaseBoard();
 
-                      reject(error);
-                      return;
+                        reject(error);
+                        return;
+                      } // this port was already opened
+
                     }
 
                     _this2.firmata.once('ready', function () {
@@ -15796,9 +15806,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                       resolve(_this2);
                     });
                   });
+                });
+                return _context.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
+                  _this2.releaseBoard();
+
+                  return Promise.reject(reason);
                 }));
 
-              case 24:
+              case 25:
               case "end":
                 return _context.stop();
             }
@@ -19133,7 +19148,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @type {number}
      */
 
-    this.shakeEventInterval = 100;
+    this.shakeEventInterval = 100; // eslint-disable-next-line no-unused-vars
+
+    window.addEventListener('beforeunload', function (e) {
+      _this.disconnectBoard();
+    });
   }
   /**
    * Reset pin mode
