@@ -11,6 +11,8 @@ import {
     PIXEL_SHOW
 } from './node-pixel-constants';
 
+const Firmata = bindTransport.Firmata;
+
 const PING_SENSOR_COMMAND = 0x01;
 
 const BOARD_VERSION_QUERY = 0x0F;
@@ -21,10 +23,6 @@ const BOARD_VERSION_QUERY = 0x0F;
  * @returns {Promise<string>} Promise which will reject with reason after the delay.
  */
 const timeoutReject = delay => new Promise((_, reject) => setTimeout(() => reject(`timeout ${delay}ms`), delay));
-
-// Setup transport of Firmata.
-SerialPort.Binding = WSABinding;
-const Firmata = bindTransport(SerialPort);
 
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
@@ -210,12 +208,15 @@ class AkaDakoBoard extends EventEmitter {
         } else {
             nativePort = await navigator.serial.requestPort(options);
         }
+        // Setup transport of Firmata.
+        SerialPort.Binding = WSABinding;
+        const SerialFirmata = bindTransport(SerialPort);
         this.port = new SerialPort(nativePort, {
             baudRate: 57600, // firmata: 57600
             autoOpen: false
         });
         this.portInfo = this.port.path.getInfo();
-        this.firmata = new Firmata(this.port, {reportVersionTimeout: 0});
+        this.firmata = new SerialFirmata(this.port, {reportVersionTimeout: 0});
         this.firmata.once('open', () => {
             this.state = 'connect';
         });
