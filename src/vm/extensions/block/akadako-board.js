@@ -347,10 +347,12 @@ class AkaDakoBoard extends EventEmitter {
         const request = new Promise(resolve => {
             this.firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
                 const value = Firmata.decode([data[0], data[1]]);
-                const minor = value & 0x3F;
-                const major = (value >> 6) & 0x0F;
-                const type = (value >> 10) & 0x0F;
-                resolve(`${type}.${major}.${minor}`);
+                this.version = {
+                    type: (value >> 10) & 0x0F,
+                    major: (value >> 6) & 0x0F,
+                    minor: value & 0x3F
+                };
+                resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
             });
             this.firmata.sysexCommand([BOARD_VERSION_QUERY]);
         });
