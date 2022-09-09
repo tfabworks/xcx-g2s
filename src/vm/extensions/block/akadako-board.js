@@ -464,16 +464,6 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Asks the board to read digital data.
-     * @param {number} pin - pin number to read
-     * @param {function(number)} callback - the function to call when data has been received
-     * @returns {undefined}
-     */
-    digitalRead (pin, callback) {
-        return this.firmata.digitalRead(pin, callback);
-    }
-
-    /**
      * Asks the board to write a value to a digital pin
      * @param {number} pin - The pin you want to write a value to.
      * @param {number} value - The value you want to write. Must be board.HIGH or board.LOW
@@ -511,16 +501,6 @@ class AkaDakoBoard extends EventEmitter {
             this.firmata.servoWrite(...args);
             setTimeout(() => resolve(), this.sendingInterval);
         });
-    }
-
-    /**
-     * Asks the board to read digital data.
-     * @param {number} pin - pin number to read
-     * @param {function(number)} callback - the function to call when data has been received
-     * @returns {undefined}
-     */
-    analogRead (pin, callback) {
-        return this.firmata.analogRead(pin, callback);
     }
 
     /**
