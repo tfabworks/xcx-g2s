@@ -107,12 +107,6 @@ class AkaDakoBoard extends EventEmitter {
         this.firmata = null;
 
         /**
-         * The serial port for transporting of Firmata.
-         * @type {SerialPort}
-         */
-        this.port = null;
-
-        /**
          * ID of the extension which requested to open port.
          * @type {string}
          */
@@ -191,16 +185,36 @@ class AkaDakoBoard extends EventEmitter {
         this.defaultNeoPixelLength = 32;
     }
 
+    setupFirmata (firmata) {
+        // Setup firmata
+        firmata.once('open', () => {
+            this.state = 'connect';
+        });
+        firmata.once('close', () => {
+            if (this.state === 'disconnect') return;
+            this.releaseBoard();
+        });
+        firmata.once('disconnect', error => {
+            if (this.state === 'disconnect') return;
+            this.handleDisconnectError(error);
+        });
+        firmata.once('error', error => {
+            if (this.state === 'disconnect') return;
+            this.handleDisconnectError(error);
+        });
+        if (DEBUG) {
+            firmata.transport.addListener('data', data => {
+                console.log(data);
+            });
+        }
+    }
+
     /**
-     * Open a port to connect a AkaDako board.
-     * @param {string} extensionId - ID of the extension which is requesting
+     * Ask user to open serial port for firmata and return it.
      * @param {object} options - serial port options
-     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
+     * @returns {SerialPort} opened serial port
      */
-    async requestPort (extensionId, options) {
-        if (this.port) return Promise.resolve(this); // already opened
-        this.state = 'portRequesting';
-        this.extensionId = extensionId;
+    async openSerialPort (options) {
         let nativePort = null;
         const permittedPorts = await navigator.serial.getPorts();
         if ((permittedPorts !== null) && (Array.isArray(permittedPorts)) && (permittedPorts.length > 0)) {
@@ -208,52 +222,37 @@ class AkaDakoBoard extends EventEmitter {
         } else {
             nativePort = await navigator.serial.requestPort(options);
         }
-        // Setup transport of Firmata.
         SerialPort.Binding = WSABinding;
-        const SerialFirmata = bindTransport(SerialPort);
-        this.port = new SerialPort(nativePort, {
-            baudRate: 57600, // firmata: 57600
-            autoOpen: false
+        const port = new SerialPort(nativePort, {
+            baudRate: 57600, // default baud rate for firmata
+            autoOpen: true
         });
-        this.portInfo = this.port.path.getInfo();
-        this.firmata = new SerialFirmata(this.port, {reportVersionTimeout: 0});
-        this.firmata.once('open', () => {
-            this.state = 'connect';
-        });
-        this.firmata.once('close', () => {
-            if (this.state === 'disconnect') return;
-            this.releaseBoard();
-        });
-        this.firmata.once('disconnect', error => {
-            if (this.state === 'disconnect') return;
-            this.handleDisconnectError(error);
-        });
-        this.firmata.once('error', error => {
-            if (this.state === 'disconnect') return;
-            this.handleDisconnectError(error);
-        });
-        if (DEBUG) {
-            this.port.addListener('data', data => {
-                console.log(data);
-            });
-        }
-        const request = new Promise((resolve, reject) => {
-            this.port.open(error => {
-                if (error) {
-                    if (error.name !== 'InvalidStateError') {
-                        // fail by unknown reasons
-                        this.releaseBoard();
-                        reject(error);
-                        return;
-                    }
-                    // this port was already opened
-                }
-                this.firmata.once('ready', () => {
-                    this.onBoarReady();
-                    resolve(this);
+        this.portInfo = port.path.getInfo();
+        return port;
+    }
+
+    /**
+     * Open a port to connect a AkaDako board.
+     * @param {string} extensionId - ID of the extension which is requesting
+     * @param {object} options - serial port options
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
+     */
+    async requestPort (extensionId, options) {
+        if (this.firmata) return Promise.resolve(this); // already opened
+        this.state = 'portRequesting';
+        this.extensionId = extensionId;
+        const request = this.openSerialPort(options)
+            .then(port => {
+                const firmata = new Firmata(port, {reportVersionTimeout: 0});
+                this.setupFirmata(firmata);
+                return new Promise(resolve => {
+                    firmata.once('ready', () => {
+                        this.firmata = firmata;
+                        this.onBoarReady();
+                        resolve(this);
+                    });
                 });
             });
-        });
         return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
             .catch(reason => {
                 this.releaseBoard();
@@ -295,10 +294,10 @@ class AkaDakoBoard extends EventEmitter {
     releaseBoard () {
         this.state = 'disconnect';
         this.neoPixel = [];
-        if (this.port && this.port.isOpen) {
-            this.port.close();
+        if (this.firmata && this.firmata.transport) {
+            this.firmata.transport.close();
         }
-        this.port = null;
+        this.firmata = null;
         this.oneWireDevices = null;
         this.extensionId = null;
         this.emit(AkaDakoBoard.RELEASED);
@@ -309,7 +308,7 @@ class AkaDakoBoard extends EventEmitter {
      */
     disconnect () {
         if (this.state === 'disconnect') return;
-        if (this.firmata && this.port && this.port.isOpen) {
+        if (this.firmata) {
             this.firmata.reset(); // notify disconnection to board
         }
         this.releaseBoard();
