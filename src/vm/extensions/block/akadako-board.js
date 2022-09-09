@@ -396,11 +396,12 @@ class AkaDakoBoard extends EventEmitter {
                 this.pins[pin].inputBias = this.firmata.MODES.INPUT;
             }
             this.firmata.pinMode(pin, this.pins[pin].inputBias);
-            this.firmata.digitalRead(
-                pin,
+            this.firmata.reportDigitalPin(pin, 1);
+            this.firmata.once(`digital-read-${pin}`,
                 value => {
                     this.pins[pin].value = value;
                     this.pins[pin].updateTime = Date.now();
+                    this.firmata.reportDigitalPin(pin, 0);
                     resolve(this.pins[pin].value);
                 });
         });
@@ -443,11 +444,12 @@ class AkaDakoBoard extends EventEmitter {
         this.pins[pin].updating = true;
         const request = new Promise(resolve => {
             this.firmata.pinMode(analogPin, this.MODES.ANALOG);
-            this.firmata.analogRead(
-                analogPin,
+            this.firmata.reportAnalogPin(analogPin, 1);
+            this.firmata.once(`analog-read-${analogPin}`,
                 value => {
                     this.pins[pin].value = value;
                     this.pins[pin].updateTime = Date.now();
+                    this.firmata.reportAnalogPin(analogPin, 0);
                     resolve(this.pins[pin].value);
                 });
         });
