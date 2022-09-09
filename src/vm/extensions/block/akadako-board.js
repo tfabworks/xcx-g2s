@@ -266,7 +266,9 @@ class AkaDakoBoard extends EventEmitter {
     onBoarReady () {
         const firmInfo = this.firmata.firmware;
         console.log(
-            `${firmInfo.name}-${firmInfo.version.major}.${firmInfo.version.minor} on: ${JSON.stringify(this.portInfo)}`
+            `${firmInfo.name}` +
+            `-${String(firmInfo.version.major)}.${String(firmInfo.version.minor)}` +
+            ` on: ${JSON.stringify(this.portInfo)}`
         );
         this.firmata.i2cConfig();
         this.state = 'ready';
