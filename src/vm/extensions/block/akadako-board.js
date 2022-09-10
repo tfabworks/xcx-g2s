@@ -185,28 +185,38 @@ class AkaDakoBoard extends EventEmitter {
         this.defaultNeoPixelLength = 32;
     }
 
+    /**
+     * Setup default settings for Firmata
+     * @param {Firmata} firmata set it up
+     */
     setupFirmata (firmata) {
         // Setup firmata
         firmata.once('open', () => {
+            if (this.firmata !== firmata) return;
             this.state = 'connect';
         });
         firmata.once('close', () => {
+            if (this.firmata !== firmata) return;
             if (this.state === 'disconnect') return;
             this.releaseBoard();
         });
         firmata.once('disconnect', error => {
+            if (this.firmata !== firmata) return;
             if (this.state === 'disconnect') return;
             this.handleDisconnectError(error);
         });
         firmata.once('error', error => {
+            if (this.firmata !== firmata) return;
             if (this.state === 'disconnect') return;
             this.handleDisconnectError(error);
         });
         if (DEBUG) {
+            if (this.firmata !== firmata) return;
             firmata.transport.addListener('data', data => {
                 console.log(data);
             });
         }
+        this.firmata = firmata;
     }
 
     /**
@@ -247,7 +257,7 @@ class AkaDakoBoard extends EventEmitter {
                 this.setupFirmata(firmata);
                 return new Promise(resolve => {
                     firmata.once('ready', () => {
-                        this.firmata = firmata;
+                        if (this.firmata !== firmata) return;
                         this.onBoarReady();
                         resolve(this);
                     });
@@ -296,10 +306,13 @@ class AkaDakoBoard extends EventEmitter {
     releaseBoard () {
         this.state = 'disconnect';
         this.neoPixel = [];
-        if (this.firmata && this.firmata.transport) {
-            this.firmata.transport.close();
+        if (this.firmata) {
+            if (this.firmata.transport) {
+                this.firmata.transport.close();
+            }
+            this.firmata.removeAllListeners();
+            this.firmata = null;
         }
-        this.firmata = null;
         this.oneWireDevices = null;
         this.extensionId = null;
         this.emit(AkaDakoBoard.RELEASED);
