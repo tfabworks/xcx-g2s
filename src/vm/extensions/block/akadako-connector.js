@@ -42,6 +42,13 @@ export class AkaDakoConnector extends EventEmitter {
         this.boards = [];
 
         /**
+         * Selection rules for MIDIPort
+         */
+        this.midiPortFilters = [
+            {manufacturer: 'TFabWorks', name: 'MidiDako'}
+        ];
+
+        /**
          * Settings for WebSerial
          */
         this.serialPortOptions = {
@@ -98,7 +105,11 @@ export class AkaDakoConnector extends EventEmitter {
             // share a board object
             return Promise.resolve(connectedBoard);
         }
-        return this.connectSerial(extensionId);
+        return this.connectMIDI(extensionId)
+            .catch(reason => {
+                console.log(reason);
+                return this.connectSerial(extensionId);
+            });
     }
 
     connectSerial (extensionId) {
@@ -108,6 +119,28 @@ export class AkaDakoConnector extends EventEmitter {
         const newBoard = new AkaDakoBoard(this.runtime);
         newBoard.extensionId = extensionId;
         return newBoard.connectSerial(this.serialPortOptions)
+            .then(connected => {
+                this.addBoard(connected);
+                connected.once(AkaDakoBoard.RELEASED, () => {
+                    this.removeBoard(connected);
+                    this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+                        name: connected.name,
+                        path: connected.portInfo
+                    });
+                });
+                return connected;
+            });
+    }
+
+    /**
+     * Return a connected AkaDako board via MIDI interface
+     * @param {string} extensionId - ID of the extension which is requesting
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
+     */
+    connectMIDI (extensionId) {
+        const newBoard = new AkaDakoBoard(this.runtime);
+        newBoard.extensionId = extensionId;
+        return newBoard.connectMIDI(this.midiPortFilters)
             .then(connected => {
                 this.addBoard(connected);
                 connected.once(AkaDakoBoard.RELEASED, () => {

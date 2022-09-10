@@ -2,6 +2,8 @@ import {EventEmitter} from 'events';
 import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
+import FirmataWebMIDI from 'firmata-webmidi';
+import {pins, analogPins} from './akadako-board-settings';
 import {
     FIRMATA_7BIT_MASK,
     COLOR_ORDER,
@@ -259,6 +261,99 @@ class AkaDakoBoard extends EventEmitter {
                         this.onBoarReady();
                         resolve(this);
                     });
+                });
+            });
+        return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
+            .catch(reason => {
+                this.releaseBoard();
+                return Promise.reject(reason);
+            });
+    }
+
+    /**
+     * Request MidiDako MIDIport and return it as a Firmata transport
+     *
+     * @param {Array<{manufacturer: string, name: string}>} filters selecting rules for MIDIPort
+     * @returns {Promise<FirmataWebMIDI>} MIDI transport for Firmata
+     */
+    async openMIDIPort (filters) {
+        const midiAccess = await navigator.requestMIDIAccess({sysex: true});
+        const inputs = midiAccess.inputs.values();
+        if (inputs.length === 0) return Promise.reject('no MIDIInput');
+        let inputPort = null;
+        const outputs = midiAccess.outputs.values();
+        if (outputs.length === 0) return Promise.reject('no MIDIOutput');
+        let outputPort = null;
+        if (filters) {
+            for (const filter of filters) {
+                for (const port of inputs) {
+                    if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
+                    (!filter.name || filter.name === port.name)) {
+                        inputPort = port;
+                        break;
+                    }
+                }
+                if (inputPort) break;
+            }
+            if (!inputPort) return Promise.reject(`no MIDIInput for filter: ${JSON.stringify(filters)}`);
+            for (const filter of filters) {
+                for (const port of outputs) {
+                    if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
+                    (!filter.name || filter.name === port.name)) {
+                        outputPort = port;
+                        break;
+                    }
+                }
+                if (outputPort) break;
+            }
+            if (!outputPort) return Promise.reject(`no MIDIOutput for filter: ${JSON.stringify(filters)}`);
+        } else {
+            inputPort = inputs[0];
+            outputPort = outputs[0];
+        }
+        this.portInfo = {manufacturer: inputPort.manufacturer, name: inputPort.name};
+        return new FirmataWebMIDI(inputPort, outputPort);
+    }
+
+    /**
+     * Return connected AkaDako board using WebMIDI
+     * @param {Array<{manufacturer: string, name: string}>} filters - selecting rules for MIDIPort
+     * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
+     */
+    connectMIDI (filters) {
+        if (this.firmata) return Promise.resolve(this); // already opened
+        this.state = 'portRequesting';
+        const request = this.openMIDIPort(filters)
+            .then(async port => {
+                const firmata = new Firmata(
+                    port,
+                    {
+                        reportVersionTimeout: 0,
+                        skipCapabilities: true,
+                        pins: pins,
+                        analogPins: analogPins
+                    });
+                this.setupFirmata(firmata);
+                // firmata version is fixed
+                this.firmata.version.major = 2;
+                this.firmata.version.minor = 3;
+                this.firmata.emit('reportversion');
+                await this.boardVersion();
+                this.firmata.firmware = {
+                    name: String(this.version.type),
+                    version: {
+                        major: this.version.major,
+                        minor: this.version.minor
+                    }
+                };
+                return new Promise(resolve => {
+                    this.firmata.once('ready', () => {
+                        this.firmata.queryAnalogMapping(() => {
+                            this.onBoarReady();
+                            resolve(this);
+                        });
+                    });
+                    this.firmata.emit('queryfirmware');
                 });
             });
         return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
