@@ -242,15 +242,13 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Open a port to connect a AkaDako board.
-     * @param {string} extensionId - ID of the extension which is requesting
+     * Return connected AkaDako board using WebSerial
      * @param {object} options - serial port options
      * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
-    async requestPort (extensionId, options) {
+    async connectSerial (options) {
         if (this.firmata) return Promise.resolve(this); // already opened
         this.state = 'portRequesting';
-        this.extensionId = extensionId;
         const request = this.openSerialPort(options)
             .then(port => {
                 const firmata = new Firmata(port, {reportVersionTimeout: 0});

@@ -40,6 +40,17 @@ export class AkaDakoConnector extends EventEmitter {
          * @type {Array<AkaDakoBoard>}
          */
         this.boards = [];
+
+        /**
+         * Settings for WebSerial
+         */
+        this.serialPortOptions = {
+            filters: [
+                {usbVendorId: 0x04D8, usbProductId: 0xE83A}, // Licensed for AkaDako
+                {usbVendorId: 0x04D8, usbProductId: 0x000A}, // Dev board
+                {usbVendorId: 0x04D9, usbProductId: 0xB534} // Use in the future
+            ]
+        };
     }
 
     /**
@@ -77,35 +88,39 @@ export class AkaDakoConnector extends EventEmitter {
     }
 
     /**
-     * Return a connected AkaDako board which is confirmed with the options
+     * Return a connected AkaDako board
      * @param {string} extensionId - ID of the extension which is requesting
-     * @param {object} options - serial port options
      * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
-    connect (extensionId, options) {
-        if (!('serial' in navigator)) {
-            console.log('This browser does not support Web Serial API.');
-            return Promise.reject('This browser does not support Web Serial API.');
-        }
-        const connectedBoard = this.findBoard(options);
+    connectedBoard (extensionId) {
+        const connectedBoard = this.findBoard();
         if (connectedBoard) {
             // share a board object
             return Promise.resolve(connectedBoard);
         }
+        return this.connectSerial(extensionId);
+    }
+
+    connectSerial (extensionId) {
+        if (!('serial' in navigator)) {
+            return Promise.reject('This browser does not support Web Serial API.');
+        }
         const newBoard = new AkaDakoBoard(this.runtime);
-        newBoard.once(AkaDakoBoard.RELEASED, () => {
-            this.removeBoard(newBoard);
-            this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
-                name: newBoard.name,
-                path: newBoard.portInfo
-            });
-        });
-        return newBoard.requestPort(extensionId, options)
+        newBoard.extensionId = extensionId;
+        return newBoard.connectSerial(this.serialPortOptions)
             .then(connected => {
                 this.addBoard(connected);
+                connected.once(AkaDakoBoard.RELEASED, () => {
+                    this.removeBoard(connected);
+                    this.runtime.emit(this.runtime.constructor.PERIPHERAL_DISCONNECTED, {
+                        name: connected.name,
+                        path: connected.portInfo
+                    });
+                });
                 return connected;
             });
     }
+
 }
 
 /**

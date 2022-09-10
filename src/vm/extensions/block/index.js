@@ -201,14 +201,6 @@ class ExtensionBlocks {
                 this.pins[pin] = {};
             });
 
-        this.serialPortOptions = {
-            filters: [
-                {usbVendorId: 0x04D8, usbProductId: 0xE83A}, // Licensed for AkaDako
-                {usbVendorId: 0x04D8, usbProductId: 0x000A}, // Dev board
-                {usbVendorId: 0x04D9, usbProductId: 0xB534} // Use in the future
-            ]
-        };
-
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
@@ -265,7 +257,7 @@ class ExtensionBlocks {
     updateBoard () {
         if (this.board && this.board.isConnected()) return;
         const prev = this.board;
-        this.board = this.boardConnector.findBoard(this.serialPortOptions);
+        this.board = this.boardConnector.findBoard();
         if (prev === this.board) return;
         this.vl53l0x = null;
         this.adxl345 = null;
@@ -302,7 +294,7 @@ class ExtensionBlocks {
      */
     connectBoard () {
         if (this.board && this.board.isConnected()) return; // Already connected
-        return this.boardConnector.connect(EXTENSION_ID, this.serialPortOptions)
+        return this.boardConnector.connectedBoard(EXTENSION_ID)
             .then(connectedBoard => {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
                     name: connectedBoard.name,
@@ -314,7 +306,7 @@ class ExtensionBlocks {
                 if (reason) {
                     console.log(reason);
                 } else {
-                    console.log(`fail to connect port: ${JSON.stringify(this.serialPortOptions)}`);
+                    console.log(`fail to connect AkaDako Board`);
                 }
                 return Promise.reject(reason);
             });
