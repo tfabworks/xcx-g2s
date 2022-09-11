@@ -248,21 +248,21 @@ class AkaDakoBoard extends EventEmitter {
      * @param {object} options - serial port options
      * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
-    async connectSerial (options) {
+    connectSerial (options) {
         if (this.firmata) return Promise.resolve(this); // already opened
         this.state = 'portRequesting';
         const request = this.openSerialPort(options)
-            .then(port => {
-                const firmata = new Firmata(port, {reportVersionTimeout: 0});
-                this.setupFirmata(firmata);
-                return new Promise(resolve => {
-                    firmata.once('ready', () => {
-                        if (this.firmata !== firmata) return;
+            .then(port => new Promise(resolve => {
+                const firmata = new Firmata(
+                    port,
+                    {reportVersionTimeout: 0},
+                    async () => {
+                        this.setupFirmata(firmata);
+                        await this.boardVersion();
                         this.onBoarReady();
                         resolve(this);
                     });
-                });
-            });
+            }));
         return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
             .catch(reason => {
                 this.releaseBoard();
@@ -367,10 +367,8 @@ class AkaDakoBoard extends EventEmitter {
      * Called when a board was ready.
      */
     onBoarReady () {
-        const firmInfo = this.firmata.firmware;
         console.log(
-            `${firmInfo.name}` +
-            `-${String(firmInfo.version.major)}.${String(firmInfo.version.minor)}` +
+            `${this.version.type}.${String(this.version.major)}.${String(this.version.minor)}` +
             ` on: ${JSON.stringify(this.portInfo)}`
         );
         this.firmata.i2cConfig();
