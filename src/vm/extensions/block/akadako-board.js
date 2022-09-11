@@ -196,6 +196,7 @@ class AkaDakoBoard extends EventEmitter {
         firmata.once('open', () => {
             if (this.firmata !== firmata) return;
             this.state = 'connect';
+            this.emit('connect');
         });
         firmata.once('close', () => {
             if (this.firmata !== firmata) return;
@@ -372,6 +373,7 @@ class AkaDakoBoard extends EventEmitter {
         );
         this.firmata.i2cConfig();
         this.state = 'ready';
+        this.emit('ready');
     }
 
     /**
@@ -405,6 +407,7 @@ class AkaDakoBoard extends EventEmitter {
         }
         this.oneWireDevices = null;
         this.extensionId = null;
+        this.emit('disconnect');
         this.emit(AkaDakoBoard.RELEASED);
     }
 
