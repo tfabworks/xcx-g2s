@@ -450,8 +450,9 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {string} version info
      */
     boardVersion () {
+        const firmata = this.firmata;
         const request = new Promise(resolve => {
-            this.firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
+            firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
                 const value = Firmata.decode([data[0], data[1]]);
                 this.version = {
                     type: (value >> 10) & 0x0F,
@@ -460,11 +461,11 @@ class AkaDakoBoard extends EventEmitter {
                 };
                 resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
             });
-            this.firmata.sysexCommand([BOARD_VERSION_QUERY]);
+            firmata.sysexCommand([BOARD_VERSION_QUERY]);
         });
         return Promise.race([request, timeoutReject(100)])
             .finally(() => {
-                this.firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+                firmata.clearSysexResponse(BOARD_VERSION_QUERY);
             });
     }
 
@@ -851,18 +852,19 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Promise<number>} a Promise which resolves value from the sensor
      */
     pingSensor (pin, timeout) {
+        const firmata = this.firmata;
         timeout = timeout ? timeout : this.pingSensorWaitingTime;
-        this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
+        firmata.pinMode(pin, firmata.MODES.PING_READ);
         const request = new Promise(resolve => {
-            this.firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
+            firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
                 const value = Firmata.decode([data[1], data[2]]);
                 resolve(value);
             });
-            this.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+            firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
             .finally(() => {
-                this.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+                firmata.clearSysexResponse(PING_SENSOR_COMMAND);
             });
     }
 
