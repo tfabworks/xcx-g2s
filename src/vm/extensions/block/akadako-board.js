@@ -2,7 +2,7 @@ import {EventEmitter} from 'events';
 import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
-import FirmataWebMIDI from 'firmata-webmidi';
+import MidiDakoTransport from './mididako-transport';
 import {pins, analogPins} from './akadako-board-settings';
 import {
     FIRMATA_7BIT_MASK,
@@ -275,15 +275,13 @@ class AkaDakoBoard extends EventEmitter {
      * Request MidiDako MIDIport and return it as a Firmata transport
      *
      * @param {Array<{manufacturer: string, name: string}>} filters selecting rules for MIDIPort
-     * @returns {Promise<FirmataWebMIDI>} MIDI transport for Firmata
+     * @returns {Promise<MidiDakoTransport>} MIDI transport for Firmata
      */
     async openMIDIPort (filters) {
         const midiAccess = await navigator.requestMIDIAccess({sysex: true});
         const inputs = midiAccess.inputs.values();
-        if (inputs.length === 0) return Promise.reject('no MIDIInput');
-        let inputPort = null;
         const outputs = midiAccess.outputs.values();
-        if (outputs.length === 0) return Promise.reject('no MIDIOutput');
+        let inputPort = null;
         let outputPort = null;
         if (filters) {
             for (const filter of filters) {
@@ -309,11 +307,19 @@ class AkaDakoBoard extends EventEmitter {
             }
             if (!outputPort) return Promise.reject(`no MIDIOutput for filter: ${JSON.stringify(filters)}`);
         } else {
-            inputPort = inputs[0];
-            outputPort = outputs[0];
+            let result = inputs.next();
+            if (result.done) return Promise.reject('no MIDIInput');
+            inputPort = result.value;
+            result = outputs.next();
+            if (result.done) return Promise.reject('no MIDIOutput');
+            outputPort = result.value;
         }
         this.portInfo = {manufacturer: inputPort.manufacturer, name: inputPort.name};
-        return new FirmataWebMIDI(inputPort, outputPort);
+        const transport = new MidiDakoTransport(inputPort, outputPort);
+        if (!transport.isConnected()) {
+            await transport.open();
+        }
+        return transport;
     }
 
     /**
