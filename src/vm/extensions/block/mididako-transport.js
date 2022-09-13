@@ -104,11 +104,11 @@ class MidiDakoTransport extends EventEmitter {
     /**
      * Send data to the output port.
      *
-     * @param {Uint8Array} data Send it to output.
+     * @param {Buffer} buff Send it to output.
      * @param {Function} callback A function to be called when the data was sent.
      */
-    write (data, callback) {
-        this.output.send(this.convertToSend(data));
+    write (buff, callback) {
+        this.output.send(this.convertToSend(buff));
         if (typeof callback === 'function') {
             callback();
         }
@@ -117,10 +117,11 @@ class MidiDakoTransport extends EventEmitter {
     /**
      * Convert the original Firmata data to a MIDI data to be sent.
      *
-     * @param {Uint8Array} data Original data.
+     * @param {Buffer} buff Original data.
      * @returns {Uint8Array} Converted data.
      */
-    convertToSend (data) {
+    convertToSend (buff) {
+        const data = [...buff];
         if (data[0] === 0xF9) { // report version
             // do nothing cause WebMIDI reserved status is not allowed [0xF9]
             return [];
