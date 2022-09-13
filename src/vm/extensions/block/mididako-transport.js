@@ -14,7 +14,6 @@ class MidiDakoTransport extends EventEmitter {
      */
     constructor (input, output) {
         super();
-        this.state = 'disconnected';
         this.input = input;
         this.output = output;
         this.input.onstatechange = event => {
@@ -26,6 +25,7 @@ class MidiDakoTransport extends EventEmitter {
         this.input.onmidimessage = message => {
             this.onMidiMessage(message);
         };
+        this.isOpen = this.isConnected();
     }
 
     /**
@@ -46,18 +46,18 @@ class MidiDakoTransport extends EventEmitter {
      */
     onStateChange (event) {
         if (event.port.state === 'connected') {
-            if (this.state !== 'connected') {
+            if (!this.isOpen) {
                 if (this.input.state === 'connected' && this.output.state === 'connected') {
-                    this.state = 'connected';
+                    this.isOpen = true;
                     this.emit('open');
                 }
             }
             return;
         }
         if (event.port.state === 'disconnected') {
-            if (this.state === 'connected') {
-                this.state = 'disconnected';
-                this.emit('close');
+            if (this.isOpen) {
+                this.isOpen = false;
+                this.emit('error');
             }
             return;
         }
@@ -108,6 +108,11 @@ class MidiDakoTransport extends EventEmitter {
      * @param {Function} callback A function to be called when the data was sent.
      */
     write (buff, callback) {
+        if (!this.isConnected()) {
+            this.isOpen = false;
+            this.emit('error');
+            return;
+        }
         this.output.send(this.convertToSend(buff));
         if (typeof callback === 'function') {
             callback();

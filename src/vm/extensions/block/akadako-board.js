@@ -428,7 +428,7 @@ class AkaDakoBoard extends EventEmitter {
      */
     disconnect () {
         if (this.state === 'disconnect') return;
-        if (this.firmata) {
+        if (this.firmata && this.firmata.transport.isOpen) {
             this.firmata.reset(); // notify disconnection to board
         }
         this.releaseBoard();
