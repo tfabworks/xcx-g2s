@@ -279,34 +279,40 @@ class AkaDakoBoard extends EventEmitter {
      */
     async openMIDIPort (filters) {
         const midiAccess = await navigator.requestMIDIAccess({sysex: true});
-        const inputs = midiAccess.inputs.values();
-        const outputs = midiAccess.outputs.values();
         let inputPort = null;
         let outputPort = null;
         if (filters) {
             for (const filter of filters) {
-                for (const port of inputs) {
+                const availablePorts = [];
+                midiAccess.inputs.forEach(port => {
                     if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
                     (!filter.name || filter.name === port.name)) {
-                        inputPort = port;
-                        break;
+                        availablePorts.push(port);
                     }
+                });
+                if (availablePorts.length > 0) {
+                    inputPort = availablePorts[0];
+                    break;
                 }
-                if (inputPort) break;
             }
             if (!inputPort) return Promise.reject(`no MIDIInput for filter: ${JSON.stringify(filters)}`);
             for (const filter of filters) {
-                for (const port of outputs) {
+                const availablePorts = [];
+                midiAccess.outputs.forEach(port => {
                     if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
                     (!filter.name || filter.name === port.name)) {
-                        outputPort = port;
-                        break;
+                        availablePorts.push(port);
                     }
+                });
+                if (availablePorts.length > 0) {
+                    outputPort = availablePorts[0];
+                    break;
                 }
-                if (outputPort) break;
             }
             if (!outputPort) return Promise.reject(`no MIDIOutput for filter: ${JSON.stringify(filters)}`);
         } else {
+            const inputs = midiAccess.inputs.values();
+            const outputs = midiAccess.outputs.values();
             let result = inputs.next();
             if (result.done) return Promise.reject('no MIDIInput');
             inputPort = result.value;
