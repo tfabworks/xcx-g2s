@@ -17292,6 +17292,9 @@ var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
 
     _this.midiPortFilters = [{
       manufacturer: /TFabWorks/,
+      name: /STEAM BOX/
+    }, {
+      manufacturer: /TFabWorks/,
       name: /MidiDako/
     }];
     /**
