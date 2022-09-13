@@ -285,8 +285,8 @@ class AkaDakoBoard extends EventEmitter {
             for (const filter of filters) {
                 const availablePorts = [];
                 midiAccess.inputs.forEach(port => {
-                    if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
-                    (!filter.name || filter.name === port.name)) {
+                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
+                    (!filter.name || filter.name.test(port.name))) {
                         availablePorts.push(port);
                     }
                 });
@@ -299,8 +299,8 @@ class AkaDakoBoard extends EventEmitter {
             for (const filter of filters) {
                 const availablePorts = [];
                 midiAccess.outputs.forEach(port => {
-                    if ((!filter.manufacturer || filter.manufacturer === port.manufacturer) &&
-                    (!filter.name || filter.name === port.name)) {
+                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
+                    (!filter.name || filter.name.test(port.name))) {
                         availablePorts.push(port);
                     }
                 });
