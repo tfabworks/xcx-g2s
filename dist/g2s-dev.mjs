@@ -15479,24 +15479,23 @@ function _isNativeReflectConstruct$2() { if (typeof Reflect === "undefined" || !
  * This class represents a transport layer using WebMIDI for firmata.js.
  */
 
-var FirmataWebMIDI = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(FirmataWebMIDI, _EventEmitter);
+var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
+  _inherits(MidiDakoTransport, _EventEmitter);
 
-  var _super = _createSuper$2(FirmataWebMIDI);
+  var _super = _createSuper$2(MidiDakoTransport);
 
   /**
    * Construct a WebMIDI transport.
-   * 
+   *
    * @param {MIDIInput} input read data from the MIDI device
    * @param {MIDIOutput} output send data to the MIDI device
    */
-  function FirmataWebMIDI(input, output) {
+  function MidiDakoTransport(input, output) {
     var _this;
 
-    _classCallCheck(this, FirmataWebMIDI);
+    _classCallCheck(this, MidiDakoTransport);
 
     _this = _super.call(this);
-    _this.state = 'disconnected';
     _this.input = input;
     _this.output = output;
 
@@ -15512,16 +15511,36 @@ var FirmataWebMIDI = /*#__PURE__*/function (_EventEmitter) {
       _this.onMidiMessage(message);
     };
 
+    _this.isOpen = _this.isConnected();
     return _this;
   }
+  /**
+   * Whether it is connected or not.
+   *
+   * @returns {boolean} True for connected.
+   */
 
-  _createClass(FirmataWebMIDI, [{
+
+  _createClass(MidiDakoTransport, [{
+    key: "isConnected",
+    value: function isConnected() {
+      return this.input.state === 'connected' && this.output.state === 'connected';
+    }
+    /**
+     * It was called when the state of a MIDIPort was changed.
+     *
+     * It will emit open/close event for firmata-io.
+     *
+     * @param {Event} event changed state of a MIDIPort [input | output]
+     */
+
+  }, {
     key: "onStateChange",
     value: function onStateChange(event) {
       if (event.port.state === 'connected') {
-        if (this.state !== 'connected') {
+        if (!this.isOpen) {
           if (this.input.state === 'connected' && this.output.state === 'connected') {
-            this.state = 'connected';
+            this.isOpen = true;
             this.emit('open');
           }
         }
@@ -15530,19 +15549,31 @@ var FirmataWebMIDI = /*#__PURE__*/function (_EventEmitter) {
       }
 
       if (event.port.state === 'disconnected') {
-        if (this.state !== 'disconnected') {
-          this.state = 'disconnected';
-          this.emit('close');
+        if (this.isOpen) {
+          this.isOpen = false;
+          this.emit('error');
         }
 
         return;
       }
     }
+    /**
+     * It was called when a message came from the input port.
+     *
+     * @param {MIDIMessageEvent} message data from the input port
+     */
+
   }, {
     key: "onMidiMessage",
     value: function onMidiMessage(message) {
-      this.emit('data', message.data);
+      this.emit('data', this.convertFromReceived(message.data));
     }
+    /**
+     * Open input and output port.
+     *
+     * @returns {Promise<string?>} null or error message
+     */
+
   }, {
     key: "open",
     value: function () {
@@ -15582,6 +15613,12 @@ var FirmataWebMIDI = /*#__PURE__*/function (_EventEmitter) {
 
       return open;
     }()
+    /**
+     * Close input and output port.
+     *
+     * @returns {Promise<string?>} null or error message.
+     */
+
   }, {
     key: "close",
     value: function () {
@@ -15621,32 +15658,75 @@ var FirmataWebMIDI = /*#__PURE__*/function (_EventEmitter) {
 
       return close;
     }()
+    /**
+     * Send data to the output port.
+     *
+     * @param {Buffer} buff Send it to output.
+     * @param {Function} callback A function to be called when the data was sent.
+     */
+
   }, {
     key: "write",
-    value: function write(data) {
+    value: function write(buff, callback) {
+      if (!this.isConnected()) {
+        this.isOpen = false;
+        this.emit('error');
+        return;
+      }
+
+      this.output.send(this.convertToSend(buff));
+
+      if (typeof callback === 'function') {
+        callback();
+      }
+    }
+    /**
+     * Convert the original Firmata data to a MIDI data to be sent.
+     *
+     * @param {Buffer} buff Original data.
+     * @returns {Uint8Array} Converted data.
+     */
+
+  }, {
+    key: "convertToSend",
+    value: function convertToSend(buff) {
+      var data = _toConsumableArray(buff);
+
       if (data[0] === 0xF9) {
         // report version
         // do nothing cause WebMIDI reserved status is not allowed [0xF9]
-        return;
+        return [];
       }
 
       if (data[0] === 0xF4) {
         // set PinMode
-        this.output.send([0xA0, data[1], data[2]]);
-        return;
+        // changed cause WebMIDI reserved status is not allowed [0xF4]
+        return [0xA0, data[1], data[2]];
       }
 
       if (data[0] === 0xF0 && data[1] === 0x79) {
-        //query firmware
+        // query firmware
         // do nothing cause the board freeze
-        return;
+        return [];
       }
 
-      this.output.send(data);
+      return data;
+    }
+    /**
+     * Convert the received MIDI data to a Firmata data.
+     *
+     * @param {Uint8Array} data Original data.
+     * @returns {Uint8Array} Converted data.
+     */
+
+  }, {
+    key: "convertFromReceived",
+    value: function convertFromReceived(data) {
+      return data;
     }
   }]);
 
-  return FirmataWebMIDI;
+  return MidiDakoTransport;
 }(EventEmitter$1);
 
 var pins = [{
@@ -16135,14 +16215,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * Request MidiDako MIDIport and return it as a Firmata transport
      *
      * @param {Array<{manufacturer: string, name: string}>} filters selecting rules for MIDIPort
-     * @returns {Promise<FirmataWebMIDI>} MIDI transport for Firmata
+     * @returns {Promise<MidiDakoTransport>} MIDI transport for Firmata
      */
 
   }, {
     key: "openMIDIPort",
     value: function () {
       var _openMIDIPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(filters) {
-        var midiAccess, inputs, inputPort, outputs, outputPort, _iterator, _step, filter, _iterator3, _step3, port, _iterator2, _step2, _filter, _iterator4, _step4, _port;
+        var midiAccess, inputPort, outputPort, _iterator, _step, _loop, _ret, _iterator2, _step2, _loop2, _ret2, inputs, outputs, result, transport;
 
         return regenerator.wrap(function _callee3$(_context3) {
           while (1) {
@@ -16155,238 +16235,197 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 2:
                 midiAccess = _context3.sent;
-                inputs = midiAccess.inputs.values();
-
-                if (!(inputs.length === 0)) {
-                  _context3.next = 6;
-                  break;
-                }
-
-                return _context3.abrupt("return", Promise.reject('no MIDIInput'));
-
-              case 6:
                 inputPort = null;
-                outputs = midiAccess.outputs.values();
-
-                if (!(outputs.length === 0)) {
-                  _context3.next = 10;
-                  break;
-                }
-
-                return _context3.abrupt("return", Promise.reject('no MIDIOutput'));
-
-              case 10:
                 outputPort = null;
 
                 if (!filters) {
-                  _context3.next = 88;
+                  _context3.next = 48;
                   break;
                 }
 
                 _iterator = _createForOfIteratorHelper(filters);
-                _context3.prev = 13;
+                _context3.prev = 7;
+
+                _loop = function _loop() {
+                  var filter = _step.value;
+                  var availablePorts = [];
+                  midiAccess.inputs.forEach(function (port) {
+                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) && (!filter.name || filter.name.test(port.name))) {
+                      availablePorts.push(port);
+                    }
+                  });
+
+                  if (availablePorts.length > 0) {
+                    inputPort = availablePorts[0];
+                    return "break";
+                  }
+                };
 
                 _iterator.s();
 
-              case 15:
+              case 10:
                 if ((_step = _iterator.n()).done) {
-                  _context3.next = 39;
+                  _context3.next = 16;
                   break;
                 }
 
-                filter = _step.value;
-                _iterator3 = _createForOfIteratorHelper(inputs);
+                _ret = _loop();
+
+                if (!(_ret === "break")) {
+                  _context3.next = 14;
+                  break;
+                }
+
+                return _context3.abrupt("break", 16);
+
+              case 14:
+                _context3.next = 10;
+                break;
+
+              case 16:
+                _context3.next = 21;
+                break;
+
+              case 18:
                 _context3.prev = 18;
+                _context3.t0 = _context3["catch"](7);
 
-                _iterator3.s();
+                _iterator.e(_context3.t0);
 
-              case 20:
-                if ((_step3 = _iterator3.n()).done) {
-                  _context3.next = 27;
-                  break;
-                }
-
-                port = _step3.value;
-
-                if (!((!filter.manufacturer || filter.manufacturer === port.manufacturer) && (!filter.name || filter.name === port.name))) {
-                  _context3.next = 25;
-                  break;
-                }
-
-                inputPort = port;
-                return _context3.abrupt("break", 27);
-
-              case 25:
-                _context3.next = 20;
-                break;
-
-              case 27:
-                _context3.next = 32;
-                break;
-
-              case 29:
-                _context3.prev = 29;
-                _context3.t0 = _context3["catch"](18);
-
-                _iterator3.e(_context3.t0);
-
-              case 32:
-                _context3.prev = 32;
-
-                _iterator3.f();
-
-                return _context3.finish(32);
-
-              case 35:
-                if (!inputPort) {
-                  _context3.next = 37;
-                  break;
-                }
-
-                return _context3.abrupt("break", 39);
-
-              case 37:
-                _context3.next = 15;
-                break;
-
-              case 39:
-                _context3.next = 44;
-                break;
-
-              case 41:
-                _context3.prev = 41;
-                _context3.t1 = _context3["catch"](13);
-
-                _iterator.e(_context3.t1);
-
-              case 44:
-                _context3.prev = 44;
+              case 21:
+                _context3.prev = 21;
 
                 _iterator.f();
 
-                return _context3.finish(44);
+                return _context3.finish(21);
 
-              case 47:
+              case 24:
                 if (inputPort) {
-                  _context3.next = 49;
+                  _context3.next = 26;
                   break;
                 }
 
                 return _context3.abrupt("return", Promise.reject("no MIDIInput for filter: ".concat(JSON.stringify(filters))));
 
-              case 49:
+              case 26:
                 _iterator2 = _createForOfIteratorHelper(filters);
-                _context3.prev = 50;
+                _context3.prev = 27;
+
+                _loop2 = function _loop2() {
+                  var filter = _step2.value;
+                  var availablePorts = [];
+                  midiAccess.outputs.forEach(function (port) {
+                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) && (!filter.name || filter.name.test(port.name))) {
+                      availablePorts.push(port);
+                    }
+                  });
+
+                  if (availablePorts.length > 0) {
+                    outputPort = availablePorts[0];
+                    return "break";
+                  }
+                };
 
                 _iterator2.s();
 
-              case 52:
+              case 30:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context3.next = 76;
+                  _context3.next = 36;
                   break;
                 }
 
-                _filter = _step2.value;
-                _iterator4 = _createForOfIteratorHelper(outputs);
-                _context3.prev = 55;
+                _ret2 = _loop2();
 
-                _iterator4.s();
-
-              case 57:
-                if ((_step4 = _iterator4.n()).done) {
-                  _context3.next = 64;
+                if (!(_ret2 === "break")) {
+                  _context3.next = 34;
                   break;
                 }
 
-                _port = _step4.value;
+                return _context3.abrupt("break", 36);
 
-                if (!((!_filter.manufacturer || _filter.manufacturer === _port.manufacturer) && (!_filter.name || _filter.name === _port.name))) {
-                  _context3.next = 62;
-                  break;
-                }
-
-                outputPort = _port;
-                return _context3.abrupt("break", 64);
-
-              case 62:
-                _context3.next = 57;
+              case 34:
+                _context3.next = 30;
                 break;
 
-              case 64:
-                _context3.next = 69;
+              case 36:
+                _context3.next = 41;
                 break;
 
-              case 66:
-                _context3.prev = 66;
-                _context3.t2 = _context3["catch"](55);
+              case 38:
+                _context3.prev = 38;
+                _context3.t1 = _context3["catch"](27);
 
-                _iterator4.e(_context3.t2);
+                _iterator2.e(_context3.t1);
 
-              case 69:
-                _context3.prev = 69;
-
-                _iterator4.f();
-
-                return _context3.finish(69);
-
-              case 72:
-                if (!outputPort) {
-                  _context3.next = 74;
-                  break;
-                }
-
-                return _context3.abrupt("break", 76);
-
-              case 74:
-                _context3.next = 52;
-                break;
-
-              case 76:
-                _context3.next = 81;
-                break;
-
-              case 78:
-                _context3.prev = 78;
-                _context3.t3 = _context3["catch"](50);
-
-                _iterator2.e(_context3.t3);
-
-              case 81:
-                _context3.prev = 81;
+              case 41:
+                _context3.prev = 41;
 
                 _iterator2.f();
 
-                return _context3.finish(81);
+                return _context3.finish(41);
 
-              case 84:
+              case 44:
                 if (outputPort) {
-                  _context3.next = 86;
+                  _context3.next = 46;
                   break;
                 }
 
                 return _context3.abrupt("return", Promise.reject("no MIDIOutput for filter: ".concat(JSON.stringify(filters))));
 
-              case 86:
-                _context3.next = 90;
+              case 46:
+                _context3.next = 58;
                 break;
 
-              case 88:
-                inputPort = inputs[0];
-                outputPort = outputs[0];
+              case 48:
+                inputs = midiAccess.inputs.values();
+                outputs = midiAccess.outputs.values();
+                result = inputs.next();
 
-              case 90:
+                if (!result.done) {
+                  _context3.next = 53;
+                  break;
+                }
+
+                return _context3.abrupt("return", Promise.reject('no MIDIInput'));
+
+              case 53:
+                inputPort = result.value;
+                result = outputs.next();
+
+                if (!result.done) {
+                  _context3.next = 57;
+                  break;
+                }
+
+                return _context3.abrupt("return", Promise.reject('no MIDIOutput'));
+
+              case 57:
+                outputPort = result.value;
+
+              case 58:
                 this.portInfo = {
                   manufacturer: inputPort.manufacturer,
                   name: inputPort.name
                 };
-                return _context3.abrupt("return", new FirmataWebMIDI(inputPort, outputPort));
+                transport = new MidiDakoTransport(inputPort, outputPort);
 
-              case 92:
+                if (transport.isConnected()) {
+                  _context3.next = 63;
+                  break;
+                }
+
+                _context3.next = 63;
+                return transport.open();
+
+              case 63:
+                return _context3.abrupt("return", transport);
+
+              case 64:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[13, 41, 44, 47], [18, 29, 32, 35], [50, 78, 81, 84], [55, 66, 69, 72]]);
+        }, _callee3, this, [[7, 18, 21, 24], [27, 38, 41, 44]]);
       }));
 
       function openMIDIPort(_x2) {
@@ -16527,7 +16566,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function disconnect() {
       if (this.state === 'disconnect') return;
 
-      if (this.firmata) {
+      if (this.firmata && this.firmata.transport.isOpen) {
         this.firmata.reset(); // notify disconnection to board
       }
 
@@ -16568,8 +16607,9 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function boardVersion() {
       var _this5 = this;
 
+      var firmata = this.firmata;
       var request = new Promise(function (resolve) {
-        _this5.firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
+        firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
           var value = Firmata.decode([data[0], data[1]]);
           _this5.version = {
             type: value >> 10 & 0x0F,
@@ -16578,11 +16618,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
           };
           resolve("".concat(_this5.version.type, ".").concat(_this5.version.major, ".").concat(_this5.version.minor));
         });
-
-        _this5.firmata.sysexCommand([BOARD_VERSION_QUERY]);
+        firmata.sysexCommand([BOARD_VERSION_QUERY]);
       });
       return Promise.race([request, timeoutReject(100)]).finally(function () {
-        _this5.firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+        firmata.clearSysexResponse(BOARD_VERSION_QUERY);
       });
     }
     /**
@@ -17135,20 +17174,18 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pingSensor",
     value: function pingSensor(pin, timeout) {
-      var _this23 = this;
-
+      var firmata = this.firmata;
       timeout = timeout ? timeout : this.pingSensorWaitingTime;
-      this.firmata.pinMode(pin, this.firmata.MODES.PING_READ);
+      firmata.pinMode(pin, firmata.MODES.PING_READ);
       var request = new Promise(function (resolve) {
-        _this23.firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
+        firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
           var value = Firmata.decode([data[1], data[2]]);
           resolve(value);
         });
-
-        _this23.firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).finally(function () {
-        _this23.firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+        firmata.clearSysexResponse(PING_SENSOR_COMMAND);
       });
     }
     /**
@@ -17254,8 +17291,8 @@ var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
      */
 
     _this.midiPortFilters = [{
-      manufacturer: 'TFabWorks',
-      name: 'MidiDako'
+      manufacturer: /TFabWorks/,
+      name: /MidiDako/
     }];
     /**
      * Settings for WebSerial
