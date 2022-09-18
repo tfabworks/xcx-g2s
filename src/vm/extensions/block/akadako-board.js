@@ -502,6 +502,16 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
+     * Return type name of the board.
+     *
+     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM BOX'].
+     */
+    boardType () {
+        if (this.version.type === 0) return 'AkaDako';
+        if (this.version.type === 1) return 'KuroDako';
+        if (this.version.type === 2 && this.version.major === 0) return 'STEAM BOX';
+    }
+    /**
      * Asks the board to set the pin to a certain mode.
      * @param {number} pin - The pin you want to change the mode of.
      * @param {number} mode - The mode you want to set. Must be one of board.MODES
