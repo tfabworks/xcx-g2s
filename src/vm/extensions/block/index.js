@@ -174,7 +174,7 @@ class ExtensionBlocks {
 
         /**
          * Current connected board object with AkaDako protocol
-         * @type {AkaDakoBoard}
+         * @type {import('./akadako-board').default}
          */
         this.board = null;
 
