@@ -89,6 +89,12 @@ class AkaDakoBoard extends EventEmitter {
         this.name = 'AkaDakoBoard';
 
         /**
+         * Version of the connected board.
+         * @type {{type: number, major: number, minor: number}}
+         */
+        this.version = null;
+
+        /**
          * The Scratch runtime to register event listeners.
          * @type {Runtime}
          * @private
@@ -470,10 +476,12 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Query the version information of the connected board.
-     * @returns {string} version info
+     * Query the version information of the connected board and set the version data.
+     *
+     * @returns {Promise<string>} A Promise which resolves version info.
      */
     boardVersion () {
+        if (this.version) return Promise.resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
         const firmata = this.firmata;
         const request = new Promise(resolve => {
             firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
