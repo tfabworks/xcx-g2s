@@ -19,6 +19,8 @@ const PING_SENSOR_COMMAND = 0x01;
 
 const BOARD_VERSION_QUERY = 0x0F;
 
+const DEVICE_ENABLE = 0x03;
+
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -511,6 +513,21 @@ class AkaDakoBoard extends EventEmitter {
         if (this.version.type === 1) return 'KuroDako';
         if (this.version.type === 2 && this.version.major === 0) return 'STEAM BOX';
     }
+
+    /**
+     * Enable a device on the board.
+     *
+     * @param {number} deviceID ID to be enabled.
+     * @returns {Promise} A Promise which resolves when the message was sent.
+     */
+    enableDevice (deviceID) {
+        const message = [DEVICE_ENABLE, deviceID];
+        return new Promise(resolve => {
+            this.firmata.sysexCommand(message);
+            setTimeout(() => resolve(), this.sendingInterval);
+        });
+    }
+
     /**
      * Asks the board to set the pin to a certain mode.
      * @param {number} pin - The pin you want to change the mode of.
