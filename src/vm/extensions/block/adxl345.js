@@ -38,13 +38,13 @@ export default class ADXL345 {
          * Timeout for readings in milliseconds.
          * @type {number}
          */
-        this.timeout = 2000;
+        this.timeout = 200;
 
         /**
          * Scale factor for raw data of acceleration
          */
         this.scale = {
-            x: 0.0392266, // =(4/1000*9.80665)
+            x: 0.0392266, // =((4/1000)*9.80665)
             y: 0.0392266,
             z: 0.0392266
         };
