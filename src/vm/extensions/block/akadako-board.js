@@ -295,7 +295,13 @@ class AkaDakoBoard extends EventEmitter {
                     break;
                 }
             }
-            if (!inputPort) return Promise.reject(`no MIDIInput for filter: ${JSON.stringify(filters)}`);
+            if (!inputPort) {
+                console.log('MIDIInput');
+                midiAccess.inputs.forEach(port => {
+                    console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
+                });
+                return Promise.reject(`no available MIDIInput for the filters`);
+            }
             for (const filter of filters) {
                 const availablePorts = [];
                 midiAccess.outputs.forEach(port => {
@@ -309,7 +315,13 @@ class AkaDakoBoard extends EventEmitter {
                     break;
                 }
             }
-            if (!outputPort) return Promise.reject(`no MIDIOutput for filter: ${JSON.stringify(filters)}`);
+            if (!outputPort) {
+                console.log('MIDIOutput');
+                midiAccess.outputs.forEach(port => {
+                    console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
+                });
+                return Promise.reject(`no available MIDIOutput for the filters`);
+            }
         } else {
             const inputs = midiAccess.inputs.values();
             const outputs = midiAccess.outputs.values();
