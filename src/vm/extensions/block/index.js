@@ -745,6 +745,9 @@ class ExtensionBlocks {
      */
     async measureDistanceWithLight () {
         if (!this.isConnected()) return 0;
+        if (this.board.boardType() === 'STEAM BOX') {
+            this.board.enableDevice(0x00);
+        }
         if (!this.vl53l0x) {
             let newSensor = new VL53L0X(this.board);
             const found = await newSensor.init(true);
@@ -1026,6 +1029,9 @@ class ExtensionBlocks {
      */
     async getBrightnessLTR303 () {
         if (!this.isConnected()) return Promise.resolve(0);
+        if (this.board.boardType() === 'STEAM BOX') {
+            this.board.enableDevice(0x01);
+        }
         const i2cAddr = 0x29;
         const partIDReg = 0x86;
         const partID = await this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
