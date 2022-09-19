@@ -1794,7 +1794,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'digitalLevelSetConnectorMenu'
                         },
                         LEVEL: {
                             type: ArgumentType.STRING,
@@ -2168,6 +2168,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getDigitalConnectorMenu()
                 },
+                digitalLevelSetConnectorMenu: {
+                    acceptReporters: false,
+                    items: this.getDigitalLevelSetConnectorMenu()
+                },
                 inputBiasMenu: {
                     acceptReporters: false,
                     items: this.getInputBiasMenu()
@@ -2260,6 +2264,42 @@ class ExtensionBlocks {
         ];
     }
 
+    /**
+     * Returns menu items to select digital connectors.
+     * @returns {Array<object>} menu items
+     */
+    getDigitalLevelSetConnectorMenu () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        return [
+            {
+                text: `${digitalPrefix}A (A1)`,
+                value: '10'
+            },
+            {
+                text: `${digitalPrefix}A (A2)`,
+                value: '11'
+            },
+            {
+                text: `${digitalPrefix}B (B1)`,
+                value: '6'
+            },
+            {
+                text: `${digitalPrefix}B (B2)`,
+                value: '9'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
+                    default: 'relay on STEAM BOX',
+                    description: 'label for relay on steam mox in digital level set connector menu for g2s'
+                }),
+                value: '4'
+            }
+        ];
+    }
 
     /**
      * Returns menu items to select PWM connectors.
