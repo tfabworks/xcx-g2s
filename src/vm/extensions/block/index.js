@@ -2182,7 +2182,7 @@ class ExtensionBlocks {
                 },
                 pwmConnectorMenu: {
                     acceptReporters: false,
-                    items: this.getDigitalConnectorMenu()
+                    items: this.getPWMConnectorMenu()
                 },
                 neoPixelColorMenu: {
                     acceptReporters: true,
@@ -2256,6 +2256,44 @@ class ExtensionBlocks {
             {
                 text: `${digitalPrefix}B (B2)`,
                 value: '9'
+            }
+        ];
+    }
+
+
+    /**
+     * Returns menu items to select PWM connectors.
+     * @returns {Array<object>} menu items
+     */
+    getPWMConnectorMenu () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        return [
+            {
+                text: `${digitalPrefix}A (A1)`,
+                value: '10'
+            },
+            {
+                text: `${digitalPrefix}A (A2)`,
+                value: '11'
+            },
+            {
+                text: `${digitalPrefix}B (B1)`,
+                value: '6'
+            },
+            {
+                text: `${digitalPrefix}B (B2)`,
+                value: '9'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.pwmConnectorMenu.vibrationMotorOnSteamBox',
+                    default: 'vibration motor on STEAM BOX',
+                    description: 'label for vibration motor on steam mox in PWM connector menu for g2s'
+                }),
+                value: '3'
             }
         ];
     }
