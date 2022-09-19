@@ -10,6 +10,7 @@ import {AkaDakoConnector, getAkaDakoConnector} from './akadako-connector';
 import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
+import KXTJ3 from './kxtj3';
 
 /**
  * Returns a Long Integer converted from the value.
@@ -179,6 +180,11 @@ class ExtensionBlocks {
         this.board = null;
 
         /**
+         * Default accelerometer
+         */
+        this.accelerometer = null;
+
+        /**
          * Distance sensor VL53L0X
          * @type {VL53L0X}
          */
@@ -260,8 +266,8 @@ class ExtensionBlocks {
         this.board = this.boardConnector.findBoard();
         if (prev === this.board) return;
         this.vl53l0x = null;
-        this.adxl345 = null;
         this.bme280 = null;
+        this.accelerometer = null;
     }
 
     /**
@@ -815,134 +821,116 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get acceleration [m/s^2] for the axis using ADXL345
-     * @param {string} axis - axis to get
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get instance of an accelerometer.
+     *
+     * @returns {Promise} A Promise which resolves an accelerometer.
      */
-    async getAccelerationADXL345 (axis) {
-        if (!this.isConnected()) return Promise.resolve(0);
-        if (!this.adxl345) {
-            const newSensor = new ADXL345(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return Promise.resolve(0);
+    async getAccelerometer () {
+        if (!this.accelerometer) {
+            let newSensor = null;
+            if (this.board.boardType() === 'STEAM BOX') {
+                newSensor = new KXTJ3(this.board);
+            } else {
+                newSensor = new ADXL345(this.board);
             }
-            this.adxl345 = newSensor;
+            await newSensor.init();
+            this.accelerometer = newSensor;
         }
-        return this.adxl345.getAcceleration()
-            .then(acceleration => {
-                if (axis === 'absolute') {
-                    return Math.round(
-                        Math.sqrt(
-                            (acceleration.x ** 2) +
-                            (acceleration.y ** 2) +
-                            (acceleration.z ** 2)
-                        ) * 100) / 100;
-                }
-                return acceleration[axis];
-            })
-            .catch(reason => {
-                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
-                this.adxl345 = null;
-                return 0;
-            });
+        return this.accelerometer;
     }
 
     /**
-     * Get acceleration [m/s^2] for axis X
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get acceleration [m/s^2] for the axis.
+     *
+     * @returns {Promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
      */
-    getAccelerationX () {
-        return this.getAccelerationADXL345('x');
+    async getAcceleration () {
+        if (!this.isConnected()) return {x: 0, y: 0, z: 0};
+        try {
+            const sensor = await this.getAccelerometer();
+            const data = await sensor.getAcceleration();
+            return data;
+        } catch (reason) {
+            console.log(`KXTJ3.getAcceleration() was rejected by ${reason}`);
+            this.accelerometer = null;
+            return {x: 0, y: 0, z: 0};
+        }
     }
 
     /**
-     * Get acceleration [m/s^2] for axis Y
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get acceleration [m/s^2] for axis X.
+     *
+     * @returns {Promise<number>} a Promise which resolves acceleration
      */
-    getAccelerationY () {
-        return this.getAccelerationADXL345('y');
+    async getAccelerationX () {
+        if (!this.isConnected()) return 0;
+        const data = await this.getAcceleration();
+        return (Math.round(data.x * 100)) / 100;
     }
 
     /**
-     * Get acceleration [m/s^2] for axis Z
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get acceleration [m/s^2] for axis Y.
+     *
+     * @returns {Promise<number>} a Promise which resolves acceleration
      */
-    getAccelerationZ () {
-        return this.getAccelerationADXL345('z');
+    async getAccelerationY () {
+        if (!this.isConnected()) return 0;
+        const data = await this.getAcceleration();
+        return (Math.round(data.y * 100)) / 100;
     }
 
     /**
-     * Get absolute acceleration [m/s^2]
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get acceleration [m/s^2] for axis Z.
+     * @returns {Promise<number>} a Promise which resolves acceleration
      */
-    getAccelerationAbsolute () {
-        return this.getAccelerationADXL345('absolute');
+    async getAccelerationZ () {
+        if (!this.isConnected()) return 0;
+        const data = await this.getAcceleration();
+        return (Math.round(data.z * 100)) / 100;
     }
 
     /**
-     * Get roll [degree] using ADXL345.
+     * Get absolute acceleration [m/s^2].
+     * @returns {Promise<number>} a Promise which resolves acceleration
+     */
+    async getAccelerationAbsolute () {
+        if (!this.isConnected()) return 0;
+        const data = await this.getAcceleration();
+        const absolute = Math.sqrt(
+            (data.x ** 2) +
+            (data.y ** 2) +
+            (data.z ** 2)
+        );
+        return (Math.round(absolute * 100)) / 100;
+    }
+
+    /**
+     * Get roll [degree] from accelerometer.
      * @returns {Promise<number>} a Promise which resolves roll
      */
-    async getRollADXL345 () {
+    async getRoll () {
         if (!this.isConnected()) return 0;
-        if (!this.adxl345) {
-            const newSensor = new ADXL345(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return 0;
-            }
-            this.adxl345 = newSensor;
-        }
-        return this.adxl345.getAcceleration()
-            .then(acceleration =>
-                Math.atan2(acceleration.y, acceleration.z) * 180.0 / Math.PI
-            )
-            .catch(reason => {
-                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
-                this.adxl345 = null;
-                return 0;
-            });
+        const data = await this.getAcceleration();
+        const roll = Math.atan2(data.y, data.z) * 180.0 / Math.PI;
+        return (Math.round(roll * 100)) / 100;
     }
 
     /**
-     * Get pitch [degree] using ADXL345.
+     * Get pitch [degree] from accelerometer.
      * @returns {Promise<number>} a Promise which resolves pitch
      */
-    async getPitchADXL345 () {
+    async getPitch () {
         if (!this.isConnected()) return 0;
-        if (!this.adxl345) {
-            const newSensor = new ADXL345(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return 0;
-            }
-            this.adxl345 = newSensor;
+        const data = await this.getAcceleration();
+        const angle = Math.atan2(
+            data.x,
+            Math.sqrt((data.y * data.y) + (data.z * data.z))
+        ) * 180.0 / Math.PI;
+        let pitch = angle;
+        if (data.z < 0) {
+            pitch = ((angle > 0) ? 180 : -180) - angle;
         }
-        return this.adxl345.getAcceleration()
-            .then(acceleration => {
-                const angle = Math.atan2(
-                    acceleration.x,
-                    Math.sqrt((acceleration.y * acceleration.y) + (acceleration.z * acceleration.z))
-                ) *
-                180.0 / Math.PI;
-                if (acceleration.z > 0) return angle;
-                return ((angle > 0) ? 180 : -180) - angle;
-            })
-            .catch(reason => {
-                console.log(`ADXL345.getAcceleration() was rejected by ${reason}`);
-                this.adxl345 = null;
-                return 0;
-            });
+        return (Math.round(pitch * 100)) / 100;
     }
 
     /**
@@ -1127,10 +1115,10 @@ class ExtensionBlocks {
      */
     whenShaken () {
         if (!this.resetShakeEventTimer) {
-            this.getAccelerationADXL345('absolute')
+            this.getAccelerationAbsolute()
                 .then(prev => {
                     setTimeout(() => {
-                        this.getAccelerationADXL345('absolute')
+                        this.getAccelerationAbsolute()
                             .then(next => {
                                 this.shaken = ((next - prev) > this.shakeEventThreshold);
                                 this.resetShakeEventTimer = setTimeout(() => {
@@ -1520,7 +1508,7 @@ class ExtensionBlocks {
                 '---',
                 {
                     opcode: 'getPitch',
-                    func: 'getPitchADXL345',
+                    func: 'getPitch',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
@@ -1533,7 +1521,7 @@ class ExtensionBlocks {
                 },
                 {
                     opcode: 'getRoll',
-                    func: 'getRollADXL345',
+                    func: 'getRoll',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
