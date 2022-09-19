@@ -2298,7 +2298,7 @@ class ExtensionBlocks {
                 text: formatMessage({
                     id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
                     default: 'relay on STEAM BOX',
-                    description: 'label for relay on steam mox in digital level set connector menu for g2s'
+                    description: 'label for relay on STEAM BOX in digital level set connector menu for g2s'
                 }),
                 value: '4'
             }
@@ -2335,7 +2335,7 @@ class ExtensionBlocks {
                 text: formatMessage({
                     id: 'g2s.pwmConnectorMenu.vibrationMotorOnSteamBox',
                     default: 'vibration motor on STEAM BOX',
-                    description: 'label for vibration motor on steam mox in PWM connector menu for g2s'
+                    description: 'label for vibration motor on STEAM BOX in PWM connector menu for g2s'
                 }),
                 value: '3'
             }
