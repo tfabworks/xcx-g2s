@@ -1596,7 +1596,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'neoPixelConnectorMenu'
                         },
                         LENGTH: {
                             type: ArgumentType.NUMBER,
@@ -1615,7 +1615,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'neoPixelConnectorMenu'
                         },
                         POSITION: {
                             type: ArgumentType.NUMBER,
@@ -1665,7 +1665,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'neoPixelConnectorMenu'
                         }
                     }
                 },
@@ -1680,7 +1680,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'neoPixelConnectorMenu'
                         }
                     }
                 },
@@ -2188,6 +2188,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getPWMConnectorMenu()
                 },
+                neoPixelConnectorMenu: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelConnectorMenu()
+                },
                 neoPixelColorMenu: {
                     acceptReporters: true,
                     items: this.getNeoPixelColorMenu()
@@ -2413,6 +2417,39 @@ class ExtensionBlocks {
                     description: 'label for pull up in input bias menu for g2s'
                 }),
                 value: 'pullUp'
+            }
+        ];
+    }
+
+    getNeoPixelConnectorMenu () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        return [
+            {
+                text: `${digitalPrefix}A (A1)`,
+                value: '10'
+            },
+            {
+                text: `${digitalPrefix}A (A2)`,
+                value: '11'
+            },
+            {
+                text: `${digitalPrefix}B (B1)`,
+                value: '6'
+            },
+            {
+                text: `${digitalPrefix}B (B2)`,
+                value: '9'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelConnectorMenu.steamBox',
+                    default: 'STEAM BOX',
+                    description: 'label for STEAM BOX in neoPixel connector menu for g2s'
+                }),
+                value: '7'
             }
         ];
     }
