@@ -1562,7 +1562,9 @@ var en = {
 	"g2s.digitalIsHigh": "[CONNECTOR] value is 1",
 	"g2s.digitalLevelChanged": "When [CONNECTOR] is [LEVEL]",
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "relay on STEAM BOX",
 	"g2s.analogLevelSet": "PWM [CONNECTOR] set duty cycle [LEVEL] %",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "vibration motor on STEAM BOX",
 	"g2s.servoTurn": "Servo [CONNECTOR] turn [ANGLE] degrees",
 	"g2s.i2cWrite": "I2C write on [ADDRESS] register [REGISTER] with [DATA]",
 	"g2s.i2cReadOnce": "I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]",
@@ -1571,6 +1573,7 @@ var en = {
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
 	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
 	"g2s.neoPixelConfigStrip": "set color LED [CONNECTOR] length [LENGTH]",
+	"g2s.neoPixelConnectorMenu.steamBox": "STEAM BOX",
 	"g2s.neoPixelSetColor": "color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]",
 	"g2s.neoPixelColorMenu.red": "red",
 	"g2s.neoPixelColorMenu.orange": "orange",
@@ -1636,7 +1639,9 @@ var ja = {
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "STEAM BOXの制御スイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティー比[LEVEL]%にする",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "STEAM BOXの振動モーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
@@ -1645,6 +1650,7 @@ var ja = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]を長さ[LENGTH]に設定する",
+	"g2s.neoPixelConnectorMenu.steamBox": "STEAM BOX",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]番目を[COLOR]色で明るさ[BRIGHTNESS]に設定する",
 	"g2s.neoPixelColorMenu.red": "赤",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -1713,7 +1719,9 @@ var translations = {
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "スチームボックスのせいぎょスイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティーひ[LEVEL]%にする",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "スチームボックスのしんどうモーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
@@ -1722,6 +1730,7 @@ var translations = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]をながさ[LENGTH]にせっていする",
+	"g2s.neoPixelConnectorMenu.steamBox": "スチームボックス",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]ばんめを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
 	"g2s.neoPixelColorMenu.red": "あか",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -15893,6 +15902,7 @@ function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !
 var Firmata = firmata.Firmata;
 var PING_SENSOR_COMMAND = 0x01;
 var BOARD_VERSION_QUERY = 0x0F;
+var DEVICE_ENABLE = 0x03;
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -15962,6 +15972,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this = _super.call(this);
     _this.name = 'AkaDakoBoard';
+    /**
+     * Version of the connected board.
+     * @type {{type: number, major: number, minor: number}}
+     */
+
+    _this.version = null;
     /**
      * The Scratch runtime to register event listeners.
      * @type {Runtime}
@@ -16239,7 +16255,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 outputPort = null;
 
                 if (!filters) {
-                  _context3.next = 48;
+                  _context3.next = 52;
                   break;
                 }
 
@@ -16301,15 +16317,19 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 24:
                 if (inputPort) {
-                  _context3.next = 26;
+                  _context3.next = 28;
                   break;
                 }
 
-                return _context3.abrupt("return", Promise.reject("no MIDIInput for filter: ".concat(JSON.stringify(filters))));
+                console.log('MIDIInput');
+                midiAccess.inputs.forEach(function (port) {
+                  console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
+                });
+                return _context3.abrupt("return", Promise.reject("no available MIDIInput for the filters"));
 
-              case 26:
+              case 28:
                 _iterator2 = _createForOfIteratorHelper(filters);
-                _context3.prev = 27;
+                _context3.prev = 29;
 
                 _loop2 = function _loop2() {
                   var filter = _step2.value;
@@ -16328,81 +16348,85 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
                 _iterator2.s();
 
-              case 30:
+              case 32:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context3.next = 36;
+                  _context3.next = 38;
                   break;
                 }
 
                 _ret2 = _loop2();
 
                 if (!(_ret2 === "break")) {
-                  _context3.next = 34;
+                  _context3.next = 36;
                   break;
                 }
 
-                return _context3.abrupt("break", 36);
-
-              case 34:
-                _context3.next = 30;
-                break;
+                return _context3.abrupt("break", 38);
 
               case 36:
-                _context3.next = 41;
+                _context3.next = 32;
                 break;
 
               case 38:
-                _context3.prev = 38;
-                _context3.t1 = _context3["catch"](27);
+                _context3.next = 43;
+                break;
+
+              case 40:
+                _context3.prev = 40;
+                _context3.t1 = _context3["catch"](29);
 
                 _iterator2.e(_context3.t1);
 
-              case 41:
-                _context3.prev = 41;
+              case 43:
+                _context3.prev = 43;
 
                 _iterator2.f();
 
-                return _context3.finish(41);
+                return _context3.finish(43);
 
-              case 44:
+              case 46:
                 if (outputPort) {
-                  _context3.next = 46;
+                  _context3.next = 50;
                   break;
                 }
 
-                return _context3.abrupt("return", Promise.reject("no MIDIOutput for filter: ".concat(JSON.stringify(filters))));
+                console.log('MIDIOutput');
+                midiAccess.outputs.forEach(function (port) {
+                  console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
+                });
+                return _context3.abrupt("return", Promise.reject("no available MIDIOutput for the filters"));
 
-              case 46:
-                _context3.next = 58;
+              case 50:
+                _context3.next = 62;
                 break;
 
-              case 48:
+              case 52:
                 inputs = midiAccess.inputs.values();
                 outputs = midiAccess.outputs.values();
                 result = inputs.next();
-
-                if (!result.done) {
-                  _context3.next = 53;
-                  break;
-                }
-
-                return _context3.abrupt("return", Promise.reject('no MIDIInput'));
-
-              case 53:
-                inputPort = result.value;
-                result = outputs.next();
 
                 if (!result.done) {
                   _context3.next = 57;
                   break;
                 }
 
-                return _context3.abrupt("return", Promise.reject('no MIDIOutput'));
+                return _context3.abrupt("return", Promise.reject('no MIDIInput'));
 
               case 57:
+                inputPort = result.value;
+                result = outputs.next();
+
+                if (!result.done) {
+                  _context3.next = 61;
+                  break;
+                }
+
+                return _context3.abrupt("return", Promise.reject('no MIDIOutput'));
+
+              case 61:
                 outputPort = result.value;
 
-              case 58:
+              case 62:
                 this.portInfo = {
                   manufacturer: inputPort.manufacturer,
                   name: inputPort.name
@@ -16410,22 +16434,22 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 transport = new MidiDakoTransport(inputPort, outputPort);
 
                 if (transport.isConnected()) {
-                  _context3.next = 63;
+                  _context3.next = 67;
                   break;
                 }
 
-                _context3.next = 63;
+                _context3.next = 67;
                 return transport.open();
 
-              case 63:
+              case 67:
                 return _context3.abrupt("return", transport);
 
-              case 64:
+              case 68:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[7, 18, 21, 24], [27, 38, 41, 44]]);
+        }, _callee3, this, [[7, 18, 21, 24], [29, 40, 43, 46]]);
       }));
 
       function openMIDIPort(_x2) {
@@ -16598,8 +16622,9 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       this.disconnect();
     }
     /**
-     * Query the version information of the connected board.
-     * @returns {string} version info
+     * Query the version information of the connected board and set the version data.
+     *
+     * @returns {Promise<string>} A Promise which resolves version info.
      */
 
   }, {
@@ -16607,6 +16632,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function boardVersion() {
       var _this5 = this;
 
+      if (this.version) return Promise.resolve("".concat(this.version.type, ".").concat(this.version.major, ".").concat(this.version.minor));
       var firmata = this.firmata;
       var request = new Promise(function (resolve) {
         firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
@@ -16622,6 +16648,40 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       });
       return Promise.race([request, timeoutReject(100)]).finally(function () {
         firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+      });
+    }
+    /**
+     * Return type name of the board.
+     *
+     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM BOX'].
+     */
+
+  }, {
+    key: "boardType",
+    value: function boardType() {
+      if (this.version.type === 0) return 'AkaDako';
+      if (this.version.type === 1) return 'KuroDako';
+      if (this.version.type === 2 && this.version.major === 0) return 'STEAM BOX';
+    }
+    /**
+     * Enable a device on the board.
+     *
+     * @param {number} deviceID ID to be enabled.
+     * @returns {Promise} A Promise which resolves when the message was sent.
+     */
+
+  }, {
+    key: "enableDevice",
+    value: function enableDevice(deviceID) {
+      var _this6 = this;
+
+      var message = [DEVICE_ENABLE, deviceID];
+      return new Promise(function (resolve) {
+        _this6.firmata.sysexCommand(message);
+
+        setTimeout(function () {
+          return resolve();
+        }, _this6.sendingInterval);
       });
     }
     /**
@@ -16645,7 +16705,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "updateDigitalInput",
     value: function updateDigitalInput(pin) {
-      var _this6 = this;
+      var _this7 = this;
 
       if (typeof this.pins[pin].mode !== 'undefined' && this.pins[pin].mode !== this.firmata.MODES.INPUT && this.pins[pin].mode !== this.firmata.MODES.PULLUP) {
         return Promise.resolve(this.pins[pin].value);
@@ -16657,28 +16717,28 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
       this.pins[pin].updating = true;
       var request = new Promise(function (resolve) {
-        if (_this6.pins[pin].inputBias !== _this6.firmata.MODES.PULLUP) {
-          _this6.pins[pin].inputBias = _this6.firmata.MODES.INPUT;
+        if (_this7.pins[pin].inputBias !== _this7.firmata.MODES.PULLUP) {
+          _this7.pins[pin].inputBias = _this7.firmata.MODES.INPUT;
         }
 
-        _this6.firmata.pinMode(pin, _this6.pins[pin].inputBias);
+        _this7.firmata.pinMode(pin, _this7.pins[pin].inputBias);
 
-        _this6.firmata.reportDigitalPin(pin, 1);
+        _this7.firmata.reportDigitalPin(pin, 1);
 
-        _this6.firmata.once("digital-read-".concat(pin), function (value) {
-          _this6.pins[pin].value = value;
-          _this6.pins[pin].updateTime = Date.now();
+        _this7.firmata.once("digital-read-".concat(pin), function (value) {
+          _this7.pins[pin].value = value;
+          _this7.pins[pin].updateTime = Date.now();
 
-          _this6.firmata.reportDigitalPin(pin, 0);
+          _this7.firmata.reportDigitalPin(pin, 0);
 
-          resolve(_this6.pins[pin].value);
+          resolve(_this7.pins[pin].value);
         });
       });
       return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
-        _this6.pins[pin].value = 0;
+        _this7.pins[pin].value = 0;
         return Promise.reject(reason);
       }).finally(function () {
-        _this6.pins[pin].updating = false;
+        _this7.pins[pin].updating = false;
       });
     }
     /**
@@ -16691,15 +16751,15 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "setInputBias",
     value: function setInputBias(pin, pullUp) {
-      var _this7 = this;
+      var _this8 = this;
 
       this.pins[pin].inputBias = pullUp ? this.MODES.PULLUP : this.MODES.INPUT;
       return new Promise(function (resolve) {
-        _this7.pinMode(pin, _this7.pins[pin].inputBias);
+        _this8.pinMode(pin, _this8.pins[pin].inputBias);
 
         setTimeout(function () {
           return resolve();
-        }, _this7.sendingInterval);
+        }, _this8.sendingInterval);
       });
     }
     /**
@@ -16711,7 +16771,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "updateAnalogInput",
     value: function updateAnalogInput(analogPin) {
-      var _this8 = this;
+      var _this9 = this;
 
       var pin = this.firmata.analogPins[analogPin];
 
@@ -16721,24 +16781,24 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
       this.pins[pin].updating = true;
       var request = new Promise(function (resolve) {
-        _this8.firmata.pinMode(analogPin, _this8.MODES.ANALOG);
+        _this9.firmata.pinMode(analogPin, _this9.MODES.ANALOG);
 
-        _this8.firmata.reportAnalogPin(analogPin, 1);
+        _this9.firmata.reportAnalogPin(analogPin, 1);
 
-        _this8.firmata.once("analog-read-".concat(analogPin), function (value) {
-          _this8.pins[pin].value = value;
-          _this8.pins[pin].updateTime = Date.now();
+        _this9.firmata.once("analog-read-".concat(analogPin), function (value) {
+          _this9.pins[pin].value = value;
+          _this9.pins[pin].updateTime = Date.now();
 
-          _this8.firmata.reportAnalogPin(analogPin, 0);
+          _this9.firmata.reportAnalogPin(analogPin, 0);
 
-          resolve(_this8.pins[pin].value);
+          resolve(_this9.pins[pin].value);
         });
       });
       return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)]).catch(function (reason) {
-        _this8.pins[pin].value = 0;
+        _this9.pins[pin].value = 0;
         return Promise.reject(reason);
       }).finally(function () {
-        _this8.pins[pin].updating = false;
+        _this9.pins[pin].updating = false;
       });
     }
     /**
@@ -16752,14 +16812,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "digitalWrite",
     value: function digitalWrite(pin, value, enqueue) {
-      var _this9 = this;
+      var _this10 = this;
 
       return new Promise(function (resolve) {
-        _this9.firmata.digitalWrite(pin, value, enqueue);
+        _this10.firmata.digitalWrite(pin, value, enqueue);
 
         setTimeout(function () {
           return resolve();
-        }, _this9.sendingInterval);
+        }, _this10.sendingInterval);
       });
     }
     /**
@@ -16772,14 +16832,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pwmWrite",
     value: function pwmWrite(pin, value) {
-      var _this10 = this;
+      var _this11 = this;
 
       return new Promise(function (resolve) {
-        _this10.firmata.pwmWrite(pin, value);
+        _this11.firmata.pwmWrite(pin, value);
 
         setTimeout(function () {
           return resolve();
-        }, _this10.sendingInterval);
+        }, _this11.sendingInterval);
       });
     }
     /**
@@ -16792,20 +16852,20 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "servoWrite",
     value: function servoWrite() {
-      var _this11 = this;
+      var _this12 = this;
 
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
       return new Promise(function (resolve) {
-        var _this11$firmata;
+        var _this12$firmata;
 
-        (_this11$firmata = _this11.firmata).servoWrite.apply(_this11$firmata, args);
+        (_this12$firmata = _this12.firmata).servoWrite.apply(_this12$firmata, args);
 
         setTimeout(function () {
           return resolve();
-        }, _this11.sendingInterval);
+        }, _this12.sendingInterval);
       });
     }
     /**
@@ -16819,14 +16879,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cWrite",
     value: function i2cWrite(address, register, inBytes) {
-      var _this12 = this;
+      var _this13 = this;
 
       return new Promise(function (resolve) {
-        _this12.firmata.i2cWrite(address, register, inBytes);
+        _this13.firmata.i2cWrite(address, register, inBytes);
 
         setTimeout(function () {
           return resolve();
-        }, _this12.sendingInterval);
+        }, _this13.sendingInterval);
       });
     }
     /**
@@ -16841,11 +16901,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(address, register, readLength, timeout) {
-      var _this13 = this;
+      var _this14 = this;
 
       timeout = timeout ? timeout : this.i2cReadWaitingTime;
       var request = new Promise(function (resolve) {
-        _this13.firmata.i2cReadOnce(address, register, readLength, function (data) {
+        _this14.firmata.i2cReadOnce(address, register, readLength, function (data) {
           resolve(data);
         });
       });
@@ -16860,14 +16920,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendOneWireReset",
     value: function sendOneWireReset(pin) {
-      var _this14 = this;
+      var _this15 = this;
 
       return new Promise(function (resolve) {
-        _this14.firmata.sendOneWireReset(pin);
+        _this15.firmata.sendOneWireReset(pin);
 
         setTimeout(function () {
           return resolve();
-        }, _this14.sendingInterval);
+        }, _this15.sendingInterval);
       });
     }
     /**
@@ -16879,27 +16939,27 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
-      var _this15 = this;
+      var _this16 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this15.firmata.pins[pin].mode !== _this15.firmata.MODES.ONEWIRE) {
-          _this15.firmata.sendOneWireConfig(pin, true);
+        if (_this16.firmata.pins[pin].mode !== _this16.firmata.MODES.ONEWIRE) {
+          _this16.firmata.sendOneWireConfig(pin, true);
 
-          return _this15.firmata.sendOneWireSearch(pin, function (error, founds) {
+          return _this16.firmata.sendOneWireSearch(pin, function (error, founds) {
             if (error) return reject(error);
             if (founds.length < 1) return reject(new Error('no device'));
 
-            _this15.firmata.pinMode(pin, _this15.firmata.MODES.ONEWIRE);
+            _this16.firmata.pinMode(pin, _this16.firmata.MODES.ONEWIRE);
 
-            _this15.oneWireDevices = founds;
+            _this16.oneWireDevices = founds;
 
-            _this15.firmata.sendOneWireDelay(pin, 1);
+            _this16.firmata.sendOneWireDelay(pin, 1);
 
-            resolve(_this15.oneWireDevices);
+            resolve(_this16.oneWireDevices);
           });
         }
 
-        resolve(_this15.oneWireDevices);
+        resolve(_this16.oneWireDevices);
       });
     }
     /**
@@ -16912,10 +16972,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
-      var _this16 = this;
+      var _this17 = this;
 
       return this.searchOneWireDevices(pin).then(function (devices) {
-        _this16.firmata.sendOneWireWrite(pin, devices[0], data);
+        _this17.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
     /**
@@ -16929,12 +16989,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireRead",
     value: function oneWireRead(pin, length, timeout) {
-      var _this17 = this;
+      var _this18 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this17.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+          _this18.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
             if (readError) return reject(readError);
             resolve(data);
           });
@@ -16954,12 +17014,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
-      var _this18 = this;
+      var _this19 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this18.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
+          _this19.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
             if (readError) return reject(readError);
             resolve(readData);
           });
@@ -16977,7 +17037,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
-      var _this19 = this;
+      var _this20 = this;
 
       this.pins[pin].mode = nodePixelConstants.PIXEL_COMMAND;
       this.neoPixel = this.neoPixel.filter(function (aStrip) {
@@ -16996,11 +17056,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         message.push(aStrip.length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK);
       });
       return new Promise(function (resolve) {
-        _this19.firmata.sysexCommand(message);
+        _this20.firmata.sysexCommand(message);
 
         setTimeout(function () {
           return resolve();
-        }, _this19.sendingInterval);
+        }, _this20.sendingInterval);
       });
     }
     /**
@@ -17017,7 +17077,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     key: "neoPixelSetColor",
     value: function () {
       var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(pin, index, color) {
-        var _this20 = this;
+        var _this21 = this;
 
         var address, prevStrip, colorValue, message;
         return regenerator.wrap(function _callee5$(_context5) {
@@ -17057,11 +17117,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 return _context5.abrupt("return", new Promise(function (resolve) {
-                  _this20.firmata.sysexCommand(message);
+                  _this21.firmata.sysexCommand(message);
 
                   setTimeout(function () {
                     return resolve();
-                  }, _this20.sendingInterval);
+                  }, _this21.sendingInterval);
                 }));
 
               case 17:
@@ -17137,10 +17197,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClearAll",
     value: function neoPixelClearAll() {
-      var _this21 = this;
+      var _this22 = this;
 
       return Promise.all(this.neoPixel.map(function (aStrip) {
-        return _this21.neoPixelClear(aStrip.pin);
+        return _this22.neoPixelClear(aStrip.pin);
       }));
     }
     /**
@@ -17151,17 +17211,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
-      var _this22 = this;
+      var _this23 = this;
 
       var message = new Array(2);
       message[0] = nodePixelConstants.PIXEL_COMMAND;
       message[1] = nodePixelConstants.PIXEL_SHOW;
       return new Promise(function (resolve) {
-        _this22.firmata.sysexCommand(message);
+        _this23.firmata.sysexCommand(message);
 
         setTimeout(function () {
           return resolve();
-        }, _this22.sendingInterval);
+        }, _this23.sendingInterval);
       });
     }
     /**
@@ -19114,14 +19174,14 @@ var ADXL345 = /*#__PURE__*/function () {
      * @type {number}
      */
 
-    this.timeout = 2000;
+    this.timeout = 200;
     /**
      * Scale factor for raw data of acceleration
      */
 
     this.scale = {
       x: 0.0392266,
-      // =(4/1000*9.80665)
+      // =((4/1000)*9.80665)
       y: 0.0392266,
       z: 0.0392266
     };
@@ -19682,6 +19742,370 @@ var BME280 = /*#__PURE__*/function () {
 }();
 
 /**
+ * KXTJ3 API based on ROHM's Arduino sample software (v1.1)
+ * ref: https://www.rohm.co.jp/sensor-shield-support/kxtj3-1057
+ */
+var KXTJ3_DEVICE_ADDRESS_0F = 0x0F;
+var KXTJ3_DEVICE_ADDRESS_0E = 0x0E;
+var KXTJ3_XOUT_L = 0x06;
+var KXTJ3_WHO_AM_I = 0x0F;
+var KXTJ3_CNTL1 = 0x1B;
+var KXTJ3_DATA_CNTL = 0x21;
+var KXTJ3_CNTL1_GSEL_2G = 0 << 2;
+var KXTJ3_CNTL1_GSEL_4G = 2 << 2;
+var KXTJ3_CNTL1_GSEL_8G = 4 << 2;
+var KXTJ3_CNTL1_GSEL_16G = 1 << 2;
+var KXTJ3_CNTL1_RES_LOWPOWER = 0 << 6; // const KXTJ3_CNTL1_RES_HIGHRESO = (1 << 6);
+
+var KXTJ3_CNTL1_PC1 = 1 << 7;
+var KXTJ3_DATA_CNTL_OSA_50HZ = 2 << 0;
+var KXTJ3_WAI_VAL = 0x35;
+var KXTJ3_DATA_CNTL_VAL = KXTJ3_DATA_CNTL_OSA_50HZ;
+var KXTJ3_CNTL1_EN16GMASK = 0x04;
+var KXTJ3_CNTL1_GSELMASK = 0x18;
+var KXTJ3_CNTL1_GSEL_14BIT = 0x18;
+var KXTJ3_CNTL1_RES_MASK = 0x40;
+var KXTJ3_DATA_CNTL_ODRCHECK = 4;
+var KXTJ3_DATA_CNTL_OSAA_CLEAR = 0x07;
+var KXTJ3_GSENS_2G = 2;
+var KXTJ3_GSENS_4G = 4;
+var KXTJ3_GSENS_8G = 8;
+var KXTJ3_GSENS_16G = 16;
+var KXTJ3_READ_DATA_SIZE = 6;
+var KXTJ3_DIVIDE_SHIFT = 15;
+/**
+ * This class represents KXTJ3 device.
+ */
+
+var KXTJ3 = /*#__PURE__*/function () {
+  /**
+   * Construct the device with an I2C address.
+   * @param {AkadakoBoard} board Connecting AkaDako board.
+   * @param {boolean} isAddressLow True when use lower address (0x0F).
+   */
+  function KXTJ3(board, isAddressLow) {
+    _classCallCheck(this, KXTJ3);
+
+    /**
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
+     */
+    this.board = board;
+    /**
+     * I2C address for this device.
+     *
+     * @type {number}
+     */
+
+    this.address = KXTJ3_DEVICE_ADDRESS_0E;
+
+    if (isAddressLow) {
+      this.address = KXTJ3_DEVICE_ADDRESS_0F;
+    }
+    /**
+     * Value of register control1.
+     *
+     * @type {number}
+     */
+
+
+    this.regCtrl1 = 0;
+  }
+  /**
+   * Initialize the device.
+   *
+   * @param {number} range Range of gravity sensing. [ 2 | 4 | 8 | 16 ]
+   */
+
+
+  _createClass(KXTJ3, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(range) {
+        var ctrl1;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.initDevice(range);
+
+              case 2:
+                ctrl1 = _context.sent;
+                this.setupParameters(ctrl1);
+                _context.next = 6;
+                return this.start();
+
+              case 6:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init(_x) {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+    /**
+     * Set initial settings for the device.
+     *
+     * @param {number} range Range of gravity sensing. [ 2 | 4 | 8 | 16 ]
+     * @returns {Promise<number | string>} Resolves control register 1 or error message.
+     */
+
+  }, {
+    key: "initDevice",
+    value: function () {
+      var _initDevice = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(range) {
+        var gSelection, ctrl1Value, data;
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.t0 = KXTJ3_WAI_VAL;
+                _context2.next = 3;
+                return this.read(KXTJ3_WHO_AM_I, 1);
+
+              case 3:
+                _context2.t1 = _context2.sent[0];
+
+                if (!(_context2.t0 !== _context2.t1)) {
+                  _context2.next = 6;
+                  break;
+                }
+
+                throw new Error('not KXTJ3');
+
+              case 6:
+                gSelection = 0;
+                _context2.t2 = range;
+                _context2.next = _context2.t2 === 2 ? 10 : _context2.t2 === 4 ? 12 : _context2.t2 === 16 ? 14 : 16;
+                break;
+
+              case 10:
+                gSelection = KXTJ3_CNTL1_GSEL_2G;
+                return _context2.abrupt("break", 18);
+
+              case 12:
+                gSelection = KXTJ3_CNTL1_GSEL_4G;
+                return _context2.abrupt("break", 18);
+
+              case 14:
+                gSelection = KXTJ3_CNTL1_GSEL_16G;
+                return _context2.abrupt("break", 18);
+
+              case 16:
+                gSelection = KXTJ3_CNTL1_GSEL_8G;
+                return _context2.abrupt("break", 18);
+
+              case 18:
+                ctrl1Value = KXTJ3_CNTL1_RES_LOWPOWER | gSelection;
+                _context2.next = 21;
+                return this.write(KXTJ3_CNTL1, [ctrl1Value]);
+
+              case 21:
+                _context2.next = 23;
+                return this.write(KXTJ3_DATA_CNTL, [KXTJ3_DATA_CNTL_VAL]);
+
+              case 23:
+                _context2.next = 25;
+                return this.read(KXTJ3_CNTL1, 1);
+
+              case 25:
+                data = _context2.sent;
+                return _context2.abrupt("return", data[0]);
+
+              case 27:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function initDevice(_x2) {
+        return _initDevice.apply(this, arguments);
+      }
+
+      return initDevice;
+    }()
+    /**
+     * Setup parameters to use device.
+     *
+     * @param {number} ctrl1 Value of control 1 register of the device.
+     */
+
+  }, {
+    key: "setupParameters",
+    value: function setupParameters(ctrl1) {
+      this.regCtrl1 = ctrl1;
+      var resolution = ctrl1 & KXTJ3_CNTL1_RES_MASK;
+      var gSelection = ctrl1 & KXTJ3_CNTL1_GSELMASK;
+      var en16g = ctrl1 & KXTJ3_CNTL1_EN16GMASK;
+      var outputDataRate = KXTJ3_DATA_CNTL_OSAA_CLEAR & KXTJ3_DATA_CNTL_VAL;
+
+      if (resolution === KXTJ3_CNTL1_RES_LOWPOWER) {
+        if (gSelection === KXTJ3_CNTL1_GSEL_14BIT || outputDataRate > KXTJ3_DATA_CNTL_ODRCHECK) {
+          throw new Error('KXTJ3 setting parameter error');
+        }
+      }
+
+      var gSense;
+
+      if (en16g === KXTJ3_CNTL1_GSEL_16G) {
+        gSense = KXTJ3_GSENS_16G;
+      } else {
+        switch (gSelection) {
+          case KXTJ3_CNTL1_GSEL_2G:
+            gSense = KXTJ3_GSENS_2G;
+            break;
+
+          case KXTJ3_CNTL1_GSEL_4G:
+            gSense = KXTJ3_GSENS_4G;
+            break;
+
+          default:
+            gSense = KXTJ3_GSENS_8G;
+            break;
+        }
+      }
+
+      this.gDivide = (1 << KXTJ3_DIVIDE_SHIFT) / gSense;
+    }
+    /**
+     * Start sensing.
+     */
+
+  }, {
+    key: "start",
+    value: function () {
+      var _start = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.write(KXTJ3_CNTL1, [this.regCtrl1 | KXTJ3_CNTL1_PC1]);
+
+              case 2:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function start() {
+        return _start.apply(this, arguments);
+      }
+
+      return start;
+    }()
+    /**
+     * Stop sensing.
+     */
+
+  }, {
+    key: "stop",
+    value: function () {
+      var _stop = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this.write(KXTJ3_CNTL1, [this.regCtrl1 & ~KXTJ3_CNTL1_PC1]);
+
+              case 2:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function stop() {
+        return _stop.apply(this, arguments);
+      }
+
+      return stop;
+    }()
+    /**
+     * Return latest acceleration data.
+     *
+     * @returns {Promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
+     */
+
+  }, {
+    key: "getAcceleration",
+    value: function () {
+      var _getAcceleration = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+        var data, dataView, acceleration;
+        return regenerator.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this.read(KXTJ3_XOUT_L, KXTJ3_READ_DATA_SIZE);
+
+              case 2:
+                data = _context5.sent;
+                dataView = new DataView(new Uint8Array(data).buffer);
+                acceleration = {};
+                acceleration.x = 9.8 * dataView.getInt16(0, true) / this.gDivide;
+                acceleration.y = 9.8 * dataView.getInt16(2, true) / this.gDivide;
+                acceleration.z = 9.8 * dataView.getInt16(4, true) / this.gDivide;
+                return _context5.abrupt("return", acceleration);
+
+              case 9:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getAcceleration() {
+        return _getAcceleration.apply(this, arguments);
+      }
+
+      return getAcceleration;
+    }()
+    /**
+     * Read multiple bytes from the register.
+     *
+     * @param {number} register - register to read
+     * @param {number} readLength - byte size to read
+     * @returns {Promise<number>} a Promise which resolves read value
+     */
+
+  }, {
+    key: "read",
+    value: function read(register, readLength) {
+      return this.board.i2cReadOnce(this.address, register, readLength);
+    }
+    /**
+     * Write these bytes starting at the register.
+     *
+     * @param {number} register - starting register
+     * @param {Array<number>} data - array of uint8t to be written
+     */
+
+  }, {
+    key: "write",
+    value: function write(register, data) {
+      this.board.i2cWrite(this.address, register, data);
+    }
+  }]);
+
+  return KXTJ3;
+}();
+
+/**
  * Returns a Long Integer converted from the value.
  * @param {number|string} value - value to be converted
  * @param {boolean} unsigned - true for unsigned long
@@ -19815,11 +20239,16 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
     /**
      * Current connected board object with AkaDako protocol
-     * @type {AkaDakoBoard}
+     * @type {import('./akadako-board').default}
      */
 
 
     this.board = null;
+    /**
+     * Default accelerometer
+     */
+
+    this.accelerometer = null;
     /**
      * Distance sensor VL53L0X
      * @type {VL53L0X}
@@ -19913,8 +20342,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.board = this.boardConnector.findBoard();
       if (prev === this.board) return;
       this.vl53l0x = null;
-      this.adxl345 = null;
       this.bme280 = null;
+      this.accelerometer = null;
     }
     /**
      * Called by the runtime when user wants to scan for a peripheral.
@@ -20496,45 +20925,49 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 return _context.abrupt("return", 0);
 
               case 2:
+                if (this.board.boardType() === 'STEAM BOX') {
+                  this.board.enableDevice(0x00);
+                }
+
                 if (this.vl53l0x) {
-                  _context.next = 14;
+                  _context.next = 15;
                   break;
                 }
 
                 newSensor = new VL53L0X(this.board);
-                _context.next = 6;
+                _context.next = 7;
                 return newSensor.init(true);
 
-              case 6:
+              case 7:
                 found = _context.sent;
 
                 if (found) {
-                  _context.next = 9;
+                  _context.next = 10;
                   break;
                 }
 
                 return _context.abrupt("return", 0);
 
-              case 9:
-                _context.next = 11;
+              case 10:
+                _context.next = 12;
                 return newSensor.startContinuous().catch(function (reason) {
                   console.log("fail to VL53L0X.startContinuous() by ".concat(reason));
                   newSensor = null;
                 });
 
-              case 11:
+              case 12:
                 if (newSensor) {
-                  _context.next = 13;
+                  _context.next = 14;
                   break;
                 }
 
                 return _context.abrupt("return", 0);
 
-              case 13:
+              case 14:
                 this.vl53l0x = newSensor;
 
-              case 14:
-                _context.next = 16;
+              case 15:
+                _context.next = 17;
                 return this.vl53l0x.readRangeContinuousMillimeters().then(function (mm) {
                   return mm / 10;
                 }).catch(function (reason) {
@@ -20543,11 +20976,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return 0;
                 });
 
-              case 16:
+              case 17:
                 distance = _context.sent;
                 return _context.abrupt("return", distance);
 
-              case 18:
+              case 19:
               case "end":
                 return _context.stop();
             }
@@ -20616,133 +21049,67 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.measureDistanceWithUltrasonic(6, util);
     }
     /**
-     * Get acceleration [m/s^2] for the axis using ADXL345
-     * @param {string} axis - axis to get
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get instance of an accelerometer.
+     *
+     * @returns {Promise} A Promise which resolves an accelerometer.
      */
 
   }, {
-    key: "getAccelerationADXL345",
+    key: "getAccelerometer",
     value: function () {
-      var _getAccelerationADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(axis) {
-        var _this10 = this;
-
+      var _getAccelerometer = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
         var newSensor;
         return regenerator.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context2.next = 2;
+                if (this.accelerometer) {
+                  _context2.next = 6;
                   break;
                 }
 
-                return _context2.abrupt("return", Promise.resolve(0));
+                newSensor = null;
 
-              case 2:
-                if (this.adxl345) {
-                  _context2.next = 14;
-                  break;
+                if (this.board.boardType() === 'STEAM BOX') {
+                  newSensor = new KXTJ3(this.board);
+                } else {
+                  newSensor = new ADXL345(this.board);
                 }
 
-                newSensor = new ADXL345(this.board);
-                _context2.prev = 4;
-                _context2.next = 7;
+                _context2.next = 5;
                 return newSensor.init();
 
+              case 5:
+                this.accelerometer = newSensor;
+
+              case 6:
+                return _context2.abrupt("return", this.accelerometer);
+
               case 7:
-                _context2.next = 13;
-                break;
-
-              case 9:
-                _context2.prev = 9;
-                _context2.t0 = _context2["catch"](4);
-                // fail to create instance
-                console.log(_context2.t0);
-                return _context2.abrupt("return", Promise.resolve(0));
-
-              case 13:
-                this.adxl345 = newSensor;
-
-              case 14:
-                return _context2.abrupt("return", this.adxl345.getAcceleration().then(function (acceleration) {
-                  if (axis === 'absolute') {
-                    return Math.round(Math.sqrt(Math.pow(acceleration.x, 2) + Math.pow(acceleration.y, 2) + Math.pow(acceleration.z, 2)) * 100) / 100;
-                  }
-
-                  return acceleration[axis];
-                }).catch(function (reason) {
-                  console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this10.adxl345 = null;
-                  return 0;
-                }));
-
-              case 15:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[4, 9]]);
+        }, _callee2, this);
       }));
 
-      function getAccelerationADXL345(_x) {
-        return _getAccelerationADXL.apply(this, arguments);
+      function getAccelerometer() {
+        return _getAccelerometer.apply(this, arguments);
       }
 
-      return getAccelerationADXL345;
+      return getAccelerometer;
     }()
     /**
-     * Get acceleration [m/s^2] for axis X
-     * @returns {Promise<number>} return a Promise which resolves acceleration
+     * Get acceleration [m/s^2] for the axis.
+     *
+     * @returns {Promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
      */
 
   }, {
-    key: "getAccelerationX",
-    value: function getAccelerationX() {
-      return this.getAccelerationADXL345('x');
-    }
-    /**
-     * Get acceleration [m/s^2] for axis Y
-     * @returns {Promise<number>} return a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationY",
-    value: function getAccelerationY() {
-      return this.getAccelerationADXL345('y');
-    }
-    /**
-     * Get acceleration [m/s^2] for axis Z
-     * @returns {Promise<number>} return a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationZ",
-    value: function getAccelerationZ() {
-      return this.getAccelerationADXL345('z');
-    }
-    /**
-     * Get absolute acceleration [m/s^2]
-     * @returns {Promise<number>} return a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationAbsolute",
-    value: function getAccelerationAbsolute() {
-      return this.getAccelerationADXL345('absolute');
-    }
-    /**
-     * Get roll [degree] using ADXL345.
-     * @returns {Promise<number>} a Promise which resolves roll
-     */
-
-  }, {
-    key: "getRollADXL345",
+    key: "getAcceleration",
     value: function () {
-      var _getRollADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
-        var _this11 = this;
-
-        var newSensor;
+      var _getAcceleration = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+        var sensor, data;
         return regenerator.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -20752,68 +21119,62 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   break;
                 }
 
-                return _context3.abrupt("return", 0);
+                return _context3.abrupt("return", {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                });
 
               case 2:
-                if (this.adxl345) {
-                  _context3.next = 14;
-                  break;
-                }
+                _context3.prev = 2;
+                _context3.next = 5;
+                return this.getAccelerometer();
 
-                newSensor = new ADXL345(this.board);
-                _context3.prev = 4;
-                _context3.next = 7;
-                return newSensor.init();
+              case 5:
+                sensor = _context3.sent;
+                _context3.next = 8;
+                return sensor.getAcceleration();
 
-              case 7:
-                _context3.next = 13;
-                break;
+              case 8:
+                data = _context3.sent;
+                return _context3.abrupt("return", data);
 
-              case 9:
-                _context3.prev = 9;
-                _context3.t0 = _context3["catch"](4);
-                // fail to create instance
-                console.log(_context3.t0);
-                return _context3.abrupt("return", 0);
+              case 12:
+                _context3.prev = 12;
+                _context3.t0 = _context3["catch"](2);
+                console.log("KXTJ3.getAcceleration() was rejected by ".concat(_context3.t0));
+                this.accelerometer = null;
+                return _context3.abrupt("return", {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                });
 
-              case 13:
-                this.adxl345 = newSensor;
-
-              case 14:
-                return _context3.abrupt("return", this.adxl345.getAcceleration().then(function (acceleration) {
-                  return Math.atan2(acceleration.y, acceleration.z) * 180.0 / Math.PI;
-                }).catch(function (reason) {
-                  console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this11.adxl345 = null;
-                  return 0;
-                }));
-
-              case 15:
+              case 17:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[4, 9]]);
+        }, _callee3, this, [[2, 12]]);
       }));
 
-      function getRollADXL345() {
-        return _getRollADXL.apply(this, arguments);
+      function getAcceleration() {
+        return _getAcceleration.apply(this, arguments);
       }
 
-      return getRollADXL345;
+      return getAcceleration;
     }()
     /**
-     * Get pitch [degree] using ADXL345.
-     * @returns {Promise<number>} a Promise which resolves pitch
+     * Get acceleration [m/s^2] for axis X.
+     *
+     * @returns {Promise<number>} a Promise which resolves acceleration
      */
 
   }, {
-    key: "getPitchADXL345",
+    key: "getAccelerationX",
     value: function () {
-      var _getPitchADXL = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this12 = this;
-
-        var newSensor;
+      var _getAccelerationX = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
+        var data;
         return regenerator.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -20826,67 +21187,38 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 return _context4.abrupt("return", 0);
 
               case 2:
-                if (this.adxl345) {
-                  _context4.next = 14;
-                  break;
-                }
+                _context4.next = 4;
+                return this.getAcceleration();
 
-                newSensor = new ADXL345(this.board);
-                _context4.prev = 4;
-                _context4.next = 7;
-                return newSensor.init();
+              case 4:
+                data = _context4.sent;
+                return _context4.abrupt("return", Math.round(data.x * 100) / 100);
 
-              case 7:
-                _context4.next = 13;
-                break;
-
-              case 9:
-                _context4.prev = 9;
-                _context4.t0 = _context4["catch"](4);
-                // fail to create instance
-                console.log(_context4.t0);
-                return _context4.abrupt("return", 0);
-
-              case 13:
-                this.adxl345 = newSensor;
-
-              case 14:
-                return _context4.abrupt("return", this.adxl345.getAcceleration().then(function (acceleration) {
-                  var angle = Math.atan2(acceleration.x, Math.sqrt(acceleration.y * acceleration.y + acceleration.z * acceleration.z)) * 180.0 / Math.PI;
-                  if (acceleration.z > 0) return angle;
-                  return (angle > 0 ? 180 : -180) - angle;
-                }).catch(function (reason) {
-                  console.log("ADXL345.getAcceleration() was rejected by ".concat(reason));
-                  _this12.adxl345 = null;
-                  return 0;
-                }));
-
-              case 15:
+              case 6:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, this, [[4, 9]]);
+        }, _callee4, this);
       }));
 
-      function getPitchADXL345() {
-        return _getPitchADXL.apply(this, arguments);
+      function getAccelerationX() {
+        return _getAccelerationX.apply(this, arguments);
       }
 
-      return getPitchADXL345;
+      return getAccelerationX;
     }()
     /**
-     * Get temperature from BME280
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * Get acceleration [m/s^2] for axis Y.
+     *
+     * @returns {Promise<number>} a Promise which resolves acceleration
      */
 
   }, {
-    key: "getTemperatureBME280",
+    key: "getAccelerationY",
     value: function () {
-      var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this13 = this;
-
-        var newSensor;
+      var _getAccelerationY = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+        var data;
         return regenerator.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -20896,48 +21228,274 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   break;
                 }
 
-                return _context5.abrupt("return", Promise.resolve(0));
+                return _context5.abrupt("return", 0);
+
+              case 2:
+                _context5.next = 4;
+                return this.getAcceleration();
+
+              case 4:
+                data = _context5.sent;
+                return _context5.abrupt("return", Math.round(data.y * 100) / 100);
+
+              case 6:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getAccelerationY() {
+        return _getAccelerationY.apply(this, arguments);
+      }
+
+      return getAccelerationY;
+    }()
+    /**
+     * Get acceleration [m/s^2] for axis Z.
+     * @returns {Promise<number>} a Promise which resolves acceleration
+     */
+
+  }, {
+    key: "getAccelerationZ",
+    value: function () {
+      var _getAccelerationZ = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
+        var data;
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context6.next = 2;
+                  break;
+                }
+
+                return _context6.abrupt("return", 0);
+
+              case 2:
+                _context6.next = 4;
+                return this.getAcceleration();
+
+              case 4:
+                data = _context6.sent;
+                return _context6.abrupt("return", Math.round(data.z * 100) / 100);
+
+              case 6:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function getAccelerationZ() {
+        return _getAccelerationZ.apply(this, arguments);
+      }
+
+      return getAccelerationZ;
+    }()
+    /**
+     * Get absolute acceleration [m/s^2].
+     * @returns {Promise<number>} a Promise which resolves acceleration
+     */
+
+  }, {
+    key: "getAccelerationAbsolute",
+    value: function () {
+      var _getAccelerationAbsolute = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
+        var data, absolute;
+        return regenerator.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context7.next = 2;
+                  break;
+                }
+
+                return _context7.abrupt("return", 0);
+
+              case 2:
+                _context7.next = 4;
+                return this.getAcceleration();
+
+              case 4:
+                data = _context7.sent;
+                absolute = Math.sqrt(Math.pow(data.x, 2) + Math.pow(data.y, 2) + Math.pow(data.z, 2));
+                return _context7.abrupt("return", Math.round(absolute * 100) / 100);
+
+              case 7:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function getAccelerationAbsolute() {
+        return _getAccelerationAbsolute.apply(this, arguments);
+      }
+
+      return getAccelerationAbsolute;
+    }()
+    /**
+     * Get roll [degree] from accelerometer.
+     * @returns {Promise<number>} a Promise which resolves roll
+     */
+
+  }, {
+    key: "getRoll",
+    value: function () {
+      var _getRoll = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+        var data, roll;
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context8.next = 2;
+                  break;
+                }
+
+                return _context8.abrupt("return", 0);
+
+              case 2:
+                _context8.next = 4;
+                return this.getAcceleration();
+
+              case 4:
+                data = _context8.sent;
+                roll = Math.atan2(data.y, data.z) * 180.0 / Math.PI;
+                return _context8.abrupt("return", Math.round(roll * 100) / 100);
+
+              case 7:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function getRoll() {
+        return _getRoll.apply(this, arguments);
+      }
+
+      return getRoll;
+    }()
+    /**
+     * Get pitch [degree] from accelerometer.
+     * @returns {Promise<number>} a Promise which resolves pitch
+     */
+
+  }, {
+    key: "getPitch",
+    value: function () {
+      var _getPitch = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
+        var data, angle, pitch;
+        return regenerator.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context9.next = 2;
+                  break;
+                }
+
+                return _context9.abrupt("return", 0);
+
+              case 2:
+                _context9.next = 4;
+                return this.getAcceleration();
+
+              case 4:
+                data = _context9.sent;
+                angle = Math.atan2(data.x, Math.sqrt(data.y * data.y + data.z * data.z)) * 180.0 / Math.PI;
+                pitch = angle;
+
+                if (data.z < 0) {
+                  pitch = (angle > 0 ? 180 : -180) - angle;
+                }
+
+                return _context9.abrupt("return", Math.round(pitch * 100) / 100);
+
+              case 9:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function getPitch() {
+        return _getPitch.apply(this, arguments);
+      }
+
+      return getPitch;
+    }()
+    /**
+     * Get temperature from BME280
+     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     */
+
+  }, {
+    key: "getTemperatureBME280",
+    value: function () {
+      var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10() {
+        var _this10 = this;
+
+        var newSensor;
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context10.next = 2;
+                  break;
+                }
+
+                return _context10.abrupt("return", Promise.resolve(0));
 
               case 2:
                 if (this.bme280) {
-                  _context5.next = 14;
+                  _context10.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context5.prev = 4;
-                _context5.next = 7;
+                _context10.prev = 4;
+                _context10.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context5.next = 13;
+                _context10.next = 13;
                 break;
 
               case 9:
-                _context5.prev = 9;
-                _context5.t0 = _context5["catch"](4);
+                _context10.prev = 9;
+                _context10.t0 = _context10["catch"](4);
                 // fail to create instance
-                console.log(_context5.t0);
-                return _context5.abrupt("return", Promise.resolve(0));
+                console.log(_context10.t0);
+                return _context10.abrupt("return", Promise.resolve(0));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context5.abrupt("return", this.bme280.readTemperature().then(function (temp) {
+                return _context10.abrupt("return", this.bme280.readTemperature().then(function (temp) {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this13.bme280 = null;
+                  _this10.bme280 = null;
                   return 0;
                 }));
 
               case 15:
               case "end":
-                return _context5.stop();
+                return _context10.stop();
             }
           }
-        }, _callee5, this, [[4, 9]]);
+        }, _callee10, this, [[4, 9]]);
       }));
 
       function getTemperatureBME280() {
@@ -20954,61 +21512,61 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getPressureBME280",
     value: function () {
-      var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var _this14 = this;
+      var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
+        var _this11 = this;
 
         var newSensor;
-        return regenerator.wrap(function _callee6$(_context6) {
+        return regenerator.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context6.next = 2;
+                  _context11.next = 2;
                   break;
                 }
 
-                return _context6.abrupt("return", Promise.resolve(0));
+                return _context11.abrupt("return", Promise.resolve(0));
 
               case 2:
                 if (this.bme280) {
-                  _context6.next = 14;
+                  _context11.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context6.prev = 4;
-                _context6.next = 7;
+                _context11.prev = 4;
+                _context11.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context6.next = 13;
+                _context11.next = 13;
                 break;
 
               case 9:
-                _context6.prev = 9;
-                _context6.t0 = _context6["catch"](4);
+                _context11.prev = 9;
+                _context11.t0 = _context11["catch"](4);
                 // fail to create instance
-                console.log(_context6.t0);
-                return _context6.abrupt("return", Promise.resolve(0));
+                console.log(_context11.t0);
+                return _context11.abrupt("return", Promise.resolve(0));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context6.abrupt("return", this.bme280.readPressure().then(function (press) {
+                return _context11.abrupt("return", this.bme280.readPressure().then(function (press) {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this14.bme280 = null;
+                  _this11.bme280 = null;
                   return 0;
                 }));
 
               case 15:
               case "end":
-                return _context6.stop();
+                return _context11.stop();
             }
           }
-        }, _callee6, this, [[4, 9]]);
+        }, _callee11, this, [[4, 9]]);
       }));
 
       function getPressureBME280() {
@@ -21025,61 +21583,61 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getHumidityBME280",
     value: function () {
-      var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-        var _this15 = this;
+      var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee12() {
+        var _this12 = this;
 
         var newSensor;
-        return regenerator.wrap(function _callee7$(_context7) {
+        return regenerator.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context7.next = 2;
+                  _context12.next = 2;
                   break;
                 }
 
-                return _context7.abrupt("return", Promise.resolve(0));
+                return _context12.abrupt("return", Promise.resolve(0));
 
               case 2:
                 if (this.bme280) {
-                  _context7.next = 14;
+                  _context12.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context7.prev = 4;
-                _context7.next = 7;
+                _context12.prev = 4;
+                _context12.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context7.next = 13;
+                _context12.next = 13;
                 break;
 
               case 9:
-                _context7.prev = 9;
-                _context7.t0 = _context7["catch"](4);
+                _context12.prev = 9;
+                _context12.t0 = _context12["catch"](4);
                 // fail to create instance
-                console.log(_context7.t0);
-                return _context7.abrupt("return", Promise.resolve(0));
+                console.log(_context12.t0);
+                return _context12.abrupt("return", Promise.resolve(0));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context7.abrupt("return", this.bme280.readHumidity().then(function (hum) {
+                return _context12.abrupt("return", this.bme280.readHumidity().then(function (hum) {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this15.bme280 = null;
+                  _this12.bme280 = null;
                   return 0;
                 }));
 
               case 15:
               case "end":
-                return _context7.stop();
+                return _context12.stop();
             }
           }
-        }, _callee7, this, [[4, 9]]);
+        }, _callee12, this, [[4, 9]]);
       }));
 
       function getHumidityBME280() {
@@ -21096,52 +21654,56 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getBrightnessLTR303",
     value: function () {
-      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
+      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee13() {
         var i2cAddr, partIDReg, partID, ch1data, ch1, ch0data, ch0, ratio, lux;
-        return regenerator.wrap(function _callee8$(_context8) {
+        return regenerator.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context8.next = 2;
+                  _context13.next = 2;
                   break;
                 }
 
-                return _context8.abrupt("return", Promise.resolve(0));
+                return _context13.abrupt("return", Promise.resolve(0));
 
               case 2:
+                if (this.board.boardType() === 'STEAM BOX') {
+                  this.board.enableDevice(0x01);
+                }
+
                 i2cAddr = 0x29;
                 partIDReg = 0x86;
-                _context8.next = 6;
+                _context13.next = 7;
                 return this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
 
-              case 6:
-                partID = _context8.sent;
+              case 7:
+                partID = _context13.sent;
 
                 if (!((partID[0] & 0xF0) !== 0xA0)) {
-                  _context8.next = 9;
+                  _context13.next = 10;
                   break;
                 }
 
-                return _context8.abrupt("return", 0);
+                return _context13.abrupt("return", 0);
 
-              case 9:
-                _context8.prev = 9;
-                _context8.next = 12;
+              case 10:
+                _context13.prev = 10;
+                _context13.next = 13;
                 return this.board.i2cWrite(i2cAddr, 0x80, 1);
 
-              case 12:
-                _context8.next = 14;
+              case 13:
+                _context13.next = 15;
                 return this.board.i2cReadOnce(i2cAddr, 0x88, 2);
 
-              case 14:
-                ch1data = _context8.sent;
+              case 15:
+                ch1data = _context13.sent;
                 ch1 = ch1data[0] | ch1data[1] << 8;
-                _context8.next = 18;
+                _context13.next = 19;
                 return this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
 
-              case 18:
-                ch0data = _context8.sent;
+              case 19:
+                ch0data = _context13.sent;
                 ch0 = ch0data[0] | ch0data[1] << 8;
                 ratio = ch1 / (ch0 + ch1);
                 lux = 0;
@@ -21154,20 +21716,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   lux = 0.5926 * ch0 + 0.1185 * ch1;
                 }
 
-                return _context8.abrupt("return", Math.round(lux * 10) / 10);
+                return _context13.abrupt("return", Math.round(lux * 10) / 10);
 
-              case 26:
-                _context8.prev = 26;
-                _context8.t0 = _context8["catch"](9);
-                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context8.t0));
-                return _context8.abrupt("return", 0);
+              case 27:
+                _context13.prev = 27;
+                _context13.t0 = _context13["catch"](10);
+                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context13.t0));
+                return _context13.abrupt("return", 0);
 
-              case 30:
+              case 31:
               case "end":
-                return _context8.stop();
+                return _context13.stop();
             }
           }
-        }, _callee8, this, [[9, 26]]);
+        }, _callee13, this, [[10, 27]]);
       }));
 
       function getBrightnessLTR303() {
@@ -21185,14 +21747,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getTemperatureDS18B20",
     value: function getTemperatureDS18B20(pin) {
-      var _this16 = this;
+      var _this13 = this;
 
       return this.board.sendOneWireReset(pin).then(function () {
-        return _this16.board.oneWireWrite(pin, 0x44);
+        return _this13.board.oneWireWrite(pin, 0x44);
       }).then(function () {
-        return _this16.board.sendOneWireReset(pin);
+        return _this13.board.sendOneWireReset(pin);
       }).then(function () {
-        return _this16.board.oneWireWriteAndRead(pin, 0xBE, 9);
+        return _this13.board.oneWireWriteAndRead(pin, 0xBE, 9);
       }).then(function (readData) {
         var buffer = new Uint8Array(readData).buffer;
         var dataView = new DataView(buffer);
@@ -21211,7 +21773,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureA",
     value: function getWaterTemperatureA(_args, util) {
-      var _this17 = this;
+      var _this14 = this;
 
       if (!this.isConnected()) return Promise.resolve(0);
 
@@ -21226,7 +21788,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       .catch(function () {
         return 0;
       }).finally(function () {
-        _this17.waterTemperatureASensing = false;
+        _this14.waterTemperatureASensing = false;
       });
     }
     /**
@@ -21240,48 +21802,48 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureB",
     value: function () {
-      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(_args, util) {
-        var _this18 = this;
+      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee14(_args, util) {
+        var _this15 = this;
 
-        return regenerator.wrap(function _callee9$(_context9) {
+        return regenerator.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context9.next = 2;
+                  _context14.next = 2;
                   break;
                 }
 
-                return _context9.abrupt("return", Promise.resolve(0));
+                return _context14.abrupt("return", Promise.resolve(0));
 
               case 2:
                 if (!this.waterTemperatureBSensing) {
-                  _context9.next = 5;
+                  _context14.next = 5;
                   break;
                 }
 
                 util.yield(); // re-try this call after a while.
 
-                return _context9.abrupt("return");
+                return _context14.abrupt("return");
 
               case 5:
                 this.waterTemperatureBSensing = true;
-                return _context9.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
+                return _context14.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
                 .catch(function () {
                   return 0;
                 }).finally(function () {
-                  _this18.waterTemperatureBSensing = false;
+                  _this15.waterTemperatureBSensing = false;
                 }));
 
               case 7:
               case "end":
-                return _context9.stop();
+                return _context14.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee14, this);
       }));
 
-      function getWaterTemperatureB(_x2, _x3) {
+      function getWaterTemperatureB(_x, _x2) {
         return _getWaterTemperatureB.apply(this, arguments);
       }
 
@@ -21295,18 +21857,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "whenShaken",
     value: function whenShaken() {
-      var _this19 = this;
+      var _this16 = this;
 
       if (!this.resetShakeEventTimer) {
-        this.getAccelerationADXL345('absolute').then(function (prev) {
+        this.getAccelerationAbsolute().then(function (prev) {
           setTimeout(function () {
-            _this19.getAccelerationADXL345('absolute').then(function (next) {
-              _this19.shaken = next - prev > _this19.shakeEventThreshold;
-              _this19.resetShakeEventTimer = setTimeout(function () {
-                _this19.resetShakeEventTimer = null;
-              }, _this19.runtime.currentStepTime);
+            _this16.getAccelerationAbsolute().then(function (next) {
+              _this16.shaken = next - prev > _this16.shakeEventThreshold;
+              _this16.resetShakeEventTimer = setTimeout(function () {
+                _this16.resetShakeEventTimer = null;
+              }, _this16.runtime.currentStepTime);
             });
-          }, _this19.shakeEventInterval);
+          }, _this16.shakeEventInterval);
         });
       }
 
@@ -21694,7 +22256,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, '---', {
           opcode: 'getPitch',
-          func: 'getPitchADXL345',
+          func: 'getPitch',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
@@ -21705,7 +22267,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, {
           opcode: 'getRoll',
-          func: 'getRollADXL345',
+          func: 'getRoll',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
@@ -21769,7 +22331,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'neoPixelConnectorMenu'
             },
             LENGTH: {
               type: argumentType.NUMBER,
@@ -21787,7 +22349,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'neoPixelConnectorMenu'
             },
             POSITION: {
               type: argumentType.NUMBER,
@@ -21835,7 +22397,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'neoPixelConnectorMenu'
             }
           }
         }, {
@@ -21849,7 +22411,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'neoPixelConnectorMenu'
             }
           }
         }, '---', {
@@ -21943,7 +22505,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'digitalLevelSetConnectorMenu'
             },
             LEVEL: {
               type: argumentType.STRING,
@@ -22298,6 +22860,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             acceptReporters: false,
             items: this.getDigitalConnectorMenu()
           },
+          digitalLevelSetConnectorMenu: {
+            acceptReporters: false,
+            items: this.getDigitalLevelSetConnectorMenu()
+          },
           inputBiasMenu: {
             acceptReporters: false,
             items: this.getInputBiasMenu()
@@ -22312,7 +22878,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           },
           pwmConnectorMenu: {
             acceptReporters: false,
-            items: this.getDigitalConnectorMenu()
+            items: this.getPWMConnectorMenu()
+          },
+          neoPixelConnectorMenu: {
+            acceptReporters: true,
+            items: this.getNeoPixelConnectorMenu()
           },
           neoPixelColorMenu: {
             acceptReporters: true,
@@ -22383,6 +22953,72 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: "".concat(digitalPrefix, "B (B2)"),
         value: '9'
+      }];
+    }
+    /**
+     * Returns menu items to select digital connectors.
+     * @returns {Array<object>} menu items
+     */
+
+  }, {
+    key: "getDigitalLevelSetConnectorMenu",
+    value: function getDigitalLevelSetConnectorMenu() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "A (A1)"),
+        value: '10'
+      }, {
+        text: "".concat(digitalPrefix, "A (A2)"),
+        value: '11'
+      }, {
+        text: "".concat(digitalPrefix, "B (B1)"),
+        value: '6'
+      }, {
+        text: "".concat(digitalPrefix, "B (B2)"),
+        value: '9'
+      }, {
+        text: formatMessage({
+          id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
+          default: 'relay on STEAM BOX',
+          description: 'label for relay on STEAM BOX in digital level set connector menu for g2s'
+        }),
+        value: '4'
+      }];
+    }
+    /**
+     * Returns menu items to select PWM connectors.
+     * @returns {Array<object>} menu items
+     */
+
+  }, {
+    key: "getPWMConnectorMenu",
+    value: function getPWMConnectorMenu() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "A (A1)"),
+        value: '10'
+      }, {
+        text: "".concat(digitalPrefix, "A (A2)"),
+        value: '11'
+      }, {
+        text: "".concat(digitalPrefix, "B (B1)"),
+        value: '6'
+      }, {
+        text: "".concat(digitalPrefix, "B (B2)"),
+        value: '9'
+      }, {
+        text: formatMessage({
+          id: 'g2s.pwmConnectorMenu.vibrationMotorOnSteamBox',
+          default: 'vibration motor on STEAM BOX',
+          description: 'label for vibration motor on STEAM BOX in PWM connector menu for g2s'
+        }),
+        value: '3'
       }];
     }
     /**
@@ -22457,6 +23093,34 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           description: 'label for pull up in input bias menu for g2s'
         }),
         value: 'pullUp'
+      }];
+    }
+  }, {
+    key: "getNeoPixelConnectorMenu",
+    value: function getNeoPixelConnectorMenu() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "A (A1)"),
+        value: '10'
+      }, {
+        text: "".concat(digitalPrefix, "A (A2)"),
+        value: '11'
+      }, {
+        text: "".concat(digitalPrefix, "B (B1)"),
+        value: '6'
+      }, {
+        text: "".concat(digitalPrefix, "B (B2)"),
+        value: '9'
+      }, {
+        text: formatMessage({
+          id: 'g2s.neoPixelConnectorMenu.steamBox',
+          default: 'STEAM BOX',
+          description: 'label for STEAM BOX in neoPixel connector menu for g2s'
+        }),
+        value: '7'
       }];
     }
   }, {
