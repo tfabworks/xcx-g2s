@@ -257,21 +257,21 @@ class AkaDakoBoard extends EventEmitter {
      * @param {object} options - serial port options
      * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
-    connectSerial (options) {
+    async connectSerial (options) {
         if (this.firmata) return Promise.resolve(this); // already opened
         this.state = 'portRequesting';
-        const request = this.openSerialPort(options)
-            .then(port => new Promise(resolve => {
-                const firmata = new Firmata(
-                    port,
-                    {reportVersionTimeout: 0},
-                    async () => {
-                        this.setupFirmata(firmata);
-                        await this.boardVersion();
-                        this.onBoarReady();
-                        resolve(this);
-                    });
-            }));
+        const port = await this.openSerialPort(options);
+        const request = new Promise(resolve => {
+            const firmata = new Firmata(
+                port,
+                {reportVersionTimeout: 0},
+                async () => {
+                    this.setupFirmata(firmata);
+                    await this.boardVersion();
+                    this.onBoarReady();
+                    resolve(this);
+                });
+        });
         return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
             .catch(reason => {
                 this.releaseBoard();
@@ -353,41 +353,41 @@ class AkaDakoBoard extends EventEmitter {
      * @param {Array<{manufacturer: string, name: string}>} filters - selecting rules for MIDIPort
      * @returns {Promise<AkaDakoBoard>} a Promise which resolves a connected AkaDako board or reject with reason
      */
-    connectMIDI (filters) {
+    async connectMIDI (filters) {
         if (this.firmata) return Promise.resolve(this); // already opened
         this.state = 'portRequesting';
-        const request = this.openMIDIPort(filters)
-            .then(port => new Promise(resolve => {
-                const firmata = new Firmata(
-                    port,
-                    {
-                        reportVersionTimeout: 0,
-                        skipCapabilities: true,
-                        pins: pins,
-                        analogPins: analogPins
-                    },
-                    async () => {
-                        this.setupFirmata(firmata);
-                        await this.boardVersion();
-                        firmata.firmware = {
-                            name: String(this.version.type),
-                            version: {
-                                major: this.version.major,
-                                minor: this.version.minor
-                            }
-                        };
-                        firmata.queryAnalogMapping(() => {
-                            this.onBoarReady();
-                            resolve(this);
-                        });
+        const port = await this.openMIDIPort(filters);
+        const request = new Promise(resolve => {
+            const firmata = new Firmata(
+                port,
+                {
+                    reportVersionTimeout: 0,
+                    skipCapabilities: true,
+                    pins: pins,
+                    analogPins: analogPins
+                },
+                async () => {
+                    this.setupFirmata(firmata);
+                    await this.boardVersion();
+                    firmata.firmware = {
+                        name: String(this.version.type),
+                        version: {
+                            major: this.version.major,
+                            minor: this.version.minor
+                        }
+                    };
+                    firmata.queryAnalogMapping(() => {
+                        this.onBoarReady();
+                        resolve(this);
                     });
+                });
                 // make the firmata initialize
                 // firmata version is fixed for MidiDako
-                firmata.version.major = 2;
-                firmata.version.minor = 3;
-                firmata.emit('reportversion'); // skip version query
-                firmata.emit('queryfirmware'); // skip firmware query
-            }));
+            firmata.version.major = 2;
+            firmata.version.minor = 3;
+            firmata.emit('reportversion'); // skip version query
+            firmata.emit('queryfirmware'); // skip firmware query
+        });
         return Promise.race([request, timeoutReject(this.connectingWaitingTime)])
             .catch(reason => {
                 this.releaseBoard();
