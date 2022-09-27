@@ -177,6 +177,12 @@ class AkaDakoBoard extends EventEmitter {
         this.pingSensorWaitingTime = 100;
 
         /**
+         * Waiting time for response of query board version in milliseconds.
+         * @type {number}
+         */
+        this.boardVersionWaitingTime = 200;
+
+        /**
          * Port information of the connected serial port.
          * @type {object}
          */
@@ -497,7 +503,7 @@ class AkaDakoBoard extends EventEmitter {
             });
             firmata.sysexCommand([BOARD_VERSION_QUERY]);
         });
-        return Promise.race([request, timeoutReject(100)])
+        return Promise.race([request, timeoutReject(this.boardVersionWaitingTime)])
             .finally(() => {
                 firmata.clearSysexResponse(BOARD_VERSION_QUERY);
             });
