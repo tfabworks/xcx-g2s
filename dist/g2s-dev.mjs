@@ -15719,6 +15719,13 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
         return [];
       }
 
+      if (data.length === 3 && data[0] === 0xF0 && data[2] === 0xF7) {
+        // one byte SysEx
+        // add a dummy byte cause Windows Chrome(v105) WebMIDI does not send one byte SysEx.
+        data.splice(2, 0, 0x00);
+        return data;
+      }
+
       return data;
     }
     /**
@@ -16059,6 +16066,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.pingSensorWaitingTime = 100;
     /**
+     * Waiting time for response of query board version in milliseconds.
+     * @type {number}
+     */
+
+    _this.boardVersionWaitingTime = 200;
+    /**
      * Port information of the connected serial port.
      * @type {object}
      */
@@ -16187,46 +16200,76 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
   }, {
     key: "connectSerial",
-    value: function connectSerial(options) {
-      var _this3 = this;
+    value: function () {
+      var _connectSerial = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(options) {
+        var _this3 = this;
 
-      if (this.firmata) return Promise.resolve(this); // already opened
-
-      this.state = 'portRequesting';
-      var request = this.openSerialPort(options).then(function (port) {
-        return new Promise(function (resolve) {
-          var firmata = new Firmata(port, {
-            reportVersionTimeout: 0
-          }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
-            return regenerator.wrap(function _callee2$(_context2) {
-              while (1) {
-                switch (_context2.prev = _context2.next) {
-                  case 0:
-                    _this3.setupFirmata(firmata);
-
-                    _context2.next = 3;
-                    return _this3.boardVersion();
-
-                  case 3:
-                    _this3.onBoarReady();
-
-                    resolve(_this3);
-
-                  case 5:
-                  case "end":
-                    return _context2.stop();
+        var port, request;
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (!this.firmata) {
+                  _context3.next = 2;
+                  break;
                 }
-              }
-            }, _callee2);
-          })));
-        });
-      });
-      return Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
-        _this3.releaseBoard();
 
-        return Promise.reject(reason);
-      });
-    }
+                return _context3.abrupt("return", Promise.resolve(this));
+
+              case 2:
+                // already opened
+                this.state = 'portRequesting';
+                _context3.next = 5;
+                return this.openSerialPort(options);
+
+              case 5:
+                port = _context3.sent;
+                request = new Promise(function (resolve) {
+                  var firmata = new Firmata(port, {
+                    reportVersionTimeout: 0
+                  }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+                    return regenerator.wrap(function _callee2$(_context2) {
+                      while (1) {
+                        switch (_context2.prev = _context2.next) {
+                          case 0:
+                            _this3.setupFirmata(firmata);
+
+                            _context2.next = 3;
+                            return _this3.boardVersion();
+
+                          case 3:
+                            _this3.onBoarReady();
+
+                            resolve(_this3);
+
+                          case 5:
+                          case "end":
+                            return _context2.stop();
+                        }
+                      }
+                    }, _callee2);
+                  })));
+                });
+                return _context3.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
+                  _this3.releaseBoard();
+
+                  return Promise.reject(reason);
+                }));
+
+              case 8:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function connectSerial(_x2) {
+        return _connectSerial.apply(this, arguments);
+      }
+
+      return connectSerial;
+    }()
     /**
      * Request MidiDako MIDIport and return it as a Firmata transport
      *
@@ -16237,30 +16280,30 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "openMIDIPort",
     value: function () {
-      var _openMIDIPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(filters) {
+      var _openMIDIPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(filters) {
         var midiAccess, inputPort, outputPort, _iterator, _step, _loop, _ret, _iterator2, _step2, _loop2, _ret2, inputs, outputs, result, transport;
 
-        return regenerator.wrap(function _callee3$(_context3) {
+        return regenerator.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
+                _context4.next = 2;
                 return navigator.requestMIDIAccess({
                   sysex: true
                 });
 
               case 2:
-                midiAccess = _context3.sent;
+                midiAccess = _context4.sent;
                 inputPort = null;
                 outputPort = null;
 
                 if (!filters) {
-                  _context3.next = 52;
+                  _context4.next = 52;
                   break;
                 }
 
                 _iterator = _createForOfIteratorHelper(filters);
-                _context3.prev = 7;
+                _context4.prev = 7;
 
                 _loop = function _loop() {
                   var filter = _step.value;
@@ -16281,43 +16324,43 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 10:
                 if ((_step = _iterator.n()).done) {
-                  _context3.next = 16;
+                  _context4.next = 16;
                   break;
                 }
 
                 _ret = _loop();
 
                 if (!(_ret === "break")) {
-                  _context3.next = 14;
+                  _context4.next = 14;
                   break;
                 }
 
-                return _context3.abrupt("break", 16);
+                return _context4.abrupt("break", 16);
 
               case 14:
-                _context3.next = 10;
+                _context4.next = 10;
                 break;
 
               case 16:
-                _context3.next = 21;
+                _context4.next = 21;
                 break;
 
               case 18:
-                _context3.prev = 18;
-                _context3.t0 = _context3["catch"](7);
+                _context4.prev = 18;
+                _context4.t0 = _context4["catch"](7);
 
-                _iterator.e(_context3.t0);
+                _iterator.e(_context4.t0);
 
               case 21:
-                _context3.prev = 21;
+                _context4.prev = 21;
 
                 _iterator.f();
 
-                return _context3.finish(21);
+                return _context4.finish(21);
 
               case 24:
                 if (inputPort) {
-                  _context3.next = 28;
+                  _context4.next = 28;
                   break;
                 }
 
@@ -16325,11 +16368,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 midiAccess.inputs.forEach(function (port) {
                   console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
                 });
-                return _context3.abrupt("return", Promise.reject("no available MIDIInput for the filters"));
+                return _context4.abrupt("return", Promise.reject("no available MIDIInput for the filters"));
 
               case 28:
                 _iterator2 = _createForOfIteratorHelper(filters);
-                _context3.prev = 29;
+                _context4.prev = 29;
 
                 _loop2 = function _loop2() {
                   var filter = _step2.value;
@@ -16350,43 +16393,43 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 32:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context3.next = 38;
+                  _context4.next = 38;
                   break;
                 }
 
                 _ret2 = _loop2();
 
                 if (!(_ret2 === "break")) {
-                  _context3.next = 36;
+                  _context4.next = 36;
                   break;
                 }
 
-                return _context3.abrupt("break", 38);
+                return _context4.abrupt("break", 38);
 
               case 36:
-                _context3.next = 32;
+                _context4.next = 32;
                 break;
 
               case 38:
-                _context3.next = 43;
+                _context4.next = 43;
                 break;
 
               case 40:
-                _context3.prev = 40;
-                _context3.t1 = _context3["catch"](29);
+                _context4.prev = 40;
+                _context4.t1 = _context4["catch"](29);
 
-                _iterator2.e(_context3.t1);
+                _iterator2.e(_context4.t1);
 
               case 43:
-                _context3.prev = 43;
+                _context4.prev = 43;
 
                 _iterator2.f();
 
-                return _context3.finish(43);
+                return _context4.finish(43);
 
               case 46:
                 if (outputPort) {
-                  _context3.next = 50;
+                  _context4.next = 50;
                   break;
                 }
 
@@ -16394,10 +16437,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 midiAccess.outputs.forEach(function (port) {
                   console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
                 });
-                return _context3.abrupt("return", Promise.reject("no available MIDIOutput for the filters"));
+                return _context4.abrupt("return", Promise.reject("no available MIDIOutput for the filters"));
 
               case 50:
-                _context3.next = 62;
+                _context4.next = 62;
                 break;
 
               case 52:
@@ -16406,22 +16449,22 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 result = inputs.next();
 
                 if (!result.done) {
-                  _context3.next = 57;
+                  _context4.next = 57;
                   break;
                 }
 
-                return _context3.abrupt("return", Promise.reject('no MIDIInput'));
+                return _context4.abrupt("return", Promise.reject('no MIDIInput'));
 
               case 57:
                 inputPort = result.value;
                 result = outputs.next();
 
                 if (!result.done) {
-                  _context3.next = 61;
+                  _context4.next = 61;
                   break;
                 }
 
-                return _context3.abrupt("return", Promise.reject('no MIDIOutput'));
+                return _context4.abrupt("return", Promise.reject('no MIDIOutput'));
 
               case 61:
                 outputPort = result.value;
@@ -16434,25 +16477,25 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 transport = new MidiDakoTransport(inputPort, outputPort);
 
                 if (transport.isConnected()) {
-                  _context3.next = 67;
+                  _context4.next = 67;
                   break;
                 }
 
-                _context3.next = 67;
+                _context4.next = 67;
                 return transport.open();
 
               case 67:
-                return _context3.abrupt("return", transport);
+                return _context4.abrupt("return", transport);
 
               case 68:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this, [[7, 18, 21, 24], [29, 40, 43, 46]]);
+        }, _callee4, this, [[7, 18, 21, 24], [29, 40, 43, 46]]);
       }));
 
-      function openMIDIPort(_x2) {
+      function openMIDIPort(_x3) {
         return _openMIDIPort.apply(this, arguments);
       }
 
@@ -16466,65 +16509,95 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
   }, {
     key: "connectMIDI",
-    value: function connectMIDI(filters) {
-      var _this4 = this;
+    value: function () {
+      var _connectMIDI = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(filters) {
+        var _this4 = this;
 
-      if (this.firmata) return Promise.resolve(this); // already opened
-
-      this.state = 'portRequesting';
-      var request = this.openMIDIPort(filters).then(function (port) {
-        return new Promise(function (resolve) {
-          var firmata = new Firmata(port, {
-            reportVersionTimeout: 0,
-            skipCapabilities: true,
-            pins: pins,
-            analogPins: analogPins
-          }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-            return regenerator.wrap(function _callee4$(_context4) {
-              while (1) {
-                switch (_context4.prev = _context4.next) {
-                  case 0:
-                    _this4.setupFirmata(firmata);
-
-                    _context4.next = 3;
-                    return _this4.boardVersion();
-
-                  case 3:
-                    firmata.firmware = {
-                      name: String(_this4.version.type),
-                      version: {
-                        major: _this4.version.major,
-                        minor: _this4.version.minor
-                      }
-                    };
-                    firmata.queryAnalogMapping(function () {
-                      _this4.onBoarReady();
-
-                      resolve(_this4);
-                    });
-
-                  case 5:
-                  case "end":
-                    return _context4.stop();
+        var port, request;
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (!this.firmata) {
+                  _context6.next = 2;
+                  break;
                 }
-              }
-            }, _callee4);
-          }))); // make the firmata initialize
-          // firmata version is fixed for MidiDako
 
-          firmata.version.major = 2;
-          firmata.version.minor = 3;
-          firmata.emit('reportversion'); // skip version query
+                return _context6.abrupt("return", Promise.resolve(this));
 
-          firmata.emit('queryfirmware'); // skip firmware query
-        });
-      });
-      return Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
-        _this4.releaseBoard();
+              case 2:
+                // already opened
+                this.state = 'portRequesting';
+                _context6.next = 5;
+                return this.openMIDIPort(filters);
 
-        return Promise.reject(reason);
-      });
-    }
+              case 5:
+                port = _context6.sent;
+                request = new Promise(function (resolve) {
+                  var firmata = new Firmata(port, {
+                    reportVersionTimeout: 0,
+                    skipCapabilities: true,
+                    pins: pins,
+                    analogPins: analogPins
+                  }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+                    return regenerator.wrap(function _callee5$(_context5) {
+                      while (1) {
+                        switch (_context5.prev = _context5.next) {
+                          case 0:
+                            _this4.setupFirmata(firmata);
+
+                            _context5.next = 3;
+                            return _this4.boardVersion();
+
+                          case 3:
+                            firmata.firmware = {
+                              name: String(_this4.version.type),
+                              version: {
+                                major: _this4.version.major,
+                                minor: _this4.version.minor
+                              }
+                            };
+                            firmata.queryAnalogMapping(function () {
+                              _this4.onBoarReady();
+
+                              resolve(_this4);
+                            });
+
+                          case 5:
+                          case "end":
+                            return _context5.stop();
+                        }
+                      }
+                    }, _callee5);
+                  }))); // make the firmata initialize
+                  // firmata version is fixed for MidiDako
+
+                  firmata.version.major = 2;
+                  firmata.version.minor = 3;
+                  firmata.emit('reportversion'); // skip version query
+
+                  firmata.emit('queryfirmware'); // skip firmware query
+                });
+                return _context6.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
+                  _this4.releaseBoard();
+
+                  return Promise.reject(reason);
+                }));
+
+              case 8:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function connectMIDI(_x4) {
+        return _connectMIDI.apply(this, arguments);
+      }
+
+      return connectMIDI;
+    }()
     /**
      * Called when a board was ready.
      */
@@ -16646,7 +16719,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         });
         firmata.sysexCommand([BOARD_VERSION_QUERY]);
       });
-      return Promise.race([request, timeoutReject(100)]).finally(function () {
+      return Promise.race([request, timeoutReject(this.boardVersionWaitingTime)]).finally(function () {
         firmata.clearSysexResponse(BOARD_VERSION_QUERY);
       });
     }
@@ -17076,13 +17149,13 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelSetColor",
     value: function () {
-      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(pin, index, color) {
+      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(pin, index, color) {
         var _this21 = this;
 
         var address, prevStrip, colorValue, message;
-        return regenerator.wrap(function _callee5$(_context5) {
+        return regenerator.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 address = 0;
                 prevStrip = true;
@@ -17098,11 +17171,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 });
 
                 if (!prevStrip) {
-                  _context5.next = 6;
+                  _context7.next = 6;
                   break;
                 }
 
-                _context5.next = 6;
+                _context7.next = 6;
                 return this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
 
               case 6:
@@ -17116,7 +17189,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 message[5] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                return _context5.abrupt("return", new Promise(function (resolve) {
+                return _context7.abrupt("return", new Promise(function (resolve) {
                   _this21.firmata.sysexCommand(message);
 
                   setTimeout(function () {
@@ -17126,13 +17199,13 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 17:
               case "end":
-                return _context5.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee7, this);
       }));
 
-      function neoPixelSetColor(_x3, _x4, _x5) {
+      function neoPixelSetColor(_x5, _x6, _x7) {
         return _neoPixelSetColor.apply(this, arguments);
       }
 
@@ -17146,11 +17219,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClear",
     value: function () {
-      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(pin) {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin) {
         var strip, length, index;
-        return regenerator.wrap(function _callee6$(_context6) {
+        return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 strip = this.neoPixel.find(function (aStrip) {
                   return aStrip.pin === pin;
@@ -17160,30 +17233,30 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 3:
                 if (!(index < length)) {
-                  _context6.next = 9;
+                  _context8.next = 9;
                   break;
                 }
 
-                _context6.next = 6;
+                _context8.next = 6;
                 return this.neoPixelSetColor(pin, index, [0, 0, 0]);
 
               case 6:
                 index++;
-                _context6.next = 3;
+                _context8.next = 3;
                 break;
 
               case 9:
-                return _context6.abrupt("return", this.neoPixelShow());
+                return _context8.abrupt("return", this.neoPixelShow());
 
               case 10:
               case "end":
-                return _context6.stop();
+                return _context8.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee8, this);
       }));
 
-      function neoPixelClear(_x6) {
+      function neoPixelClear(_x8) {
         return _neoPixelClear.apply(this, arguments);
       }
 
@@ -17351,10 +17424,10 @@ var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
      */
 
     _this.midiPortFilters = [{
-      manufacturer: /TFabWorks/,
+      manufacturer: null,
       name: /STEAM BOX/
     }, {
-      manufacturer: /TFabWorks/,
+      manufacturer: null,
       name: /MidiDako/
     }];
     /**
