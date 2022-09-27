@@ -139,6 +139,11 @@ class MidiDakoTransport extends EventEmitter {
             // do nothing cause the board freeze
             return [];
         }
+        if ((data.length === 3) && (data[0] === 0xF0) && (data[2] === 0xF7)) { // one byte SysEx
+            // add a dummy byte cause Windows Chrome(v105) WebMIDI does not send one byte SysEx.
+            data.splice(2, 0, 0x00);
+            return data;
+        }
         return data;
     }
 
