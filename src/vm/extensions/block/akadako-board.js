@@ -3,7 +3,7 @@ import bindTransport from 'firmata-io';
 import SerialPort from '@serialport/stream';
 import WSABinding from 'web-serial-binding';
 import MidiDakoTransport from './mididako-transport';
-import {pins, analogPins} from './akadako-board-settings';
+import {getSettings} from './akadako-board-settings';
 import {
     FIRMATA_7BIT_MASK,
     COLOR_ORDER,
@@ -364,6 +364,7 @@ class AkaDakoBoard extends EventEmitter {
         this.state = 'portRequesting';
         const port = await this.openMIDIPort(filters);
         const request = new Promise(resolve => {
+            const {pins, analogPins} = getSettings();
             const firmata = new Firmata(
                 port,
                 {
