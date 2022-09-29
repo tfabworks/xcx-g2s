@@ -15745,108 +15745,112 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
   return MidiDakoTransport;
 }(EventEmitter$1);
 
-var pins = [{
-  supportedModes: [],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 3, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 127
-}, {
-  supportedModes: [0, 1, 2, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 0
-}, {
-  supportedModes: [0, 1, 2, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 1
-}, {
-  supportedModes: [0, 1, 2, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 2
-}, {
-  supportedModes: [0, 1, 2, 4, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 3
-}, {
-  supportedModes: [0, 1, 2, 4, 6, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 4
-}, {
-  supportedModes: [0, 1, 2, 4, 6, 11],
-  value: 0,
-  report: 1,
-  analogChannel: 5
-}];
-var analogPins = [14, 15, 16, 17, 18, 19];
+var getSettings = function getSettings() {
+  return {
+    pins: [{
+      supportedModes: [],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 3, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 127
+    }, {
+      supportedModes: [0, 1, 2, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 0
+    }, {
+      supportedModes: [0, 1, 2, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 1
+    }, {
+      supportedModes: [0, 1, 2, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 2
+    }, {
+      supportedModes: [0, 1, 2, 4, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 3
+    }, {
+      supportedModes: [0, 1, 2, 4, 6, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 4
+    }, {
+      supportedModes: [0, 1, 2, 4, 6, 11],
+      value: 0,
+      report: 1,
+      analogChannel: 5
+    }],
+    analogPins: [14, 15, 16, 17, 18, 19]
+  };
+};
 
 // ajfisher/node-pixel: https://github.com/ajfisher/node-pixel
 
@@ -16534,6 +16538,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
               case 5:
                 port = _context6.sent;
                 request = new Promise(function (resolve) {
+                  var _getSettings = getSettings(),
+                      pins = _getSettings.pins,
+                      analogPins = _getSettings.analogPins;
+
                   var firmata = new Firmata(port, {
                     reportVersionTimeout: 0,
                     skipCapabilities: true,
