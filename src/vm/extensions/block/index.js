@@ -1013,7 +1013,7 @@ class ExtensionBlocks {
 
     /**
      * Get brightness from LTR-303 on I2C
-     * @returns {Promise<number>} a Promise which resolves value of brightness [Lux]
+     * @returns {Promise<number>} a Promise which resolves value of brightness [lx]
      */
     async getBrightnessLTR303 () {
         if (!this.isConnected()) return Promise.resolve(0);
@@ -1420,7 +1420,7 @@ class ExtensionBlocks {
                     disableMonitor: false,
                     text: formatMessage({
                         id: 'g2s.getBrightness',
-                        default: 'light I2C brightness (Lux)',
+                        default: 'light I2C brightness (lx)',
                         description: 'report brightness'
                     }),
                     arguments: {
