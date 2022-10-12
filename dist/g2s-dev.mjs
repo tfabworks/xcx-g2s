@@ -1674,7 +1674,7 @@ var ja = {
 	"g2s.getAccelerationAbsolute": "加速度I2Cの絶対値(m/s^2)",
 	"g2s.getPitch": "加速度I2Cのピッチ(度)",
 	"g2s.getRoll": "加速度I2Cのロール(度)",
-	"g2s.getBrightness": "光I2Cの明るさ(Lux)",
+	"g2s.getBrightness": "光I2Cの明るさ(lx)",
 	"g2s.getTemperature": "環境I2Cの温度(°C)",
 	"g2s.getPressure": "環境I2Cの気圧(hPa)",
 	"g2s.getHumidity": "環境I2Cの湿度(%)",
@@ -1754,7 +1754,7 @@ var translations = {
 	"g2s.getAccelerationAbsolute": "かそくどI2Cのぜったいち(m/s^2)",
 	"g2s.getPitch": "かそくどI2Cのピッチ(ど)",
 	"g2s.getRoll": "かそくどI2Cのロール(ど)",
-	"g2s.getBrightness": "ひかりI2Cのあかるさ(Lux)",
+	"g2s.getBrightness": "ひかりI2Cのあかるさ(lx)",
 	"g2s.getTemperature": "かんきょうI2Cのおんど(°C)",
 	"g2s.getPressure": "かんきょうI2Cのきあつ(hPa)",
 	"g2s.getHumidity": "かんきょうI2Cのしつど(%)",
@@ -16742,7 +16742,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function boardType() {
       if (this.version.type === 0) return 'AkaDako';
       if (this.version.type === 1) return 'KuroDako';
-      if (this.version.type === 2 && this.version.major === 0) return 'STEAM BOX';
+      if (this.version.type === 2) return 'STEAM BOX';
+      return 'unknown';
     }
     /**
      * Enable a device on the board.
@@ -17694,7 +17695,7 @@ var VL53L0X = /*#__PURE__*/function () {
   /**
    * Constructor of VL53L0X instance.
    * @param {AkadakoBoard} board - connecting akadako board
-   * @param {*} address - I2C address of the sensor
+   * @param {number?} address - I2C address of the sensor
    */
   function VL53L0X(board, address) {
     _classCallCheck(this, VL53L0X);
@@ -17708,10 +17709,10 @@ var VL53L0X = /*#__PURE__*/function () {
      * I2C address for this module
      */
 
-    this.address = 0x29;
+    this.address = 0x29; // default address
 
     if (address) {
-      this.setAddress(address);
+      this.address = address;
     }
     /**
      * read by init and used when starting measurement;
@@ -21011,44 +21012,52 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 }
 
                 if (this.vl53l0x) {
-                  _context.next = 15;
+                  _context.next = 16;
                   break;
                 }
 
-                newSensor = new VL53L0X(this.board);
-                _context.next = 7;
+                newSensor = null;
+
+                if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
+                  // STEAM BOX v2.0.1 and later
+                  newSensor = new VL53L0X(this.board, 0x08);
+                } else {
+                  newSensor = new VL53L0X(this.board);
+                }
+
+                _context.next = 8;
                 return newSensor.init(true);
 
-              case 7:
+              case 8:
                 found = _context.sent;
 
                 if (found) {
-                  _context.next = 10;
+                  _context.next = 11;
                   break;
                 }
 
                 return _context.abrupt("return", 0);
 
-              case 10:
-                _context.next = 12;
+              case 11:
+                _context.next = 13;
                 return newSensor.startContinuous().catch(function (reason) {
                   console.log("fail to VL53L0X.startContinuous() by ".concat(reason));
                   newSensor = null;
                 });
 
-              case 12:
+              case 13:
                 if (newSensor) {
-                  _context.next = 14;
+                  _context.next = 15;
                   break;
                 }
 
                 return _context.abrupt("return", 0);
 
-              case 14:
+              case 15:
                 this.vl53l0x = newSensor;
 
-              case 15:
-                _context.next = 17;
+              case 16:
+                _context.next = 18;
                 return this.vl53l0x.readRangeContinuousMillimeters().then(function (mm) {
                   return mm / 10;
                 }).catch(function (reason) {
@@ -21057,11 +21066,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return 0;
                 });
 
-              case 17:
+              case 18:
                 distance = _context.sent;
                 return _context.abrupt("return", distance);
 
-              case 19:
+              case 20:
               case "end":
                 return _context.stop();
             }
@@ -21729,7 +21738,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }()
     /**
      * Get brightness from LTR-303 on I2C
-     * @returns {Promise<number>} a Promise which resolves value of brightness [Lux]
+     * @returns {Promise<number>} a Promise which resolves value of brightness [lx]
      */
 
   }, {
@@ -22267,7 +22276,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           disableMonitor: false,
           text: formatMessage({
             id: 'g2s.getBrightness',
-            default: 'light I2C brightness (Lux)',
+            default: 'light I2C brightness (lx)',
             description: 'report brightness'
           }),
           arguments: {}
@@ -22962,7 +22971,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             items: this.getPWMConnectorMenu()
           },
           neoPixelConnectorMenu: {
-            acceptReporters: true,
+            acceptReporters: false,
             items: this.getNeoPixelConnectorMenu()
           },
           neoPixelColorMenu: {
