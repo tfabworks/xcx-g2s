@@ -122,7 +122,7 @@ export default class VL53L0X {
     /**
      * Constructor of VL53L0X instance.
      * @param {AkadakoBoard} board - connecting akadako board
-     * @param {*} address - I2C address of the sensor
+     * @param {number?} address - I2C address of the sensor
      */
     constructor (board, address) {
 
@@ -135,9 +135,9 @@ export default class VL53L0X {
         /**
          * I2C address for this module
          */
-        this.address = 0x29;
+        this.address = 0x29; // default address
         if (address) {
-            this.setAddress(address);
+            this.address = address;
         }
 
         /**

@@ -755,7 +755,13 @@ class ExtensionBlocks {
             this.board.enableDevice(0x00);
         }
         if (!this.vl53l0x) {
-            let newSensor = new VL53L0X(this.board);
+            let newSensor = null;
+            if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
+                // STEAM BOX v2.0.1 and later
+                newSensor = new VL53L0X(this.board, 0x08);
+            } else {
+                newSensor = new VL53L0X(this.board);
+            }
             const found = await newSensor.init(true);
             if (!found) return 0;
             await newSensor.startContinuous()
