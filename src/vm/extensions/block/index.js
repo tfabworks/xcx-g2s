@@ -2195,7 +2195,7 @@ class ExtensionBlocks {
                     items: this.getPWMConnectorMenu()
                 },
                 neoPixelConnectorMenu: {
-                    acceptReporters: true,
+                    acceptReporters: false,
                     items: this.getNeoPixelConnectorMenu()
                 },
                 neoPixelColorMenu: {
