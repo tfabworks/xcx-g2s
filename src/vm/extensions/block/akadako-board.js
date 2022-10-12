@@ -518,7 +518,8 @@ class AkaDakoBoard extends EventEmitter {
     boardType () {
         if (this.version.type === 0) return 'AkaDako';
         if (this.version.type === 1) return 'KuroDako';
-        if (this.version.type === 2 && this.version.major === 0) return 'STEAM BOX';
+        if (this.version.type === 2) return 'STEAM BOX';
+        return 'unknown';
     }
 
     /**
