@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormattedMessage } from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 /**
  * This is an extension for Xcratch.
@@ -10,19 +10,19 @@ import insetIconURL from './inset-icon.png';
 const version = 'v0.10.2';
 const translations =
 {
-    "en": {
-        "g2s.entry.name": "AkaDako",
-        "g2s.entry.description": `Connect Grove sensors and actuators. (${version})`
+    'en': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Connect Grove sensors and actuators. (${version})`
     },
-    "ja": {
-        "g2s.entry.name": "AkaDako",
-        "g2s.entry.description": `Groveのセンサー・アクチュエーターを接続する。 (${version})`
+    'ja': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (${version})`
     },
-    "ja-Hira": {
-        "g2s.entry.name": "AkaDako",
-        "g2s.entry.description": `Groveのセンサー・アクチュエーターをせつぞくする。 (${version})`
+    'ja-Hira': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターをせつぞくする。 (${version})`
     }
-}
+};
 
 const entry = {
     name: (
@@ -52,5 +52,5 @@ const entry = {
     translationMap: translations
 };
 
-export { entry }; // loadable-extension needs this line.
+export {entry}; // loadable-extension needs this line.
 export default entry;
