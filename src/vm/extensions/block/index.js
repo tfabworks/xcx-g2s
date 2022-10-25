@@ -185,6 +185,12 @@ class ExtensionBlocks {
         this.accelerometer = null;
 
         /**
+         * Environment sensor BME280
+         * @type {BME280}
+         */
+        this.bme280 = null;
+
+        /**
          * Distance sensor VL53L0X
          * @type {VL53L0X}
          */
@@ -195,6 +201,18 @@ class ExtensionBlocks {
          * @type {boolean}
          */
         this.waterTempGetting = false;
+
+        /**
+         * Busy flag for color LED.
+         * @type {boolean}
+         */
+        this.neoPixelBusy = false;
+
+        /**
+         * Busy flag for ultrasonic distance sensor.
+         * @type {boolean}
+         */
+        this.pingSensing = false;
 
         /**
          * Manager of AkaDako boards
@@ -275,6 +293,8 @@ class ExtensionBlocks {
         this.bme280 = null;
         this.accelerometer = null;
         this.waterTempGetting = false;
+        this.neoPixelBusy = false;
+        this.pingSensing = false;
     }
 
     /**
