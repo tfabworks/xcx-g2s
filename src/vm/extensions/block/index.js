@@ -191,6 +191,12 @@ class ExtensionBlocks {
         this.vl53l0x = null;
 
         /**
+         * Busy flag for water temp sensor.
+         * @type {boolean}
+         */
+        this.waterTempGetting = false;
+
+        /**
          * Manager of AkaDako boards
          * @type {AkaDakoConnector}
          */
@@ -268,6 +274,7 @@ class ExtensionBlocks {
         this.vl53l0x = null;
         this.bme280 = null;
         this.accelerometer = null;
+        this.waterTempGetting = false;
     }
 
     /**
@@ -1074,45 +1081,54 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get water temperature on Digital A1.
-     * Return 0 if it was not connected.
-     * @param {object} _args - the block's arguments.
+     * Get water temp [℃] by temperature sensor on the board.
+     * @param {number} pin - pin number for the sensor
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
-    getWaterTemperatureA (_args, util) {
-        if (!this.isConnected()) return Promise.resolve(0);
-        if (this.waterTemperatureASensing) {
+    getWaterTemp (pin, util) {
+        if (!this.isConnected()) return Promise.resolve('');
+        if (this.waterTempGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise.resolve() to re-try.
         }
-        this.waterTemperatureASensing = true;
-        return this.getTemperatureDS18B20(10) // Digital A1: 10
-            .catch(() => 0)
+        this.waterTempGetting = true;
+        if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
+            // STEAM BOX v2.0.1 and later
+            return this.board.getWaterTemp(pin)
+                .then(data => data / 10)
+                .catch(() => '')
+                .finally(() => {
+                    this.waterTempGetting = false;
+                });
+        }
+        return this.getTemperatureDS18B20(pin)
+            .catch(() => '')
             .finally(() => {
-                this. waterTemperatureASensing = false;
+                this.waterTempGetting = false;
             });
     }
 
     /**
-     * Get water temperature on Digital B1.
-     * Return 0 if it was not connected.
+     * Get water temperature on Digital A1.
+     *
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
-    async getWaterTemperatureB (_args, util) {
-        if (!this.isConnected()) return Promise.resolve(0);
-        if (this.waterTemperatureBSensing) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise.resolve() to re-try.
-        }
-        this.waterTemperatureBSensing = true;
-        return this.getTemperatureDS18B20(6) // Digital B1: 6
-            .catch(() => 0)
-            .finally(() => {
-                this. waterTemperatureBSensing = false;
-            });
+    getWaterTemperatureA (_args, util) {
+        return this.getWaterTemp(10, util); // Digital A1: 10
+    }
+
+    /**
+     * Get water temperature on Digital B1.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
+     */
+    getWaterTemperatureB (_args, util) {
+        return this.getWaterTemp(6, util); // Digital B1: 6;
     }
 
     /**

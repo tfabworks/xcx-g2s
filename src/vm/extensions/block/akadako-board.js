@@ -17,6 +17,8 @@ const Firmata = bindTransport.Firmata;
 
 const PING_SENSOR_COMMAND = 0x01;
 
+const GET_WATER_TEMPERATURE_COMMAND = 0x02;
+
 const BOARD_VERSION_QUERY = 0x0F;
 
 const DEVICE_ENABLE = 0x03;
@@ -27,6 +29,20 @@ const DEVICE_ENABLE = 0x03;
  * @returns {Promise<string>} Promise which will reject with reason after the delay.
  */
 const timeoutReject = delay => new Promise((_, reject) => setTimeout(() => reject(`timeout ${delay}ms`), delay));
+
+/**
+ * Decode int16 value from 7bit encoded two bytes array.
+ *
+ * @param {Uint8Array} bytes encoded array
+ * @returns {number} decoded value
+ */
+const decodeInt16FromTwo7bitBytes = bytes => {
+    const lsb = (bytes[0] | (bytes[1] << 7)) & 0xFF;
+    const msb = ((bytes[1] >> 1) | ((bytes[1] >> 6) ? 0b11000000 : 0)); // two's complement
+    const dataView = new DataView((new Uint8Array([lsb, msb])).buffer);
+    const result = dataView.getInt16(0, true);
+    return result;
+};
 
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
@@ -181,6 +197,12 @@ class AkaDakoBoard extends EventEmitter {
          * @type {number}
          */
         this.boardVersionWaitingTime = 200;
+
+        /**
+         * Waiting time for response of water temperature sensor reading in milliseconds.
+         * @type {number}
+         */
+        this.getWaterTempWaitingTime = 2000;
 
         /**
          * Port information of the connected serial port.
@@ -932,6 +954,28 @@ class AkaDakoBoard extends EventEmitter {
         return Promise.race([request, timeoutReject(timeout)])
             .finally(() => {
                 firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+            });
+    }
+
+    /**
+     * Get water temperature.
+     * @param {number} pin - trigger pin of the sensor
+     * @param {number} timeout - waiting time for the response
+     * @returns {Promise<number>} a Promise which resolves value from the sensor
+     */
+    getWaterTemp (pin, timeout) {
+        const firmata = this.firmata;
+        timeout = timeout ? timeout : this.getWaterTempWaitingTime;
+        const request = new Promise(resolve => {
+            firmata.sysexResponse(GET_WATER_TEMPERATURE_COMMAND, data => {
+                const value = decodeInt16FromTwo7bitBytes(data.slice(1, 3));
+                resolve(value);
+            });
+            firmata.sysexCommand([GET_WATER_TEMPERATURE_COMMAND, pin]);
+        });
+        return Promise.race([request, timeoutReject(timeout)])
+            .finally(() => {
+                firmata.clearSysexResponse(GET_WATER_TEMPERATURE_COMMAND);
             });
     }
 
