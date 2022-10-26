@@ -255,6 +255,10 @@ class AkaDakoBoard extends EventEmitter {
                 console.log(data);
             });
         }
+        firmata.sysexResponse(GET_WATER_TEMPERATURE_COMMAND, data => {
+            const pin = data[0];
+            firmata.emit(`water-temp-reply-${pin}`, data.slice(1));
+        });
         this.firmata = firmata;
     }
 
@@ -960,22 +964,26 @@ class AkaDakoBoard extends EventEmitter {
     /**
      * Get water temperature.
      * @param {number} pin - trigger pin of the sensor
-     * @param {number} timeout - waiting time for the response
+     * @param {?number} timeout - waiting time for the response
      * @returns {Promise<number>} a Promise which resolves value from the sensor
      */
     getWaterTemp (pin, timeout) {
         const firmata = this.firmata;
         timeout = timeout ? timeout : this.getWaterTempWaitingTime;
-        const request = new Promise(resolve => {
-            firmata.sysexResponse(GET_WATER_TEMPERATURE_COMMAND, data => {
-                const value = decodeInt16FromTwo7bitBytes(data.slice(1, 3));
-                resolve(value);
-            });
+        const event = `water-temp-reply-${pin}`;
+        const request = new Promise((resolve, reject) => {
+            firmata.once(event,
+                data => {
+                    if (data.length === 0) return reject('not available');
+                    const value = decodeInt16FromTwo7bitBytes(data);
+                    resolve(value);
+                });
             firmata.sysexCommand([GET_WATER_TEMPERATURE_COMMAND, pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
-            .finally(() => {
-                firmata.clearSysexResponse(GET_WATER_TEMPERATURE_COMMAND);
+            .catch(reason => {
+                firmata.removeAllListeners(event);
+                return Promise.reject(reason);
             });
     }
 

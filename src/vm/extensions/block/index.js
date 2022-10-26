@@ -197,10 +197,16 @@ class ExtensionBlocks {
         this.vl53l0x = null;
 
         /**
-         * Busy flag for water temp sensor.
+         * Busy flag for water temp sensor on Digital A.
          * @type {boolean}
          */
-        this.waterTempGetting = false;
+        this.waterTempAGetting = false;
+
+        /**
+         * Busy flag for water temp sensor on Digital B.
+         * @type {boolean}
+         */
+        this.waterTempBGetting = false;
 
         /**
          * Busy flag for color LED.
@@ -292,7 +298,8 @@ class ExtensionBlocks {
         this.vl53l0x = null;
         this.bme280 = null;
         this.accelerometer = null;
-        this.waterTempGetting = false;
+        this.waterTempAGetting = false;
+        this.waterTempBGetting = false;
         this.neoPixelBusy = false;
         this.pingSensing = false;
     }
@@ -1101,32 +1108,17 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get water temp [℃] by temperature sensor on the board.
+     * Get water temp [℃] by sensor on the pin.
      * @param {number} pin - pin number for the sensor
-     * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
+     * @returns {Promise<number>} a Promise which resolves temperature [℃]
      */
-    getWaterTemp (pin, util) {
-        if (!this.isConnected()) return Promise.resolve('');
-        if (this.waterTempGetting) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise.resolve() to re-try.
-        }
-        this.waterTempGetting = true;
+    getWaterTemp (pin) {
         if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
             // STEAM BOX v2.0.1 and later
             return this.board.getWaterTemp(pin)
-                .then(data => data / 10)
-                .catch(() => '')
-                .finally(() => {
-                    this.waterTempGetting = false;
-                });
+                .then(data => data / 10);
         }
-        return this.getTemperatureDS18B20(pin)
-            .catch(() => '')
-            .finally(() => {
-                this.waterTempGetting = false;
-            });
+        return this.getTemperatureDS18B20(pin);
     }
 
     /**
@@ -1137,7 +1129,17 @@ class ExtensionBlocks {
      * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
     getWaterTemperatureA (_args, util) {
-        return this.getWaterTemp(10, util); // Digital A1: 10
+        if (!this.isConnected()) return Promise.resolve('');
+        if (this.waterTempAGetting) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.waterTempAGetting = true;
+        return this.getWaterTemp(10, util) // Digital A1: 10
+            .catch(() => '')
+            .finally(() => {
+                this.waterTempAGetting = false;
+            });
     }
 
     /**
@@ -1148,7 +1150,17 @@ class ExtensionBlocks {
      * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
     getWaterTemperatureB (_args, util) {
-        return this.getWaterTemp(6, util); // Digital B1: 6;
+        if (!this.isConnected()) return Promise.resolve('');
+        if (this.waterTempBGetting) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        this.waterTempBGetting = true;
+        return this.getWaterTemp(6, util) // Digital B1: 6;
+            .catch(() => '')
+            .finally(() => {
+                this.waterTempBGetting = false;
+            });
     }
 
     /**
