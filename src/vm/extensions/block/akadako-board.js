@@ -255,6 +255,7 @@ class AkaDakoBoard extends EventEmitter {
                 console.log(data);
             });
         }
+        firmata.clearSysexResponse(GET_WATER_TEMPERATURE_COMMAND);
         firmata.sysexResponse(GET_WATER_TEMPERATURE_COMMAND, data => {
             const pin = data[0];
             firmata.emit(`water-temp-reply-${pin}`, data.slice(1));
