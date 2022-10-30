@@ -385,20 +385,6 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get the digital level [0|1] of the pin.
-     * @param {number} pin - pin number to get
-     * @returns {Promise<number>} a Promise which resolves digital value of the pin
-     */
-    getDigitalLevel (pin) {
-        if (!this.isConnected()) return Promise.resolve(0);
-        return this.board.updateDigitalInput(pin)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return 0;
-            });
-    }
-
-    /**
      * Whether the current level of the connector is HIGHT as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
@@ -407,40 +393,68 @@ class ExtensionBlocks {
     digitalIsHigh (args) {
         if (!this.isConnected()) return Promise.resolve(false);
         const pin = parseInt(args.CONNECTOR, 10);
-        return this.getDigitalLevel(pin)
-            .then(readData => !!readData);
+        return this.board.updateDigitalInput(pin)
+            .then(value => !!value)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
      * The level [0|1] of digital A1 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
      */
     digitalLevelA1 () {
-        return this.getDigitalLevel(10);
+        if (!this.isConnected()) return Promise.resolve('');
+        const pin = 10;
+        return this.board.updateDigitalInput(pin)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
      * The level [0|1] of digital A2 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
      */
     digitalLevelA2 () {
-        return this.getDigitalLevel(11);
+        if (!this.isConnected()) return Promise.resolve('');
+        const pin = 11;
+        return this.board.updateDigitalInput(pin)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
      * The level [0|1] of digital B1 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
      */
     digitalLevelB1 () {
-        return this.getDigitalLevel(6);
+        if (!this.isConnected()) return Promise.resolve('');
+        const pin = 6;
+        return this.board.updateDigitalInput(pin)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
      * The level [0|1] of digital B2 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
      */
     digitalLevelB2 () {
-        return this.getDigitalLevel(9);
+        if (!this.isConnected()) return Promise.resolve('');
+        const pin = 9;
+        return this.board.updateDigitalInput(pin)
+            .catch(reason => {
+                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
@@ -491,50 +505,63 @@ class ExtensionBlocks {
     }
 
     /**
-     * The level of the connector as analog input.
-     * @param {number} analogPin - pin number of the connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog A1 connector
+     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
      */
-    getAnalogLevel (analogPin) {
-        if (!this.isConnected()) return Promise.resolve(0);
+    analogLevelA1 () {
+        if (!this.isConnected()) return Promise.resolve('');
+        const analogPin = 0;
         return this.board.updateAnalogInput(analogPin)
             .then(raw => Math.round((raw / 1023) * 1000) / 10)
             .catch(reason => {
                 console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                return 0;
+                return '';
+            });
+    }
+
+    /**
+     * The level [%] of analog A2 connector
+     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     */
+    analogLevelA2 () {
+        if (!this.isConnected()) return Promise.resolve('');
+        const analogPin = 1;
+        return this.board.updateAnalogInput(analogPin)
+            .then(raw => Math.round((raw / 1023) * 1000) / 10)
+            .catch(reason => {
+                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
+                return '';
+            });
+    }
+
+    /**
+     * The level [%] of analog B1 connector
+     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     */
+    analogLevelB1 () {
+        if (!this.isConnected()) return Promise.resolve('');
+        const analogPin = 2;
+        return this.board.updateAnalogInput(analogPin)
+            .then(raw => Math.round((raw / 1023) * 1000) / 10)
+            .catch(reason => {
+                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
+                return '';
             });
     }
 
     /**
      * The level [%] of analog A1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
-     */
-    analogLevelA1 () {
-        return this.getAnalogLevel(0);
-    }
-
-    /**
-     * The level [%] of analog A2 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
-     */
-    analogLevelA2 () {
-        return this.getAnalogLevel(1);
-    }
-
-    /**
-     * The level [%] of analog B1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
-     */
-    analogLevelB1 () {
-        return this.getAnalogLevel(2);
-    }
-
-    /**
-     * The level [%] of analog A1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
+     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
      */
     analogLevelB2 () {
-        return this.getAnalogLevel(3);
+        if (!this.isConnected()) return Promise.resolve('');
+        const analogPin = 3;
+        return this.board.updateAnalogInput(analogPin)
+            .then(raw => Math.round((raw / 1023) * 1000) / 10)
+            .catch(reason => {
+                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
+                return '';
+            });
     }
 
     /**
@@ -781,10 +808,10 @@ class ExtensionBlocks {
 
     /**
      * Measure distance [mm] using ToF sensor VL53L0X.
-     * @returns {Promise<number>} a Promise which resolves distance
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
     async measureDistanceWithLight () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         if (this.board.boardType() === 'STEAM BOX') {
             this.board.enableDevice(0x00);
         }
@@ -797,13 +824,13 @@ class ExtensionBlocks {
                 newSensor = new VL53L0X(this.board);
             }
             const found = await newSensor.init(true);
-            if (!found) return 0;
+            if (!found) return '';
             await newSensor.startContinuous()
                 .catch(reason => {
                     console.log(`fail to VL53L0X.startContinuous() by ${reason}`);
                     newSensor = null;
                 });
-            if (!newSensor) return 0;
+            if (!newSensor) return '';
             this.vl53l0x = newSensor;
         }
         const distance = await this.vl53l0x.readRangeContinuousMillimeters()
@@ -811,7 +838,7 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
                 this.vl53l0x = null;
-                return 0;
+                return '';
             });
         return distance;
     }
@@ -820,20 +847,20 @@ class ExtensionBlocks {
      * Measure distance [cm] using ultrasonic sensor HC-SR04.
      * @param {number} pin - pin number to trigger the sensor
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
     measureDistanceWithUltrasonic (pin, util) {
-        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return Promise.resolve('');
         if (this.pingSensing) {
             util.yield(); // re-try this call after a while.
-            return; // Do not return Promise.resolve() to re-try.
+            return; // Do not return Promise to re-try.
         }
         this.pingSensing = true;
         return this.board.pingSensor(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
-                return 0;
+                return '';
             })
             .finally(() => {
                 this.pingSensing = false;
@@ -844,7 +871,7 @@ class ExtensionBlocks {
      * Measure distance [cm] using ultrasonic sensor on Digital A.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
     measureDistanceWithUltrasonicA (_args, util) {
         return this.measureDistanceWithUltrasonic(10, util);
@@ -854,7 +881,7 @@ class ExtensionBlocks {
      * Measure distance [cm] using ultrasonic sensor on Digital B.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
     measureDistanceWithUltrasonicB (_args, util) {
         return this.measureDistanceWithUltrasonic(6, util);
@@ -882,10 +909,10 @@ class ExtensionBlocks {
     /**
      * Get acceleration [m/s^2] for the axis.
      *
-     * @returns {Promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
+     * @returns {Promise<?{x: number, y: number, z: number}>} a Promise which resolves acceleration
      */
     async getAcceleration () {
-        if (!this.isConnected()) return {x: 0, y: 0, z: 0};
+        if (!this.isConnected()) return null;
         try {
             const sensor = await this.getAccelerometer();
             const data = await sensor.getAcceleration();
@@ -893,49 +920,53 @@ class ExtensionBlocks {
         } catch (reason) {
             console.log(`KXTJ3.getAcceleration() was rejected by ${reason}`);
             this.accelerometer = null;
-            return {x: 0, y: 0, z: 0};
+            return null;
         }
     }
 
     /**
      * Get acceleration [m/s^2] for axis X.
      *
-     * @returns {Promise<number>} a Promise which resolves acceleration
+     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
     async getAccelerationX () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         return (Math.round(data.x * 100)) / 100;
     }
 
     /**
      * Get acceleration [m/s^2] for axis Y.
      *
-     * @returns {Promise<number>} a Promise which resolves acceleration
+     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
     async getAccelerationY () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         return (Math.round(data.y * 100)) / 100;
     }
 
     /**
      * Get acceleration [m/s^2] for axis Z.
-     * @returns {Promise<number>} a Promise which resolves acceleration
+     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
     async getAccelerationZ () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         return (Math.round(data.z * 100)) / 100;
     }
 
     /**
      * Get absolute acceleration [m/s^2].
-     * @returns {Promise<number>} a Promise which resolves acceleration
+     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
     async getAccelerationAbsolute () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         const absolute = Math.sqrt(
             (data.x ** 2) +
             (data.y ** 2) +
@@ -946,22 +977,24 @@ class ExtensionBlocks {
 
     /**
      * Get roll [degree] from accelerometer.
-     * @returns {Promise<number>} a Promise which resolves roll
+     * @returns {Promise<number | string>} a Promise which resolves roll or empty string if it was fail
      */
     async getRoll () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         const roll = Math.atan2(data.y, data.z) * 180.0 / Math.PI;
         return (Math.round(roll * 100)) / 100;
     }
 
     /**
      * Get pitch [degree] from accelerometer.
-     * @returns {Promise<number>} a Promise which resolves pitch
+     * @returns {Promise<number |string>} a Promise which resolves pitch or empty string if it was fail
      */
     async getPitch () {
-        if (!this.isConnected()) return 0;
+        if (!this.isConnected()) return '';
         const data = await this.getAcceleration();
+        if (!data) return '';
         const angle = Math.atan2(
             data.x,
             Math.sqrt((data.y * data.y) + (data.z * data.z))
@@ -974,11 +1007,11 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get temperature from BME280
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * Get temperature [℃] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves temp or empty string if it was fail
      */
     async getTemperatureBME280 () {
-        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return Promise.resolve('');
         if (!this.bme280) {
             const newSensor = new BME280(this.board);
             try {
@@ -986,7 +1019,7 @@ class ExtensionBlocks {
             } catch (error) {
                 // fail to create instance
                 console.log(error);
-                return Promise.resolve(0);
+                return Promise.resolve('');
             }
             this.bme280 = newSensor;
         }
@@ -995,16 +1028,16 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`BME280.readTemperature() was rejected by ${reason}`);
                 this.bme280 = null;
-                return 0;
+                return '';
             });
     }
 
     /**
-     * Get pressure from BME280
-     * @returns {Promise<number>} a Promise which resolves value of pressure [hPa]
+     * Get pressure [hPa] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves pressure or empty string if it was fail
      */
     async getPressureBME280 () {
-        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return Promise.resolve('');
         if (!this.bme280) {
             const newSensor = new BME280(this.board);
             try {
@@ -1012,7 +1045,7 @@ class ExtensionBlocks {
             } catch (error) {
                 // fail to create instance
                 console.log(error);
-                return Promise.resolve(0);
+                return Promise.resolve('');
             }
             this.bme280 = newSensor;
         }
@@ -1021,16 +1054,16 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`BME280.readPressure() was rejected by ${reason}`);
                 this.bme280 = null;
-                return 0;
+                return '';
             });
     }
 
     /**
-     * Get humidity from BME280
-     * @returns {Promise<number>} a Promise which resolves value of humidity [%]
+     * Get humidity [%] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves value of humidity or empty string if it was fail
      */
     async getHumidityBME280 () {
-        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return Promise.resolve('');
         if (!this.bme280) {
             const newSensor = new BME280(this.board);
             try {
@@ -1038,7 +1071,7 @@ class ExtensionBlocks {
             } catch (error) {
                 // fail to create instance
                 console.log(error);
-                return Promise.resolve(0);
+                return Promise.resolve('');
             }
             this.bme280 = newSensor;
         }
@@ -1047,16 +1080,16 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`BME280.readHumidity() was rejected by ${reason}`);
                 this.bme280 = null;
-                return 0;
+                return '';
             });
     }
 
     /**
-     * Get brightness from LTR-303 on I2C
-     * @returns {Promise<number>} a Promise which resolves value of brightness [lx]
+     * Get brightness [lx] from LTR-303 on I2C
+     * @returns {Promise<number | string>} a Promise which resolves value of brightness or empty string if it was fail
      */
     async getBrightnessLTR303 () {
-        if (!this.isConnected()) return Promise.resolve(0);
+        if (!this.isConnected()) return '';
         if (this.board.boardType() === 'STEAM BOX') {
             this.board.enableDevice(0x01);
         }
@@ -1065,7 +1098,7 @@ class ExtensionBlocks {
         const partID = await this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
         if ((partID[0] & 0xF0) !== 0xA0) {
             // no LTR-303 on I2C
-            return 0;
+            return '';
         }
         try {
             await this.board.i2cWrite(i2cAddr, 0x80, 1);
@@ -1085,7 +1118,7 @@ class ExtensionBlocks {
             return Math.round(lux * 10) / 10;
         } catch (error) {
             console.log(`Reading brightness from LTR-303 I2C was rejected by ${error}`);
-            return 0;
+            return '';
         }
     }
 
