@@ -215,10 +215,16 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
-         * Busy flag for ultrasonic distance sensor.
+         * Busy flag for ultrasonic distance sensor on Digital A.
          * @type {boolean}
          */
-        this.pingSensing = false;
+        this.pingSensingA = false;
+
+        /**
+         * Busy flag for ultrasonic distance sensor on Digital B.
+         * @type {boolean}
+         */
+        this.pingSensingB = false;
 
         /**
          * Manager of AkaDako boards
@@ -301,7 +307,8 @@ class ExtensionBlocks {
         this.waterTempAGetting = false;
         this.waterTempBGetting = false;
         this.neoPixelBusy = false;
-        this.pingSensing = false;
+        this.pingSendingA = false;
+        this.pingSendingB = false;
     }
 
     /**
@@ -844,18 +851,19 @@ class ExtensionBlocks {
     }
 
     /**
-     * Measure distance [cm] using ultrasonic sensor HC-SR04.
-     * @param {number} pin - pin number to trigger the sensor
+     * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
-    measureDistanceWithUltrasonic (pin, util) {
+    measureDistanceWithUltrasonicA (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (this.pingSensing) {
+        if (this.pingSendingA) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
         }
-        this.pingSensing = true;
+        this.pingSendingA = true;
+        const pin = 10;
         return this.board.pingSensor(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
@@ -863,18 +871,8 @@ class ExtensionBlocks {
                 return '';
             })
             .finally(() => {
-                this.pingSensing = false;
+                this.pingSendingA = false;
             });
-    }
-
-    /**
-     * Measure distance [cm] using ultrasonic sensor on Digital A.
-     * @param {object} _args - the block's arguments.
-     * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
-     */
-    measureDistanceWithUltrasonicA (_args, util) {
-        return this.measureDistanceWithUltrasonic(10, util);
     }
 
     /**
@@ -884,7 +882,22 @@ class ExtensionBlocks {
      * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
     measureDistanceWithUltrasonicB (_args, util) {
-        return this.measureDistanceWithUltrasonic(6, util);
+        if (!this.isConnected()) return Promise.resolve('');
+        if (this.pingSendingB) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise to re-try.
+        }
+        this.pingSendingB = true;
+        const pin = 6;
+        return this.board.pingSensor(pin)
+            .then(value => Math.round(value / 10))
+            .catch(reason => {
+                console.log(`pingSensor(${pin}) was rejected by ${reason}`);
+                return '';
+            })
+            .finally(() => {
+                this.pingSendingB = false;
+            });
     }
 
     /**

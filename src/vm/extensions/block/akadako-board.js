@@ -260,6 +260,11 @@ class AkaDakoBoard extends EventEmitter {
             const pin = data[0];
             firmata.emit(`water-temp-reply-${pin}`, data.slice(1));
         });
+        firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+        firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
+            const pin = data[0];
+            firmata.emit(`ping-reply-${pin}`, data.slice(1));
+        });
         this.firmata = firmata;
     }
 
@@ -949,16 +954,20 @@ class AkaDakoBoard extends EventEmitter {
         const firmata = this.firmata;
         timeout = timeout ? timeout : this.pingSensorWaitingTime;
         firmata.pinMode(pin, firmata.MODES.PING_READ);
-        const request = new Promise(resolve => {
-            firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
-                const value = Firmata.decode([data[1], data[2]]);
-                resolve(value);
-            });
+        const event = `ping-reply-${pin}`;
+        const request = new Promise((resolve, reject) => {
+            firmata.once(event,
+                data => {
+                    if (data.length === 0) return reject('not available');
+                    const value = decodeInt16FromTwo7bitBytes(data);
+                    resolve(value);
+                });
             firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
-            .finally(() => {
-                firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+            .catch(reason => {
+                firmata.removeAllListeners(event);
+                return Promise.reject(reason);
             });
     }
 
