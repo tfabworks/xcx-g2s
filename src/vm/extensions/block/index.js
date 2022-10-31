@@ -864,7 +864,7 @@ class ExtensionBlocks {
         }
         this.pingSendingA = true;
         const pin = 10;
-        return this.board.pingSensor(pin)
+        return this.board.getDistanceByUltrasonic(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
@@ -889,7 +889,7 @@ class ExtensionBlocks {
         }
         this.pingSendingB = true;
         const pin = 6;
-        return this.board.pingSensor(pin)
+        return this.board.getDistanceByUltrasonic(pin)
             .then(value => Math.round(value / 10))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);

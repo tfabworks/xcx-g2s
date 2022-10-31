@@ -15,11 +15,11 @@ import {
 
 const Firmata = bindTransport.Firmata;
 
-const PING_SENSOR_COMMAND = 0x01;
-
-const GET_WATER_TEMPERATURE_COMMAND = 0x02;
-
 const BOARD_VERSION_QUERY = 0x0F;
+
+const ULTRASONIC_DISTANCE_QUERY = 0x01;
+
+const WATER_TEMPERATURE_QUERY = 0x02;
 
 const DEVICE_ENABLE = 0x03;
 
@@ -187,10 +187,10 @@ class AkaDakoBoard extends EventEmitter {
         this.oneWireReadWaitingTime = 100;
 
         /**
-         * Waiting time for response of ping sensor reading in milliseconds.
+         * Waiting time for response of ultrasonic distance sensor reading in milliseconds.
          * @type {number}
          */
-        this.pingSensorWaitingTime = 100;
+        this.ultrasonicDistanceWaitingTime = 100;
 
         /**
          * Waiting time for response of query board version in milliseconds.
@@ -255,15 +255,19 @@ class AkaDakoBoard extends EventEmitter {
                 console.log(data);
             });
         }
-        firmata.clearSysexResponse(GET_WATER_TEMPERATURE_COMMAND);
-        firmata.sysexResponse(GET_WATER_TEMPERATURE_COMMAND, data => {
+        firmata.clearSysexResponse(WATER_TEMPERATURE_QUERY);
+        firmata.sysexResponse(WATER_TEMPERATURE_QUERY, data => {
             const pin = data[0];
             firmata.emit(`water-temp-reply-${pin}`, data.slice(1));
         });
-        firmata.clearSysexResponse(PING_SENSOR_COMMAND);
-        firmata.sysexResponse(PING_SENSOR_COMMAND, data => {
+        firmata.clearSysexResponse(ULTRASONIC_DISTANCE_QUERY);
+        firmata.sysexResponse(ULTRASONIC_DISTANCE_QUERY, data => {
             const pin = data[0];
-            firmata.emit(`ping-reply-${pin}`, data.slice(1));
+            firmata.emit(`ultrasonic-distance-reply-${pin}`, data.slice(1));
+        });
+        firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+        firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
+            firmata.emit(`board-version-reply`, data);
         });
         this.firmata = firmata;
     }
@@ -519,26 +523,31 @@ class AkaDakoBoard extends EventEmitter {
     /**
      * Query the version information of the connected board and set the version data.
      *
+     * @param {?number} timeout - waiting time for the response
      * @returns {Promise<string>} A Promise which resolves version info.
      */
-    boardVersion () {
+    boardVersion (timeout) {
         if (this.version) return Promise.resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
         const firmata = this.firmata;
+        timeout = timeout ? timeout : this.boardVersionWaitingTime;
+        const event = `board-version-reply`;
         const request = new Promise(resolve => {
-            firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
-                const value = Firmata.decode([data[0], data[1]]);
-                this.version = {
-                    type: (value >> 10) & 0x0F,
-                    major: (value >> 6) & 0x0F,
-                    minor: value & 0x3F
-                };
-                resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
-            });
+            firmata.once(event,
+                data => {
+                    const value = Firmata.decode([data[0], data[1]]);
+                    this.version = {
+                        type: (value >> 10) & 0x0F,
+                        major: (value >> 6) & 0x0F,
+                        minor: value & 0x3F
+                    };
+                    resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
+                });
             firmata.sysexCommand([BOARD_VERSION_QUERY]);
         });
-        return Promise.race([request, timeoutReject(this.boardVersionWaitingTime)])
-            .finally(() => {
-                firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+        return Promise.race([request, timeoutReject(timeout)])
+            .catch(reason => {
+                firmata.removeAllListeners(event);
+                return Promise.reject(reason);
             });
     }
 
@@ -945,16 +954,16 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Trigger the sensor to measure distance
+     * Measure distance by ultrasonic sensor
      * @param {number} pin - trigger pin of the sensor
      * @param {number} timeout - waiting time for the response
      * @returns {Promise<number>} a Promise which resolves value from the sensor
      */
-    pingSensor (pin, timeout) {
+    getDistanceByUltrasonic (pin, timeout) {
         const firmata = this.firmata;
-        timeout = timeout ? timeout : this.pingSensorWaitingTime;
+        timeout = timeout ? timeout : this.ultrasonicDistanceWaitingTime;
         firmata.pinMode(pin, firmata.MODES.PING_READ);
-        const event = `ping-reply-${pin}`;
+        const event = `ultrasonic-distance-reply-${pin}`;
         const request = new Promise((resolve, reject) => {
             firmata.once(event,
                 data => {
@@ -962,7 +971,7 @@ class AkaDakoBoard extends EventEmitter {
                     const value = decodeInt16FromTwo7bitBytes(data);
                     resolve(value);
                 });
-            firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+            firmata.sysexCommand([ULTRASONIC_DISTANCE_QUERY, pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
             .catch(reason => {
@@ -988,7 +997,7 @@ class AkaDakoBoard extends EventEmitter {
                     const value = decodeInt16FromTwo7bitBytes(data);
                     resolve(value);
                 });
-            firmata.sysexCommand([GET_WATER_TEMPERATURE_COMMAND, pin]);
+            firmata.sysexCommand([WATER_TEMPERATURE_QUERY, pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
             .catch(reason => {
