@@ -1226,6 +1226,7 @@ class ExtensionBlocks {
      */
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
+        if (!array.length) return '';
         let index = Number(args.INDEX);
         if (isNaN(index)) {
             index = 0;
