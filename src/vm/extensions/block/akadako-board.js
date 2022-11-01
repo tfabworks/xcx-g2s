@@ -190,7 +190,7 @@ class AkaDakoBoard extends EventEmitter {
          * Waiting time for response of ultrasonic distance sensor reading in milliseconds.
          * @type {number}
          */
-        this.ultrasonicDistanceWaitingTime = 100;
+        this.ultrasonicDistanceWaitingTime = 1000;
 
         /**
          * Waiting time for response of query board version in milliseconds.
