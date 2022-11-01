@@ -310,7 +310,7 @@ class AkaDakoBoard extends EventEmitter {
                 async () => {
                     this.setupFirmata(firmata);
                     await this.boardVersion();
-                    this.onBoarReady();
+                    this.onBoardReady();
                     resolve(this);
                 });
         });
@@ -420,7 +420,7 @@ class AkaDakoBoard extends EventEmitter {
                         }
                     };
                     firmata.queryAnalogMapping(() => {
-                        this.onBoarReady();
+                        this.onBoardReady();
                         resolve(this);
                     });
                 });
@@ -441,7 +441,7 @@ class AkaDakoBoard extends EventEmitter {
     /**
      * Called when a board was ready.
      */
-    onBoarReady () {
+    onBoardReady () {
         console.log(
             `${this.version.type}.${String(this.version.major)}.${String(this.version.minor)}` +
             ` on: ${JSON.stringify(this.portInfo)}`
