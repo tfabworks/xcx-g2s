@@ -392,76 +392,51 @@ class ExtensionBlocks {
     }
 
     /**
-     * Whether the current level of the connector is HIGHT as digital input.
+     * Whether the current level of the connector is HIGH as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * @returns {boolean} true for high
      */
     digitalIsHigh (args) {
-        if (!this.isConnected()) return Promise.resolve(false);
+        if (!this.isConnected()) return false;
         const pin = parseInt(args.CONNECTOR, 10);
-        return this.board.updateDigitalInput(pin)
-            .then(value => !!value)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return '';
-            });
+        return !!this.board.getDigitalValue(pin);
     }
 
     /**
      * The level [0|1] of digital A1 connector
-     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
+     * @returns {number | string} - digital level or empty string when disconnected
      */
     digitalLevelA1 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const pin = 10;
-        return this.board.updateDigitalInput(pin)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        return this.board.getDigitalValue(10);
     }
 
     /**
      * The level [0|1] of digital A2 connector
-     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
+     * @returns {number | string} - digital level or empty string when disconnected
      */
     digitalLevelA2 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const pin = 11;
-        return this.board.updateDigitalInput(pin)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        return this.board.getDigitalValue(11);
     }
 
     /**
      * The level [0|1] of digital B1 connector
-     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
+     * @returns {number | string} - digital level or empty string when disconnected
      */
     digitalLevelB1 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const pin = 6;
-        return this.board.updateDigitalInput(pin)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        return this.board.getDigitalValue(6);
     }
 
     /**
      * The level [0|1] of digital B2 connector
-     * @returns {Promise<number | string>} - a Promise which resolves digital level or empty string if it was fail
+     * @returns {number | string} - digital level or empty string when disconnected
      */
     digitalLevelB2 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const pin = 9;
-        return this.board.updateDigitalInput(pin)
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        return this.board.getDigitalValue(9);
     }
 
     /**
@@ -475,10 +450,6 @@ class ExtensionBlocks {
         if (!this.isConnected()) return false;
         const pin = parseInt(args.CONNECTOR, 10);
         const rise = Cast.toBoolean(args.LEVEL);
-        this.board.updateDigitalInput(pin) // update for the next call
-            .catch(reason => {
-                console.log(`digitalRead(${pin}) was rejected by ${reason}`);
-            });
         return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
 

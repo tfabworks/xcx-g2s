@@ -139,12 +139,6 @@ class AkaDakoBoard extends EventEmitter {
         this.extensionId = null;
 
         /**
-         * shortest interval time between digital input readings
-         * @type {number}
-         */
-        this.digitalReadInterval = 20;
-
-        /**
          * Waiting time to connect the board in milliseconds.
          * @type {number}
          */
@@ -161,12 +155,6 @@ class AkaDakoBoard extends EventEmitter {
          * @type {number}
          */
         this.sendingInterval = 10;
-
-        /**
-         * Waiting time for response of digital input reading in milliseconds.
-         * @type {number}
-         */
-        this.updateDigitalInputWaitingTime = 100;
 
         /**
          * Waiting time for response of analog input reading in milliseconds.
@@ -446,6 +434,12 @@ class AkaDakoBoard extends EventEmitter {
             `${this.version.type}.${String(this.version.major)}.${String(this.version.minor)}` +
             ` on: ${JSON.stringify(this.portInfo)}`
         );
+        const digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM BOX
+        // Set up to report digital inputs.
+        digitalPins.forEach(pin => {
+            this.firmata.pinMode(pin, this.firmata.MODES.INPUT);
+            this.firmata.reportDigitalPin(pin, 1);
+        });
         this.firmata.i2cConfig();
         this.state = 'ready';
         this.emit('ready');
@@ -588,46 +582,13 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Update pin value as a digital input when the last update was too old.
-     * @param {number} pin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * Return digital level of the pin.
+     *
+     * @param {number} pin - number of the pin
+     * @returns {number} digital level
      */
-    updateDigitalInput (pin) {
-        if (
-            typeof this.pins[pin].mode !== 'undefined' &&
-            this.pins[pin].mode !== this.firmata.MODES.INPUT &&
-            this.pins[pin].mode !== this.firmata.MODES.PULLUP
-        ) {
-            return Promise.resolve(this.pins[pin].value);
-        }
-        if (this.pins[pin].updating ||
-             (this.pins[pin].updateTime &&
-                ((Date.now() - this.pins[pin].updateTime) < this.digitalReadInterval))) {
-            return Promise.resolve(this.pins[pin].value);
-        }
-        this.pins[pin].updating = true;
-        const request = new Promise(resolve => {
-            if (this.pins[pin].inputBias !== this.firmata.MODES.PULLUP) {
-                this.pins[pin].inputBias = this.firmata.MODES.INPUT;
-            }
-            this.firmata.pinMode(pin, this.pins[pin].inputBias);
-            this.firmata.reportDigitalPin(pin, 1);
-            this.firmata.once(`digital-read-${pin}`,
-                value => {
-                    this.pins[pin].value = value;
-                    this.pins[pin].updateTime = Date.now();
-                    this.firmata.reportDigitalPin(pin, 0);
-                    resolve(this.pins[pin].value);
-                });
-        });
-        return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)])
-            .catch(reason => {
-                this.pins[pin].value = 0;
-                return Promise.reject(reason);
-            })
-            .finally(() => {
-                this.pins[pin].updating = false;
-            });
+    getDigitalValue (pin) {
+        return this.pins[pin].value;
     }
 
     /**
