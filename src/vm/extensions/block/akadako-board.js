@@ -672,8 +672,9 @@ class AkaDakoBoard extends EventEmitter {
      */
     i2cReadOnce (address, register, readLength, timeout) {
         timeout = timeout ? timeout : this.i2cReadWaitingTime;
+        const firmata = this.firmata;
         const request = new Promise(resolve => {
-            this.firmata.i2cReadOnce(
+            firmata.i2cReadOnce(
                 address,
                 register,
                 readLength,
@@ -682,7 +683,11 @@ class AkaDakoBoard extends EventEmitter {
                 }
             );
         });
-        return Promise.race([request, timeoutReject(timeout)]);
+        return Promise.race([request, timeoutReject(timeout)])
+            .catch(reason => {
+                firmata.removeAllListeners(`I2C-reply-${address}-${register}`);
+                return Promise.reject(reason);
+            });
     }
 
     /**
