@@ -88,6 +88,18 @@ export default class BME280 {
          * @type {number}
          */
         this.tFine = 0;
+
+        /**
+         * The time [millisecond] when the temperature was updated.
+         * @type {number}
+         */
+        this.tUpdatedTime = 0;
+
+        /**
+         * Interval time [millisecond] for temperature updating.
+         * @type {number}
+         */
+        this.tUpdateIntervalTime = 1000;
     }
 
     /**
@@ -204,17 +216,21 @@ export default class BME280 {
      * @returns {Promise<number>} a Promise which resolves temperature [degree]
      */
     async readTemperature () {
-        let adc = await this.read24(BME280_REG_TEMPDATA);
-        if (adc === 0x800000) {
+        if ((Date.now() - this.tUpdatedTime) > this.tUpdateIntervalTime) {
+            // update temperature
+            let adc = await this.read24(BME280_REG_TEMPDATA);
+            if (adc === 0x800000) {
             // value in case temperature measurement was disabled
-            return 0;
-        }
-        adc >>= 4;
-        const var1 = (((adc / 8) - (this.dig_T1 * 2)) * this.dig_T2) / 2048;
-        const var2 = (adc / 16) - this.dig_T1;
-        const var3 = (((var2 * var2) / 4096) * (this.dig_T3)) / 16384;
+                return 0;
+            }
+            adc >>= 4;
+            const var1 = (((adc / 8) - (this.dig_T1 * 2)) * this.dig_T2) / 2048;
+            const var2 = (adc / 16) - this.dig_T1;
+            const var3 = (((var2 * var2) / 4096) * (this.dig_T3)) / 16384;
 
-        this.tFine = var1 + var3;
+            this.tFine = var1 + var3;
+            this.tUpdatedTime = Date.now();
+        }
         const temp = ((this.tFine * 5) + 128) / 256;
         return temp / 100;
     }
