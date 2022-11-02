@@ -484,62 +484,42 @@ class ExtensionBlocks {
 
     /**
      * The level [%] of analog A1 connector
-     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     * @returns {number | string} - analog level or empty string when disconnected
      */
     analogLevelA1 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const analogPin = 0;
-        return this.board.updateAnalogInput(analogPin)
-            .then(raw => Math.round((raw / 1023) * 1000) / 10)
-            .catch(reason => {
-                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        const raw = this.board.getAnalogValue(0);
+        return Math.round((raw / 1023) * 1000) / 10;
     }
 
     /**
      * The level [%] of analog A2 connector
-     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     * @returns {number | string} - analog level or empty string when disconnected
      */
     analogLevelA2 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const analogPin = 1;
-        return this.board.updateAnalogInput(analogPin)
-            .then(raw => Math.round((raw / 1023) * 1000) / 10)
-            .catch(reason => {
-                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        const raw = this.board.getAnalogValue(1);
+        return Math.round((raw / 1023) * 1000) / 10;
     }
 
     /**
      * The level [%] of analog B1 connector
-     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     * @returns {number | string} - analog level or empty string when disconnected
      */
     analogLevelB1 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const analogPin = 2;
-        return this.board.updateAnalogInput(analogPin)
-            .then(raw => Math.round((raw / 1023) * 1000) / 10)
-            .catch(reason => {
-                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        const raw = this.board.getAnalogValue(2);
+        return Math.round((raw / 1023) * 1000) / 10;
     }
 
     /**
-     * The level [%] of analog A1 connector
-     * @returns {Promise<number | string>} - a Promise which resolves analog level or empty string if it was fail
+     * The level [%] of analog B2 connector
+     * @returns {number | string} - analog level or empty string when disconnected
      */
     analogLevelB2 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        const analogPin = 3;
-        return this.board.updateAnalogInput(analogPin)
-            .then(raw => Math.round((raw / 1023) * 1000) / 10)
-            .catch(reason => {
-                console.log(`analogRead(${analogPin}) was rejected by ${reason}`);
-                return '';
-            });
+        if (!this.isConnected()) return '';
+        const raw = this.board.getAnalogValue(3);
+        return Math.round((raw / 1023) * 1000) / 10;
     }
 
     /**

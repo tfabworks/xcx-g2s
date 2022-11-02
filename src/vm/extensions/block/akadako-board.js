@@ -145,22 +145,10 @@ class AkaDakoBoard extends EventEmitter {
         this.connectingWaitingTime = 1000;
 
         /**
-         * shortest interval time between analog input readings
-         * @type {number}
-         */
-        this.analogReadInterval = 20;
-
-        /**
          * shortest interval time between message sending
          * @type {number}
          */
         this.sendingInterval = 10;
-
-        /**
-         * Waiting time for response of analog input reading in milliseconds.
-         * @type {number}
-         */
-        this.updateAnalogInputWaitingTime = 100;
 
         /**
          * Waiting time for response of I2C reading in milliseconds.
@@ -440,6 +428,10 @@ class AkaDakoBoard extends EventEmitter {
             this.firmata.pinMode(pin, this.firmata.MODES.INPUT);
             this.firmata.reportDigitalPin(pin, 1);
         });
+        this.firmata.analogPins.forEach((pin, analogIndex) => {
+            this.firmata.pinMode(analogIndex, this.firmata.MODES.ANALOG);
+            this.firmata.reportAnalogPin(analogIndex, 1);
+        });
         this.firmata.i2cConfig();
         this.state = 'ready';
         this.emit('ready');
@@ -606,37 +598,14 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Update pin value as a analog input when the last update was too old.
-     * @param {number} analogPin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * Return analog level of the pin.
+     *
+     * @param {number} analogPin - number as an analog pin
+     * @returns {number} analog level
      */
-    updateAnalogInput (analogPin) {
+    getAnalogValue (analogPin) {
         const pin = this.firmata.analogPins[analogPin];
-        if (this.pins[pin].updating ||
-             (this.pins[pin].updateTime &&
-                ((Date.now() - this.pins[pin].updateTime) < this.analogReadInterval))) {
-            return Promise.resolve(this.pins[pin].value);
-        }
-        this.pins[pin].updating = true;
-        const request = new Promise(resolve => {
-            this.firmata.pinMode(analogPin, this.MODES.ANALOG);
-            this.firmata.reportAnalogPin(analogPin, 1);
-            this.firmata.once(`analog-read-${analogPin}`,
-                value => {
-                    this.pins[pin].value = value;
-                    this.pins[pin].updateTime = Date.now();
-                    this.firmata.reportAnalogPin(analogPin, 0);
-                    resolve(this.pins[pin].value);
-                });
-        });
-        return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)])
-            .catch(reason => {
-                this.pins[pin].value = 0;
-                return Promise.reject(reason);
-            })
-            .finally(() => {
-                this.pins[pin].updating = false;
-            });
+        return this.pins[pin].value;
     }
 
     /**
