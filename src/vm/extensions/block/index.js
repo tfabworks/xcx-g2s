@@ -801,7 +801,10 @@ class ExtensionBlocks {
                 newSensor = new VL53L0X(this.board);
             }
             const found = await newSensor.init(true);
-            if (!found) return '';
+            if (!found) {
+                console.log('Distance sensor (laser) is not found.');
+                return '';
+            }
             await newSensor.startContinuous()
                 .catch(reason => {
                     console.log(`fail to VL53L0X.startContinuous() by ${reason}`);
@@ -810,14 +813,14 @@ class ExtensionBlocks {
             if (!newSensor) return '';
             this.vl53l0x = newSensor;
         }
-        const distance = await this.vl53l0x.readRangeContinuousMillimeters()
-            .then(mm => mm / 10)
-            .catch(reason => {
-                console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
-                this.vl53l0x = null;
-                return '';
-            });
-        return distance;
+        try {
+            const distance = await this.vl53l0x.readRangeContinuousMillimeters();
+            return distance / 10;
+        } catch (reason) {
+            console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
+            this.vl53l0x = null;
+            return '';
+        }
     }
 
     /**
