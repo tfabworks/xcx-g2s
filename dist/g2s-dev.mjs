@@ -15911,8 +15911,9 @@ function _createSuper$1(Derived) { var hasNativeReflectConstruct = _isNativeRefl
 
 function _isNativeReflectConstruct$1() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var Firmata = firmata.Firmata;
-var PING_SENSOR_COMMAND = 0x01;
 var BOARD_VERSION_QUERY = 0x0F;
+var ULTRASONIC_DISTANCE_QUERY = 0x01;
+var WATER_TEMPERATURE_QUERY = 0x02;
 var DEVICE_ENABLE = 0x03;
 /**
  * Returns a Promise which will reject after the delay time passed.
@@ -15926,6 +15927,22 @@ var timeoutReject = function timeoutReject(delay) {
       return reject("timeout ".concat(delay, "ms"));
     }, delay);
   });
+};
+/**
+ * Decode int16 value from 7bit encoded two bytes array.
+ *
+ * @param {Uint8Array} bytes encoded array
+ * @returns {number} decoded value
+ */
+
+
+var decodeInt16FromTwo7bitBytes = function decodeInt16FromTwo7bitBytes(bytes) {
+  var lsb = (bytes[0] | bytes[1] << 7) & 0xFF;
+  var msb = bytes[1] >> 1 | (bytes[1] >> 6 ? 192 : 0); // two's complement
+
+  var dataView = new DataView(new Uint8Array([lsb, msb]).buffer);
+  var result = dataView.getInt16(0, true);
+  return result;
 }; // eslint-disable-next-line prefer-const
 /**
  * Gamma values table for NeoPixel.
@@ -16016,41 +16033,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.extensionId = null;
     /**
-     * shortest interval time between digital input readings
-     * @type {number}
-     */
-
-    _this.digitalReadInterval = 20;
-    /**
      * Waiting time to connect the board in milliseconds.
      * @type {number}
      */
 
     _this.connectingWaitingTime = 1000;
     /**
-     * shortest interval time between analog input readings
-     * @type {number}
-     */
-
-    _this.analogReadInterval = 20;
-    /**
      * shortest interval time between message sending
      * @type {number}
      */
 
     _this.sendingInterval = 10;
-    /**
-     * Waiting time for response of digital input reading in milliseconds.
-     * @type {number}
-     */
-
-    _this.updateDigitalInputWaitingTime = 100;
-    /**
-     * Waiting time for response of analog input reading in milliseconds.
-     * @type {number}
-     */
-
-    _this.updateAnalogInputWaitingTime = 100;
     /**
      * Waiting time for response of I2C reading in milliseconds.
      * @type {number}
@@ -16064,17 +16057,23 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.oneWireReadWaitingTime = 100;
     /**
-     * Waiting time for response of ping sensor reading in milliseconds.
+     * Waiting time for response of ultrasonic distance sensor reading in milliseconds.
      * @type {number}
      */
 
-    _this.pingSensorWaitingTime = 100;
+    _this.ultrasonicDistanceWaitingTime = 1000;
     /**
      * Waiting time for response of query board version in milliseconds.
      * @type {number}
      */
 
     _this.boardVersionWaitingTime = 200;
+    /**
+     * Waiting time for response of water temperature sensor reading in milliseconds.
+     * @type {number}
+     */
+
+    _this.getWaterTempWaitingTime = 2000;
     /**
      * Port information of the connected serial port.
      * @type {object}
@@ -16132,6 +16131,20 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         _this2.handleDisconnectError(error);
       });
 
+      firmata.clearSysexResponse(WATER_TEMPERATURE_QUERY);
+      firmata.sysexResponse(WATER_TEMPERATURE_QUERY, function (data) {
+        var pin = data[0];
+        firmata.emit("water-temp-reply-".concat(pin), data.slice(1));
+      });
+      firmata.clearSysexResponse(ULTRASONIC_DISTANCE_QUERY);
+      firmata.sysexResponse(ULTRASONIC_DISTANCE_QUERY, function (data) {
+        var pin = data[0];
+        firmata.emit("ultrasonic-distance-reply-".concat(pin), data.slice(1));
+      });
+      firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+      firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
+        firmata.emit("board-version-reply", data);
+      });
       this.firmata = firmata;
     }
     /**
@@ -16242,7 +16255,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                             return _this3.boardVersion();
 
                           case 3:
-                            _this3.onBoarReady();
+                            _this3.onBoardReady();
 
                             resolve(_this3);
 
@@ -16566,7 +16579,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                               }
                             };
                             firmata.queryAnalogMapping(function () {
-                              _this4.onBoarReady();
+                              _this4.onBoardReady();
 
                               resolve(_this4);
                             });
@@ -16611,9 +16624,24 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      */
 
   }, {
-    key: "onBoarReady",
-    value: function onBoarReady() {
+    key: "onBoardReady",
+    value: function onBoardReady() {
+      var _this5 = this;
+
       console.log("".concat(this.version.type, ".").concat(String(this.version.major), ".").concat(String(this.version.minor)) + " on: ".concat(JSON.stringify(this.portInfo)));
+      var digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM BOX
+      // Set up to report digital inputs.
+
+      digitalPins.forEach(function (pin) {
+        _this5.firmata.pinMode(pin, _this5.firmata.MODES.INPUT);
+
+        _this5.firmata.reportDigitalPin(pin, 1);
+      });
+      this.firmata.analogPins.forEach(function (pin, analogIndex) {
+        _this5.firmata.pinMode(analogIndex, _this5.firmata.MODES.ANALOG);
+
+        _this5.firmata.reportAnalogPin(analogIndex, 1);
+      });
       this.firmata.i2cConfig();
       this.state = 'ready';
       this.emit('ready');
@@ -16705,30 +16733,34 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     /**
      * Query the version information of the connected board and set the version data.
      *
+     * @param {?number} timeout - waiting time for the response
      * @returns {Promise<string>} A Promise which resolves version info.
      */
 
   }, {
     key: "boardVersion",
-    value: function boardVersion() {
-      var _this5 = this;
+    value: function boardVersion(timeout) {
+      var _this6 = this;
 
       if (this.version) return Promise.resolve("".concat(this.version.type, ".").concat(this.version.major, ".").concat(this.version.minor));
       var firmata = this.firmata;
+      timeout = timeout ? timeout : this.boardVersionWaitingTime;
+      var event = "board-version-reply";
       var request = new Promise(function (resolve) {
-        firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
+        firmata.once(event, function (data) {
           var value = Firmata.decode([data[0], data[1]]);
-          _this5.version = {
+          _this6.version = {
             type: value >> 10 & 0x0F,
             major: value >> 6 & 0x0F,
             minor: value & 0x3F
           };
-          resolve("".concat(_this5.version.type, ".").concat(_this5.version.major, ".").concat(_this5.version.minor));
+          resolve("".concat(_this6.version.type, ".").concat(_this6.version.major, ".").concat(_this6.version.minor));
         });
         firmata.sysexCommand([BOARD_VERSION_QUERY]);
       });
-      return Promise.race([request, timeoutReject(this.boardVersionWaitingTime)]).finally(function () {
-        firmata.clearSysexResponse(BOARD_VERSION_QUERY);
+      return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
+        firmata.removeAllListeners(event);
+        return Promise.reject(reason);
       });
     }
     /**
@@ -16755,15 +16787,15 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "enableDevice",
     value: function enableDevice(deviceID) {
-      var _this6 = this;
+      var _this7 = this;
 
       var message = [DEVICE_ENABLE, deviceID];
       return new Promise(function (resolve) {
-        _this6.firmata.sysexCommand(message);
+        _this7.firmata.sysexCommand(message);
 
         setTimeout(function () {
           return resolve();
-        }, _this6.sendingInterval);
+        }, _this7.sendingInterval);
       });
     }
     /**
@@ -16779,49 +16811,16 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       return this.firmata.pinMode(pin, mode);
     }
     /**
-     * Update pin value as a digital input when the last update was too old.
-     * @param {number} pin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * Return digital level of the pin.
+     *
+     * @param {number} pin - number of the pin
+     * @returns {number} digital level
      */
 
   }, {
-    key: "updateDigitalInput",
-    value: function updateDigitalInput(pin) {
-      var _this7 = this;
-
-      if (typeof this.pins[pin].mode !== 'undefined' && this.pins[pin].mode !== this.firmata.MODES.INPUT && this.pins[pin].mode !== this.firmata.MODES.PULLUP) {
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      if (this.pins[pin].updating || this.pins[pin].updateTime && Date.now() - this.pins[pin].updateTime < this.digitalReadInterval) {
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      this.pins[pin].updating = true;
-      var request = new Promise(function (resolve) {
-        if (_this7.pins[pin].inputBias !== _this7.firmata.MODES.PULLUP) {
-          _this7.pins[pin].inputBias = _this7.firmata.MODES.INPUT;
-        }
-
-        _this7.firmata.pinMode(pin, _this7.pins[pin].inputBias);
-
-        _this7.firmata.reportDigitalPin(pin, 1);
-
-        _this7.firmata.once("digital-read-".concat(pin), function (value) {
-          _this7.pins[pin].value = value;
-          _this7.pins[pin].updateTime = Date.now();
-
-          _this7.firmata.reportDigitalPin(pin, 0);
-
-          resolve(_this7.pins[pin].value);
-        });
-      });
-      return Promise.race([request, timeoutReject(this.updateDigitalInputWaitingTime)]).catch(function (reason) {
-        _this7.pins[pin].value = 0;
-        return Promise.reject(reason);
-      }).finally(function () {
-        _this7.pins[pin].updating = false;
-      });
+    key: "getDigitalValue",
+    value: function getDigitalValue(pin) {
+      return this.pins[pin].value;
     }
     /**
      * Set input bias of the connector.
@@ -16845,43 +16844,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       });
     }
     /**
-     * Update pin value as a analog input when the last update was too old.
-     * @param {number} analogPin - pin number to read
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * Return analog level of the pin.
+     *
+     * @param {number} analogPin - number as an analog pin
+     * @returns {number} analog level
      */
 
   }, {
-    key: "updateAnalogInput",
-    value: function updateAnalogInput(analogPin) {
-      var _this9 = this;
-
+    key: "getAnalogValue",
+    value: function getAnalogValue(analogPin) {
       var pin = this.firmata.analogPins[analogPin];
-
-      if (this.pins[pin].updating || this.pins[pin].updateTime && Date.now() - this.pins[pin].updateTime < this.analogReadInterval) {
-        return Promise.resolve(this.pins[pin].value);
-      }
-
-      this.pins[pin].updating = true;
-      var request = new Promise(function (resolve) {
-        _this9.firmata.pinMode(analogPin, _this9.MODES.ANALOG);
-
-        _this9.firmata.reportAnalogPin(analogPin, 1);
-
-        _this9.firmata.once("analog-read-".concat(analogPin), function (value) {
-          _this9.pins[pin].value = value;
-          _this9.pins[pin].updateTime = Date.now();
-
-          _this9.firmata.reportAnalogPin(analogPin, 0);
-
-          resolve(_this9.pins[pin].value);
-        });
-      });
-      return Promise.race([request, timeoutReject(this.updateAnalogInputWaitingTime)]).catch(function (reason) {
-        _this9.pins[pin].value = 0;
-        return Promise.reject(reason);
-      }).finally(function () {
-        _this9.pins[pin].updating = false;
-      });
+      return this.pins[pin].value;
     }
     /**
      * Asks the board to write a value to a digital pin
@@ -16894,14 +16867,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "digitalWrite",
     value: function digitalWrite(pin, value, enqueue) {
-      var _this10 = this;
+      var _this9 = this;
 
       return new Promise(function (resolve) {
-        _this10.firmata.digitalWrite(pin, value, enqueue);
+        _this9.firmata.digitalWrite(pin, value, enqueue);
 
         setTimeout(function () {
           return resolve();
-        }, _this10.sendingInterval);
+        }, _this9.sendingInterval);
       });
     }
     /**
@@ -16914,14 +16887,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pwmWrite",
     value: function pwmWrite(pin, value) {
-      var _this11 = this;
+      var _this10 = this;
 
       return new Promise(function (resolve) {
-        _this11.firmata.pwmWrite(pin, value);
+        _this10.firmata.pwmWrite(pin, value);
 
         setTimeout(function () {
           return resolve();
-        }, _this11.sendingInterval);
+        }, _this10.sendingInterval);
       });
     }
     /**
@@ -16934,20 +16907,20 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "servoWrite",
     value: function servoWrite() {
-      var _this12 = this;
+      var _this11 = this;
 
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
       return new Promise(function (resolve) {
-        var _this12$firmata;
+        var _this11$firmata;
 
-        (_this12$firmata = _this12.firmata).servoWrite.apply(_this12$firmata, args);
+        (_this11$firmata = _this11.firmata).servoWrite.apply(_this11$firmata, args);
 
         setTimeout(function () {
           return resolve();
-        }, _this12.sendingInterval);
+        }, _this11.sendingInterval);
       });
     }
     /**
@@ -16961,14 +16934,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cWrite",
     value: function i2cWrite(address, register, inBytes) {
-      var _this13 = this;
+      var _this12 = this;
 
       return new Promise(function (resolve) {
-        _this13.firmata.i2cWrite(address, register, inBytes);
+        _this12.firmata.i2cWrite(address, register, inBytes);
 
         setTimeout(function () {
           return resolve();
-        }, _this13.sendingInterval);
+        }, _this12.sendingInterval);
       });
     }
     /**
@@ -16983,15 +16956,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cReadOnce",
     value: function i2cReadOnce(address, register, readLength, timeout) {
-      var _this14 = this;
-
       timeout = timeout ? timeout : this.i2cReadWaitingTime;
+      var firmata = this.firmata;
       var request = new Promise(function (resolve) {
-        _this14.firmata.i2cReadOnce(address, register, readLength, function (data) {
+        firmata.i2cReadOnce(address, register, readLength, function (data) {
           resolve(data);
         });
       });
-      return Promise.race([request, timeoutReject(timeout)]);
+      return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
+        firmata.removeAllListeners("I2C-reply-".concat(address, "-").concat(register));
+        return Promise.reject(reason);
+      });
     }
     /**
      * Resets all devices on the OneWire bus.
@@ -17002,14 +16977,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendOneWireReset",
     value: function sendOneWireReset(pin) {
-      var _this15 = this;
+      var _this13 = this;
 
       return new Promise(function (resolve) {
-        _this15.firmata.sendOneWireReset(pin);
+        _this13.firmata.sendOneWireReset(pin);
 
         setTimeout(function () {
           return resolve();
-        }, _this15.sendingInterval);
+        }, _this13.sendingInterval);
       });
     }
     /**
@@ -17021,27 +16996,27 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
-      var _this16 = this;
+      var _this14 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this16.firmata.pins[pin].mode !== _this16.firmata.MODES.ONEWIRE) {
-          _this16.firmata.sendOneWireConfig(pin, true);
+        if (_this14.firmata.pins[pin].mode !== _this14.firmata.MODES.ONEWIRE) {
+          _this14.firmata.sendOneWireConfig(pin, true);
 
-          return _this16.firmata.sendOneWireSearch(pin, function (error, founds) {
+          return _this14.firmata.sendOneWireSearch(pin, function (error, founds) {
             if (error) return reject(error);
             if (founds.length < 1) return reject(new Error('no device'));
 
-            _this16.firmata.pinMode(pin, _this16.firmata.MODES.ONEWIRE);
+            _this14.firmata.pinMode(pin, _this14.firmata.MODES.ONEWIRE);
 
-            _this16.oneWireDevices = founds;
+            _this14.oneWireDevices = founds;
 
-            _this16.firmata.sendOneWireDelay(pin, 1);
+            _this14.firmata.sendOneWireDelay(pin, 1);
 
-            resolve(_this16.oneWireDevices);
+            resolve(_this14.oneWireDevices);
           });
         }
 
-        resolve(_this16.oneWireDevices);
+        resolve(_this14.oneWireDevices);
       });
     }
     /**
@@ -17054,10 +17029,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
-      var _this17 = this;
+      var _this15 = this;
 
       return this.searchOneWireDevices(pin).then(function (devices) {
-        _this17.firmata.sendOneWireWrite(pin, devices[0], data);
+        _this15.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
     /**
@@ -17071,12 +17046,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireRead",
     value: function oneWireRead(pin, length, timeout) {
-      var _this18 = this;
+      var _this16 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this18.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+          _this16.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
             if (readError) return reject(readError);
             resolve(data);
           });
@@ -17096,12 +17071,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
-      var _this19 = this;
+      var _this17 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this19.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
+          _this17.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
             if (readError) return reject(readError);
             resolve(readData);
           });
@@ -17119,7 +17094,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
-      var _this20 = this;
+      var _this18 = this;
 
       this.pins[pin].mode = nodePixelConstants.PIXEL_COMMAND;
       this.neoPixel = this.neoPixel.filter(function (aStrip) {
@@ -17138,11 +17113,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         message.push(aStrip.length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK);
       });
       return new Promise(function (resolve) {
-        _this20.firmata.sysexCommand(message);
+        _this18.firmata.sysexCommand(message);
 
         setTimeout(function () {
           return resolve();
-        }, _this20.sendingInterval);
+        }, _this18.sendingInterval);
       });
     }
     /**
@@ -17159,7 +17134,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     key: "neoPixelSetColor",
     value: function () {
       var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(pin, index, color) {
-        var _this21 = this;
+        var _this19 = this;
 
         var address, prevStrip, colorValue, message;
         return regenerator.wrap(function _callee7$(_context7) {
@@ -17199,11 +17174,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 return _context7.abrupt("return", new Promise(function (resolve) {
-                  _this21.firmata.sysexCommand(message);
+                  _this19.firmata.sysexCommand(message);
 
                   setTimeout(function () {
                     return resolve();
-                  }, _this21.sendingInterval);
+                  }, _this19.sendingInterval);
                 }));
 
               case 17:
@@ -17279,10 +17254,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClearAll",
     value: function neoPixelClearAll() {
-      var _this22 = this;
+      var _this20 = this;
 
       return Promise.all(this.neoPixel.map(function (aStrip) {
-        return _this22.neoPixelClear(aStrip.pin);
+        return _this20.neoPixelClear(aStrip.pin);
       }));
     }
     /**
@@ -17293,41 +17268,70 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
-      var _this23 = this;
+      var _this21 = this;
 
       var message = new Array(2);
       message[0] = nodePixelConstants.PIXEL_COMMAND;
       message[1] = nodePixelConstants.PIXEL_SHOW;
       return new Promise(function (resolve) {
-        _this23.firmata.sysexCommand(message);
+        _this21.firmata.sysexCommand(message);
 
         setTimeout(function () {
           return resolve();
-        }, _this23.sendingInterval);
+        }, _this21.sendingInterval);
       });
     }
     /**
-     * Trigger the sensor to measure distance
+     * Measure distance by ultrasonic sensor
      * @param {number} pin - trigger pin of the sensor
      * @param {number} timeout - waiting time for the response
      * @returns {Promise<number>} a Promise which resolves value from the sensor
      */
 
   }, {
-    key: "pingSensor",
-    value: function pingSensor(pin, timeout) {
+    key: "getDistanceByUltrasonic",
+    value: function getDistanceByUltrasonic(pin, timeout) {
       var firmata = this.firmata;
-      timeout = timeout ? timeout : this.pingSensorWaitingTime;
+      timeout = timeout ? timeout : this.ultrasonicDistanceWaitingTime;
       firmata.pinMode(pin, firmata.MODES.PING_READ);
-      var request = new Promise(function (resolve) {
-        firmata.sysexResponse(PING_SENSOR_COMMAND, function (data) {
-          var value = Firmata.decode([data[1], data[2]]);
+      var event = "ultrasonic-distance-reply-".concat(pin);
+      var request = new Promise(function (resolve, reject) {
+        firmata.once(event, function (data) {
+          if (data.length === 0) return reject('not available');
+          var value = decodeInt16FromTwo7bitBytes(data);
           resolve(value);
         });
-        firmata.sysexCommand([PING_SENSOR_COMMAND, pin]);
+        firmata.sysexCommand([ULTRASONIC_DISTANCE_QUERY, pin]);
       });
-      return Promise.race([request, timeoutReject(timeout)]).finally(function () {
-        firmata.clearSysexResponse(PING_SENSOR_COMMAND);
+      return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
+        firmata.removeAllListeners(event);
+        return Promise.reject(reason);
+      });
+    }
+    /**
+     * Get water temperature.
+     * @param {number} pin - trigger pin of the sensor
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<number>} a Promise which resolves value from the sensor
+     */
+
+  }, {
+    key: "getWaterTemp",
+    value: function getWaterTemp(pin, timeout) {
+      var firmata = this.firmata;
+      timeout = timeout ? timeout : this.getWaterTempWaitingTime;
+      var event = "water-temp-reply-".concat(pin);
+      var request = new Promise(function (resolve, reject) {
+        firmata.once(event, function (data) {
+          if (data.length === 0) return reject('not available');
+          var value = decodeInt16FromTwo7bitBytes(data);
+          resolve(value);
+        });
+        firmata.sysexCommand([WATER_TEMPERATURE_QUERY, pin]);
+      });
+      return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
+        firmata.removeAllListeners(event);
+        return Promise.reject(reason);
       });
     }
     /**
@@ -17647,7 +17651,6 @@ var PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51;
 var FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70;
 var FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x71;
 var MSRC_CONFIG_TIMEOUT_MACROP = 0x46;
-var IDENTIFICATION_MODEL_ID = 0xC0;
 var OSC_CALIBRATE_VAL = 0xF8;
 var GLOBAL_CONFIG_VCSEL_WIDTH = 0x32;
 var GLOBAL_CONFIG_SPAD_ENABLES_REF_0 = 0xB0;
@@ -17727,7 +17730,7 @@ var VL53L0X = /*#__PURE__*/function () {
      * @type {number}
      */
 
-    this.io_timeout = 500;
+    this.io_timeout = 1000;
     /**
      * Did a timeout occur in a sequence.
      * @type {boolean}
@@ -17763,51 +17766,37 @@ var VL53L0X = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(io2v8) {
-        var id, info, refSpadMap, firstSpadToEnable, spadsEnabled, i;
+        var info, refSpadMap, firstSpadToEnable, spadsEnabled, i;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
-                return this.readReg(IDENTIFICATION_MODEL_ID);
-
-              case 2:
-                id = _context.sent;
-
-                if (!(id !== 0xEE)) {
-                  _context.next = 5;
-                  break;
-                }
-
-                return _context.abrupt("return", false);
-
-              case 5:
                 if (!io2v8) {
-                  _context.next = 13;
+                  _context.next = 8;
                   break;
                 }
 
                 _context.t0 = this;
                 _context.t1 = VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV;
-                _context.next = 10;
+                _context.next = 5;
                 return this.readReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV);
 
-              case 10:
+              case 5:
                 _context.t2 = _context.sent;
                 _context.t3 = _context.t2 | 0x01;
 
                 _context.t0.writeReg.call(_context.t0, _context.t1, _context.t3);
 
-              case 13:
+              case 8:
                 // "Set I2C standard mode"
                 this.writeReg(0x88, 0x00);
                 this.writeReg(0x80, 0x01);
                 this.writeReg(0xFF, 0x01);
                 this.writeReg(0x00, 0x00);
-                _context.next = 19;
+                _context.next = 14;
                 return this.readReg(0x91);
 
-              case 19:
+              case 14:
                 this.stop_variable = _context.sent;
                 this.writeReg(0x00, 0x01);
                 this.writeReg(0xFF, 0x00);
@@ -17815,10 +17804,10 @@ var VL53L0X = /*#__PURE__*/function () {
 
                 _context.t4 = this;
                 _context.t5 = MSRC_CONFIG_CONTROL;
-                _context.next = 27;
+                _context.next = 22;
                 return this.readReg(MSRC_CONFIG_CONTROL);
 
-              case 27:
+              case 22:
                 _context.t6 = _context.sent;
                 _context.t7 = _context.t6 | 0x12;
 
@@ -17833,22 +17822,22 @@ var VL53L0X = /*#__PURE__*/function () {
                   count: 0,
                   isAperture: false
                 };
-                _context.next = 35;
+                _context.next = 30;
                 return this.getSpadInfo(info);
 
-              case 35:
+              case 30:
                 if (_context.sent) {
-                  _context.next = 37;
+                  _context.next = 32;
                   break;
                 }
 
                 return _context.abrupt("return", false);
 
-              case 37:
-                _context.next = 39;
+              case 32:
+                _context.next = 34;
                 return this.readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, 6);
 
-              case 39:
+              case 34:
                 refSpadMap = _context.sent;
                 // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
                 this.writeReg(0xFF, 0x01);
@@ -17960,10 +17949,10 @@ var VL53L0X = /*#__PURE__*/function () {
                 this.writeReg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
                 _context.t8 = this;
                 _context.t9 = GPIO_HV_MUX_ACTIVE_HIGH;
-                _context.next = 134;
+                _context.next = 129;
                 return this.readReg(GPIO_HV_MUX_ACTIVE_HIGH);
 
-              case 134:
+              case 129:
                 _context.t10 = _context.sent;
                 _context.t11 = ~0x10;
                 _context.t12 = _context.t10 & _context.t11;
@@ -17973,10 +17962,10 @@ var VL53L0X = /*#__PURE__*/function () {
                 // active low
                 this.writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01); // -- VL53L0X_SetGpioConfig() end
 
-                _context.next = 141;
+                _context.next = 136;
                 return this.getMeasurementTimingBudget();
 
-              case 141:
+              case 136:
                 this.measurement_timing_budget_us = _context.sent;
                 // "Disable MSRC and TCC by default"
                 // MSRC = Minimum Signal Rate Check
@@ -17985,16 +17974,31 @@ var VL53L0X = /*#__PURE__*/function () {
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // -- VL53L0X_SetSequenceStepEnable() end
                 // "Recalculate timing budget"
 
-                _context.next = 145;
+                _context.next = 140;
                 return this.setMeasurementTimingBudget(this.measurement_timing_budget_us);
 
-              case 145:
+              case 140:
                 // VL53L0X_StaticInit() end
                 // VL53L0X_PerformRefCalibration() begin (VL53L0X_perform_ref_calibration())
                 // -- VL53L0X_perform_vhv_calibration() begin
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x01);
-                _context.next = 148;
+                _context.next = 143;
                 return this.performSingleRefCalibration(0x40);
+
+              case 143:
+                if (_context.sent) {
+                  _context.next = 145;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 145:
+                // -- VL53L0X_perform_vhv_calibration() end
+                // -- VL53L0X_perform_phase_calibration() begin
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
+                _context.next = 148;
+                return this.performSingleRefCalibration(0x00);
 
               case 148:
                 if (_context.sent) {
@@ -18005,28 +18009,13 @@ var VL53L0X = /*#__PURE__*/function () {
                 return _context.abrupt("return", false);
 
               case 150:
-                // -- VL53L0X_perform_vhv_calibration() end
-                // -- VL53L0X_perform_phase_calibration() begin
-                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
-                _context.next = 153;
-                return this.performSingleRefCalibration(0x00);
-
-              case 153:
-                if (_context.sent) {
-                  _context.next = 155;
-                  break;
-                }
-
-                return _context.abrupt("return", false);
-
-              case 155:
                 // -- VL53L0X_perform_phase_calibration() end
                 // "restore the previous Sequence Config"
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // VL53L0X_PerformRefCalibration() end
 
                 return _context.abrupt("return", true);
 
-              case 157:
+              case 152:
               case "end":
                 return _context.stop();
             }
@@ -19397,6 +19386,18 @@ var BME280 = /*#__PURE__*/function () {
      */
 
     this.tFine = 0;
+    /**
+     * The time [millisecond] when the temperature was updated.
+     * @type {number}
+     */
+
+    this.tUpdatedTime = 0;
+    /**
+     * Interval time [millisecond] for temperature updating.
+     * @type {number}
+     */
+
+    this.tUpdateIntervalTime = 1000;
   }
   /**
    * Read an 8-bit from the register.
@@ -19648,29 +19649,37 @@ var BME280 = /*#__PURE__*/function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
+                if (!(Date.now() - this.tUpdatedTime > this.tUpdateIntervalTime)) {
+                  _context2.next = 12;
+                  break;
+                }
+
+                _context2.next = 3;
                 return this.read24(BME280_REG_TEMPDATA);
 
-              case 2:
+              case 3:
                 adc = _context2.sent;
 
                 if (!(adc === 0x800000)) {
-                  _context2.next = 5;
+                  _context2.next = 6;
                   break;
                 }
 
                 return _context2.abrupt("return", 0);
 
-              case 5:
+              case 6:
                 adc >>= 4;
                 var1 = (adc / 8 - this.dig_T1 * 2) * this.dig_T2 / 2048;
                 var2 = adc / 16 - this.dig_T1;
                 var3 = var2 * var2 / 4096 * this.dig_T3 / 16384;
                 this.tFine = var1 + var3;
+                this.tUpdatedTime = Date.now();
+
+              case 12:
                 temp = (this.tFine * 5 + 128) / 256;
                 return _context2.abrupt("return", temp / 100);
 
-              case 12:
+              case 14:
               case "end":
                 return _context2.stop();
             }
@@ -20332,11 +20341,65 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.accelerometer = null;
     /**
+     * Cached acceleration values.
+     * @type {?{x: number y: number z: number}}
+     */
+
+    this.acceleration = null;
+    /**
+     * Last updated time of acceleration.
+     * @type {number} [milliseconds]
+     */
+
+    this.accelerationUpdatedTime = 0;
+    /**
+     * Interval time for acceleration updating.
+     * @type {number} [milliseconds]
+     */
+
+    this.accelerationUpdateIntervalTime = 100;
+    /**
+     * Environment sensor BME280
+     * @type {BME280}
+     */
+
+    this.bme280 = null;
+    /**
      * Distance sensor VL53L0X
      * @type {VL53L0X}
      */
 
     this.vl53l0x = null;
+    /**
+     * Busy flag for water temp sensor on Digital A.
+     * @type {boolean}
+     */
+
+    this.waterTempAGetting = false;
+    /**
+     * Busy flag for water temp sensor on Digital B.
+     * @type {boolean}
+     */
+
+    this.waterTempBGetting = false;
+    /**
+     * Busy flag for color LED.
+     * @type {boolean}
+     */
+
+    this.neoPixelBusy = false;
+    /**
+     * Busy flag for ultrasonic distance sensor on Digital A.
+     * @type {boolean}
+     */
+
+    this.pingSensingA = false;
+    /**
+     * Busy flag for ultrasonic distance sensor on Digital B.
+     * @type {boolean}
+     */
+
+    this.pingSensingB = false;
     /**
      * Manager of AkaDako boards
      * @type {AkaDakoConnector}
@@ -20426,6 +20489,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.vl53l0x = null;
       this.bme280 = null;
       this.accelerometer = null;
+      this.accelerationUpdating = false;
+      this.waterTempAGetting = false;
+      this.waterTempBGetting = false;
+      this.neoPixelBusy = false;
+      this.pingSendingA = false;
+      this.pingSendingB = false;
     }
     /**
      * Called by the runtime when user wants to scan for a peripheral.
@@ -20524,75 +20593,62 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
-     * Get the digital level [0|1] of the pin.
-     * @param {number} pin - pin number to get
-     * @returns {Promise<number>} a Promise which resolves digital value of the pin
-     */
-
-  }, {
-    key: "getDigitalLevel",
-    value: function getDigitalLevel(pin) {
-      if (!this.isConnected()) return Promise.resolve(0);
-      return this.board.updateDigitalInput(pin).catch(function (reason) {
-        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
-        return 0;
-      });
-    }
-    /**
-     * Whether the current level of the connector is HIGHT as digital input.
+     * Whether the current level of the connector is HIGH as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
-     * @returns {Promise<boolean>} a Promise which resolves boolean when the response was returned
+     * @returns {boolean} true for high
      */
 
   }, {
     key: "digitalIsHigh",
     value: function digitalIsHigh(args) {
-      if (!this.isConnected()) return Promise.resolve(false);
+      if (!this.isConnected()) return false;
       var pin = parseInt(args.CONNECTOR, 10);
-      return this.getDigitalLevel(pin).then(function (readData) {
-        return !!readData;
-      });
+      return !!this.board.getDigitalValue(pin);
     }
     /**
      * The level [0|1] of digital A1 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {number | string} - digital level or empty string when disconnected
      */
 
   }, {
     key: "digitalLevelA1",
     value: function digitalLevelA1() {
-      return this.getDigitalLevel(10);
+      if (!this.isConnected()) return '';
+      return this.board.getDigitalValue(10);
     }
     /**
      * The level [0|1] of digital A2 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {number | string} - digital level or empty string when disconnected
      */
 
   }, {
     key: "digitalLevelA2",
     value: function digitalLevelA2() {
-      return this.getDigitalLevel(11);
+      if (!this.isConnected()) return '';
+      return this.board.getDigitalValue(11);
     }
     /**
      * The level [0|1] of digital B1 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {number | string} - digital level or empty string when disconnected
      */
 
   }, {
     key: "digitalLevelB1",
     value: function digitalLevelB1() {
-      return this.getDigitalLevel(6);
+      if (!this.isConnected()) return '';
+      return this.board.getDigitalValue(6);
     }
     /**
      * The level [0|1] of digital B2 connector
-     * @returns {Promise<number>} - a Promise which resolves digital level of the pin
+     * @returns {number | string} - digital level or empty string when disconnected
      */
 
   }, {
     key: "digitalLevelB2",
     value: function digitalLevelB2() {
-      return this.getDigitalLevel(9);
+      if (!this.isConnected()) return '';
+      return this.board.getDigitalValue(9);
     }
     /**
      * Detect the edge as digital level of the connector for HAT block.
@@ -20608,10 +20664,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       if (!this.isConnected()) return false;
       var pin = parseInt(args.CONNECTOR, 10);
       var rise = cast.toBoolean(args.LEVEL);
-      this.board.updateDigitalInput(pin) // update for the next call
-      .catch(function (reason) {
-        console.log("digitalRead(".concat(pin, ") was rejected by ").concat(reason));
-      });
       return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
     /**
@@ -20648,61 +20700,52 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return this.board.digitalWrite(pin, value);
     }
     /**
-     * The level of the connector as analog input.
-     * @param {number} analogPin - pin number of the connector
-     * @returns {Promise} - a Promise which resolves analog level when the response was returned
-     */
-
-  }, {
-    key: "getAnalogLevel",
-    value: function getAnalogLevel(analogPin) {
-      if (!this.isConnected()) return Promise.resolve(0);
-      return this.board.updateAnalogInput(analogPin).then(function (raw) {
-        return Math.round(raw / 1023 * 1000) / 10;
-      }).catch(function (reason) {
-        console.log("analogRead(".concat(analogPin, ") was rejected by ").concat(reason));
-        return 0;
-      });
-    }
-    /**
      * The level [%] of analog A1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
+     * @returns {number | string} - analog level or empty string when disconnected
      */
 
   }, {
     key: "analogLevelA1",
     value: function analogLevelA1() {
-      return this.getAnalogLevel(0);
+      if (!this.isConnected()) return '';
+      var raw = this.board.getAnalogValue(0);
+      return Math.round(raw / 1023 * 1000) / 10;
     }
     /**
      * The level [%] of analog A2 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
+     * @returns {number | string} - analog level or empty string when disconnected
      */
 
   }, {
     key: "analogLevelA2",
     value: function analogLevelA2() {
-      return this.getAnalogLevel(1);
+      if (!this.isConnected()) return '';
+      var raw = this.board.getAnalogValue(1);
+      return Math.round(raw / 1023 * 1000) / 10;
     }
     /**
      * The level [%] of analog B1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
+     * @returns {number | string} - analog level or empty string when disconnected
      */
 
   }, {
     key: "analogLevelB1",
     value: function analogLevelB1() {
-      return this.getAnalogLevel(2);
+      if (!this.isConnected()) return '';
+      var raw = this.board.getAnalogValue(2);
+      return Math.round(raw / 1023 * 1000) / 10;
     }
     /**
-     * The level [%] of analog A1 connector
-     * @returns {Promise<number>} - a Promise which resolves analog level when the response was returned
+     * The level [%] of analog B2 connector
+     * @returns {number | string} - analog level or empty string when disconnected
      */
 
   }, {
     key: "analogLevelB2",
     value: function analogLevelB2() {
-      return this.getAnalogLevel(3);
+      if (!this.isConnected()) return '';
+      var raw = this.board.getAnalogValue(3);
+      return Math.round(raw / 1023 * 1000) / 10;
     }
     /**
      * Set the connector to power [%] as PWM.
@@ -20985,15 +21028,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     }
     /**
      * Measure distance [mm] using ToF sensor VL53L0X.
-     * @returns {Promise<number>} a Promise which resolves distance
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
 
   }, {
     key: "measureDistanceWithLight",
     value: function () {
       var _measureDistanceWithLight = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
-        var _this8 = this;
-
         var newSensor, found, distance;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
@@ -21004,7 +21045,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   break;
                 }
 
-                return _context.abrupt("return", 0);
+                return _context.abrupt("return", '');
 
               case 2:
                 if (this.board.boardType() === 'STEAM BOX') {
@@ -21012,7 +21053,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 }
 
                 if (this.vl53l0x) {
-                  _context.next = 16;
+                  _context.next = 17;
                   break;
                 }
 
@@ -21032,50 +21073,53 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 found = _context.sent;
 
                 if (found) {
-                  _context.next = 11;
+                  _context.next = 12;
                   break;
                 }
 
-                return _context.abrupt("return", 0);
+                console.log('Distance sensor (laser) is not found.');
+                return _context.abrupt("return", '');
 
-              case 11:
-                _context.next = 13;
+              case 12:
+                _context.next = 14;
                 return newSensor.startContinuous().catch(function (reason) {
                   console.log("fail to VL53L0X.startContinuous() by ".concat(reason));
                   newSensor = null;
                 });
 
-              case 13:
+              case 14:
                 if (newSensor) {
-                  _context.next = 15;
+                  _context.next = 16;
                   break;
                 }
 
-                return _context.abrupt("return", 0);
-
-              case 15:
-                this.vl53l0x = newSensor;
+                return _context.abrupt("return", '');
 
               case 16:
-                _context.next = 18;
-                return this.vl53l0x.readRangeContinuousMillimeters().then(function (mm) {
-                  return mm / 10;
-                }).catch(function (reason) {
-                  console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(reason));
-                  _this8.vl53l0x = null;
-                  return 0;
-                });
+                this.vl53l0x = newSensor;
 
-              case 18:
-                distance = _context.sent;
-                return _context.abrupt("return", distance);
+              case 17:
+                _context.prev = 17;
+                _context.next = 20;
+                return this.vl53l0x.readRangeContinuousMillimeters();
 
               case 20:
+                distance = _context.sent;
+                return _context.abrupt("return", distance / 10);
+
+              case 24:
+                _context.prev = 24;
+                _context.t0 = _context["catch"](17);
+                console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(_context.t0));
+                this.vl53l0x = null;
+                return _context.abrupt("return", '');
+
+              case 29:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this);
+        }, _callee, this, [[17, 24]]);
       }));
 
       function measureDistanceWithLight() {
@@ -21085,58 +21129,66 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return measureDistanceWithLight;
     }()
     /**
-     * Measure distance [cm] using ultrasonic sensor HC-SR04.
-     * @param {number} pin - pin number to trigger the sensor
-     * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
-     */
-
-  }, {
-    key: "measureDistanceWithUltrasonic",
-    value: function measureDistanceWithUltrasonic(pin, util) {
-      var _this9 = this;
-
-      if (!this.isConnected()) return Promise.resolve(0);
-
-      if (this.pingSensing) {
-        util.yield(); // re-try this call after a while.
-
-        return; // Do not return Promise.resolve() to re-try.
-      }
-
-      this.pingSensing = true;
-      return this.board.pingSensor(pin).then(function (value) {
-        return Math.round(value / 10);
-      }).catch(function (reason) {
-        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
-        return 0;
-      }).finally(function () {
-        _this9.pingSensing = false;
-      });
-    }
-    /**
      * Measure distance [cm] using ultrasonic sensor on Digital A.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
 
   }, {
     key: "measureDistanceWithUltrasonicA",
     value: function measureDistanceWithUltrasonicA(_args, util) {
-      return this.measureDistanceWithUltrasonic(10, util);
+      var _this8 = this;
+
+      if (!this.isConnected()) return Promise.resolve('');
+
+      if (this.pingSendingA) {
+        util.yield(); // re-try this call after a while.
+
+        return; // Do not return Promise to re-try.
+      }
+
+      this.pingSendingA = true;
+      var pin = 10;
+      return this.board.getDistanceByUltrasonic(pin).then(function (value) {
+        return Math.round(value / 10);
+      }).catch(function (reason) {
+        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
+        return '';
+      }).finally(function () {
+        _this8.pingSendingA = false;
+      });
     }
     /**
      * Measure distance [cm] using ultrasonic sensor on Digital B.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves distance [cm]
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
      */
 
   }, {
     key: "measureDistanceWithUltrasonicB",
     value: function measureDistanceWithUltrasonicB(_args, util) {
-      return this.measureDistanceWithUltrasonic(6, util);
+      var _this9 = this;
+
+      if (!this.isConnected()) return Promise.resolve('');
+
+      if (this.pingSendingB) {
+        util.yield(); // re-try this call after a while.
+
+        return; // Do not return Promise to re-try.
+      }
+
+      this.pingSendingB = true;
+      var pin = 6;
+      return this.board.getDistanceByUltrasonic(pin).then(function (value) {
+        return Math.round(value / 10);
+      }).catch(function (reason) {
+        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
+        return '';
+      }).finally(function () {
+        _this9.pingSendingB = false;
+      });
     }
     /**
      * Get instance of an accelerometer.
@@ -21192,60 +21244,46 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     /**
      * Get acceleration [m/s^2] for the axis.
      *
-     * @returns {Promise<{x: number, y: number, z: number}>} a Promise which resolves acceleration
+     * @returns {Promise<?{x: number, y: number, z: number}>} a Promise which resolves acceleration
      */
 
   }, {
     key: "getAcceleration",
     value: function () {
       var _getAcceleration = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
-        var sensor, data;
+        var sensor;
         return regenerator.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context3.next = 2;
-                  break;
-                }
-
-                return _context3.abrupt("return", {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                });
-
-              case 2:
-                _context3.prev = 2;
-                _context3.next = 5;
+                _context3.prev = 0;
+                _context3.next = 3;
                 return this.getAccelerometer();
 
-              case 5:
+              case 3:
                 sensor = _context3.sent;
-                _context3.next = 8;
+                _context3.next = 6;
                 return sensor.getAcceleration();
 
-              case 8:
-                data = _context3.sent;
-                return _context3.abrupt("return", data);
+              case 6:
+                this.acceleration = _context3.sent;
+                this.accelerationUpdatedTime = Date.now();
+                return _context3.abrupt("return", this.acceleration);
 
-              case 12:
-                _context3.prev = 12;
-                _context3.t0 = _context3["catch"](2);
-                console.log("KXTJ3.getAcceleration() was rejected by ".concat(_context3.t0));
+              case 11:
+                _context3.prev = 11;
+                _context3.t0 = _context3["catch"](0);
+                console.log("getAcceleration() was rejected by ".concat(_context3.t0));
                 this.accelerometer = null;
-                return _context3.abrupt("return", {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                });
+                this.acceleration = null;
+                return _context3.abrupt("return", null);
 
               case 17:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[2, 12]]);
+        }, _callee3, this, [[0, 11]]);
       }));
 
       function getAcceleration() {
@@ -21254,17 +21292,171 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       return getAcceleration;
     }()
+  }, {
+    key: "updateAcceleration",
+    value: function updateAcceleration(util) {
+      var _this10 = this;
+
+      var getRequest = Promise.resolve(this.acceleration);
+
+      if (Date.now() - this.accelerationUpdatedTime > this.accelerationUpdateIntervalTime) {
+        if (this.accelerationUpdating) {
+          util.yield(); // re-try this call after a while.
+
+          return; // Do not return Promise to re-try.
+        }
+
+        this.accelerationUpdating = true;
+        getRequest.then(function () {
+          return _this10.getAcceleration();
+        }).finally(function () {
+          _this10.accelerationUpdating = false;
+        });
+      }
+
+      return getRequest;
+    }
     /**
      * Get acceleration [m/s^2] for axis X.
      *
-     * @returns {Promise<number>} a Promise which resolves acceleration
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
 
   }, {
     key: "getAccelerationX",
+    value: function getAccelerationX(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        return Math.round(acc.x * 100) / 100;
+      });
+    }
+    /**
+     * Get acceleration [m/s^2] for axis Y.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     */
+
+  }, {
+    key: "getAccelerationY",
+    value: function getAccelerationY(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        return Math.round(acc.y * 100) / 100;
+      });
+    }
+    /**
+     * Get acceleration [m/s^2] for axis Z.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     */
+
+  }, {
+    key: "getAccelerationZ",
+    value: function getAccelerationZ(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        return Math.round(acc.z * 100) / 100;
+      });
+    }
+    /**
+     * Get absolute acceleration [m/s^2].
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     */
+
+  }, {
+    key: "getAccelerationAbsolute",
+    value: function getAccelerationAbsolute(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        var absolute = Math.sqrt(Math.pow(acc.x, 2) + Math.pow(acc.y, 2) + Math.pow(acc.z, 2));
+        return Math.round(absolute * 100) / 100;
+      });
+    }
+    /**
+     * Get roll [degree] from accelerometer.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves roll or empty string if it was fail
+     */
+
+  }, {
+    key: "getRoll",
+    value: function getRoll(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        var roll = Math.atan2(acc.y, acc.z) * 180.0 / Math.PI;
+        return Math.round(roll * 100) / 100;
+      });
+    }
+    /**
+     * Get pitch [degree] from accelerometer.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number |string>} a Promise which resolves pitch or empty string if it was fail
+     */
+
+  }, {
+    key: "getPitch",
+    value: function getPitch(_args, util) {
+      if (!this.isConnected()) return '';
+      var updateAcc = this.updateAcceleration(util);
+      if (typeof updateAcc === 'undefined') return; // re-try thread
+
+      return updateAcc.then(function (acc) {
+        if (!acc) return '';
+        var angle = Math.atan2(acc.x, Math.sqrt(acc.y * acc.y + acc.z * acc.z)) * 180.0 / Math.PI;
+        var pitch = angle;
+
+        if (acc.z < 0) {
+          pitch = (angle > 0 ? 180 : -180) - angle;
+        }
+
+        return Math.round(pitch * 100) / 100;
+      });
+    }
+    /**
+     * Get temperature [℃] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves temp or empty string if it was fail
+     */
+
+  }, {
+    key: "getTemperatureBME280",
     value: function () {
-      var _getAccelerationX = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var data;
+      var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
+        var _this11 = this;
+
+        var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -21274,318 +21466,48 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   break;
                 }
 
-                return _context4.abrupt("return", 0);
-
-              case 2:
-                _context4.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context4.sent;
-                return _context4.abrupt("return", Math.round(data.x * 100) / 100);
-
-              case 6:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function getAccelerationX() {
-        return _getAccelerationX.apply(this, arguments);
-      }
-
-      return getAccelerationX;
-    }()
-    /**
-     * Get acceleration [m/s^2] for axis Y.
-     *
-     * @returns {Promise<number>} a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationY",
-    value: function () {
-      var _getAccelerationY = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var data;
-        return regenerator.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context5.next = 2;
-                  break;
-                }
-
-                return _context5.abrupt("return", 0);
-
-              case 2:
-                _context5.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context5.sent;
-                return _context5.abrupt("return", Math.round(data.y * 100) / 100);
-
-              case 6:
-              case "end":
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function getAccelerationY() {
-        return _getAccelerationY.apply(this, arguments);
-      }
-
-      return getAccelerationY;
-    }()
-    /**
-     * Get acceleration [m/s^2] for axis Z.
-     * @returns {Promise<number>} a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationZ",
-    value: function () {
-      var _getAccelerationZ = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var data;
-        return regenerator.wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context6.next = 2;
-                  break;
-                }
-
-                return _context6.abrupt("return", 0);
-
-              case 2:
-                _context6.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context6.sent;
-                return _context6.abrupt("return", Math.round(data.z * 100) / 100);
-
-              case 6:
-              case "end":
-                return _context6.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-
-      function getAccelerationZ() {
-        return _getAccelerationZ.apply(this, arguments);
-      }
-
-      return getAccelerationZ;
-    }()
-    /**
-     * Get absolute acceleration [m/s^2].
-     * @returns {Promise<number>} a Promise which resolves acceleration
-     */
-
-  }, {
-    key: "getAccelerationAbsolute",
-    value: function () {
-      var _getAccelerationAbsolute = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-        var data, absolute;
-        return regenerator.wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context7.next = 2;
-                  break;
-                }
-
-                return _context7.abrupt("return", 0);
-
-              case 2:
-                _context7.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context7.sent;
-                absolute = Math.sqrt(Math.pow(data.x, 2) + Math.pow(data.y, 2) + Math.pow(data.z, 2));
-                return _context7.abrupt("return", Math.round(absolute * 100) / 100);
-
-              case 7:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee7, this);
-      }));
-
-      function getAccelerationAbsolute() {
-        return _getAccelerationAbsolute.apply(this, arguments);
-      }
-
-      return getAccelerationAbsolute;
-    }()
-    /**
-     * Get roll [degree] from accelerometer.
-     * @returns {Promise<number>} a Promise which resolves roll
-     */
-
-  }, {
-    key: "getRoll",
-    value: function () {
-      var _getRoll = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
-        var data, roll;
-        return regenerator.wrap(function _callee8$(_context8) {
-          while (1) {
-            switch (_context8.prev = _context8.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context8.next = 2;
-                  break;
-                }
-
-                return _context8.abrupt("return", 0);
-
-              case 2:
-                _context8.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context8.sent;
-                roll = Math.atan2(data.y, data.z) * 180.0 / Math.PI;
-                return _context8.abrupt("return", Math.round(roll * 100) / 100);
-
-              case 7:
-              case "end":
-                return _context8.stop();
-            }
-          }
-        }, _callee8, this);
-      }));
-
-      function getRoll() {
-        return _getRoll.apply(this, arguments);
-      }
-
-      return getRoll;
-    }()
-    /**
-     * Get pitch [degree] from accelerometer.
-     * @returns {Promise<number>} a Promise which resolves pitch
-     */
-
-  }, {
-    key: "getPitch",
-    value: function () {
-      var _getPitch = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9() {
-        var data, angle, pitch;
-        return regenerator.wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context9.next = 2;
-                  break;
-                }
-
-                return _context9.abrupt("return", 0);
-
-              case 2:
-                _context9.next = 4;
-                return this.getAcceleration();
-
-              case 4:
-                data = _context9.sent;
-                angle = Math.atan2(data.x, Math.sqrt(data.y * data.y + data.z * data.z)) * 180.0 / Math.PI;
-                pitch = angle;
-
-                if (data.z < 0) {
-                  pitch = (angle > 0 ? 180 : -180) - angle;
-                }
-
-                return _context9.abrupt("return", Math.round(pitch * 100) / 100);
-
-              case 9:
-              case "end":
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function getPitch() {
-        return _getPitch.apply(this, arguments);
-      }
-
-      return getPitch;
-    }()
-    /**
-     * Get temperature from BME280
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
-     */
-
-  }, {
-    key: "getTemperatureBME280",
-    value: function () {
-      var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10() {
-        var _this10 = this;
-
-        var newSensor;
-        return regenerator.wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context10.next = 2;
-                  break;
-                }
-
-                return _context10.abrupt("return", Promise.resolve(0));
+                return _context4.abrupt("return", Promise.resolve(''));
 
               case 2:
                 if (this.bme280) {
-                  _context10.next = 14;
+                  _context4.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context10.prev = 4;
-                _context10.next = 7;
+                _context4.prev = 4;
+                _context4.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context10.next = 13;
+                _context4.next = 13;
                 break;
 
               case 9:
-                _context10.prev = 9;
-                _context10.t0 = _context10["catch"](4);
+                _context4.prev = 9;
+                _context4.t0 = _context4["catch"](4);
                 // fail to create instance
-                console.log(_context10.t0);
-                return _context10.abrupt("return", Promise.resolve(0));
+                console.log(_context4.t0);
+                return _context4.abrupt("return", Promise.resolve(''));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context10.abrupt("return", this.bme280.readTemperature().then(function (temp) {
+                return _context4.abrupt("return", this.bme280.readTemperature().then(function (temp) {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this10.bme280 = null;
-                  return 0;
+                  _this11.bme280 = null;
+                  return '';
                 }));
 
               case 15:
               case "end":
-                return _context10.stop();
+                return _context4.stop();
             }
           }
-        }, _callee10, this, [[4, 9]]);
+        }, _callee4, this, [[4, 9]]);
       }));
 
       function getTemperatureBME280() {
@@ -21595,68 +21517,68 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getTemperatureBME280;
     }()
     /**
-     * Get pressure from BME280
-     * @returns {Promise<number>} a Promise which resolves value of pressure [hPa]
+     * Get pressure [hPa] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves pressure or empty string if it was fail
      */
 
   }, {
     key: "getPressureBME280",
     value: function () {
-      var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
-        var _this11 = this;
+      var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+        var _this12 = this;
 
         var newSensor;
-        return regenerator.wrap(function _callee11$(_context11) {
+        return regenerator.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context11.next = 2;
+                  _context5.next = 2;
                   break;
                 }
 
-                return _context11.abrupt("return", Promise.resolve(0));
+                return _context5.abrupt("return", Promise.resolve(''));
 
               case 2:
                 if (this.bme280) {
-                  _context11.next = 14;
+                  _context5.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context11.prev = 4;
-                _context11.next = 7;
+                _context5.prev = 4;
+                _context5.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context11.next = 13;
+                _context5.next = 13;
                 break;
 
               case 9:
-                _context11.prev = 9;
-                _context11.t0 = _context11["catch"](4);
+                _context5.prev = 9;
+                _context5.t0 = _context5["catch"](4);
                 // fail to create instance
-                console.log(_context11.t0);
-                return _context11.abrupt("return", Promise.resolve(0));
+                console.log(_context5.t0);
+                return _context5.abrupt("return", Promise.resolve(''));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context11.abrupt("return", this.bme280.readPressure().then(function (press) {
+                return _context5.abrupt("return", this.bme280.readPressure().then(function (press) {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this11.bme280 = null;
-                  return 0;
+                  _this12.bme280 = null;
+                  return '';
                 }));
 
               case 15:
               case "end":
-                return _context11.stop();
+                return _context5.stop();
             }
           }
-        }, _callee11, this, [[4, 9]]);
+        }, _callee5, this, [[4, 9]]);
       }));
 
       function getPressureBME280() {
@@ -21666,68 +21588,68 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getPressureBME280;
     }()
     /**
-     * Get humidity from BME280
-     * @returns {Promise<number>} a Promise which resolves value of humidity [%]
+     * Get humidity [%] from BME280
+     * @returns {Promise<number | string>} a Promise which resolves value of humidity or empty string if it was fail
      */
 
   }, {
     key: "getHumidityBME280",
     value: function () {
-      var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee12() {
-        var _this12 = this;
+      var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
+        var _this13 = this;
 
         var newSensor;
-        return regenerator.wrap(function _callee12$(_context12) {
+        return regenerator.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context12.next = 2;
+                  _context6.next = 2;
                   break;
                 }
 
-                return _context12.abrupt("return", Promise.resolve(0));
+                return _context6.abrupt("return", Promise.resolve(''));
 
               case 2:
                 if (this.bme280) {
-                  _context12.next = 14;
+                  _context6.next = 14;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context12.prev = 4;
-                _context12.next = 7;
+                _context6.prev = 4;
+                _context6.next = 7;
                 return newSensor.init();
 
               case 7:
-                _context12.next = 13;
+                _context6.next = 13;
                 break;
 
               case 9:
-                _context12.prev = 9;
-                _context12.t0 = _context12["catch"](4);
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](4);
                 // fail to create instance
-                console.log(_context12.t0);
-                return _context12.abrupt("return", Promise.resolve(0));
+                console.log(_context6.t0);
+                return _context6.abrupt("return", Promise.resolve(''));
 
               case 13:
                 this.bme280 = newSensor;
 
               case 14:
-                return _context12.abrupt("return", this.bme280.readHumidity().then(function (hum) {
+                return _context6.abrupt("return", this.bme280.readHumidity().then(function (hum) {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this12.bme280 = null;
-                  return 0;
+                  _this13.bme280 = null;
+                  return '';
                 }));
 
               case 15:
               case "end":
-                return _context12.stop();
+                return _context6.stop();
             }
           }
-        }, _callee12, this, [[4, 9]]);
+        }, _callee6, this, [[4, 9]]);
       }));
 
       function getHumidityBME280() {
@@ -21737,25 +21659,25 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getHumidityBME280;
     }()
     /**
-     * Get brightness from LTR-303 on I2C
-     * @returns {Promise<number>} a Promise which resolves value of brightness [lx]
+     * Get brightness [lx] from LTR-303 on I2C
+     * @returns {Promise<number | string>} a Promise which resolves value of brightness or empty string if it was fail
      */
 
   }, {
     key: "getBrightnessLTR303",
     value: function () {
-      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee13() {
+      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
         var i2cAddr, partIDReg, partID, ch1data, ch1, ch0data, ch0, ratio, lux;
-        return regenerator.wrap(function _callee13$(_context13) {
+        return regenerator.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context13.next = 2;
+                  _context7.next = 2;
                   break;
                 }
 
-                return _context13.abrupt("return", Promise.resolve(0));
+                return _context7.abrupt("return", '');
 
               case 2:
                 if (this.board.boardType() === 'STEAM BOX') {
@@ -21764,36 +21686,36 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
                 i2cAddr = 0x29;
                 partIDReg = 0x86;
-                _context13.next = 7;
+                _context7.next = 7;
                 return this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
 
               case 7:
-                partID = _context13.sent;
+                partID = _context7.sent;
 
                 if (!((partID[0] & 0xF0) !== 0xA0)) {
-                  _context13.next = 10;
+                  _context7.next = 10;
                   break;
                 }
 
-                return _context13.abrupt("return", 0);
+                return _context7.abrupt("return", '');
 
               case 10:
-                _context13.prev = 10;
-                _context13.next = 13;
+                _context7.prev = 10;
+                _context7.next = 13;
                 return this.board.i2cWrite(i2cAddr, 0x80, 1);
 
               case 13:
-                _context13.next = 15;
+                _context7.next = 15;
                 return this.board.i2cReadOnce(i2cAddr, 0x88, 2);
 
               case 15:
-                ch1data = _context13.sent;
+                ch1data = _context7.sent;
                 ch1 = ch1data[0] | ch1data[1] << 8;
-                _context13.next = 19;
+                _context7.next = 19;
                 return this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
 
               case 19:
-                ch0data = _context13.sent;
+                ch0data = _context7.sent;
                 ch0 = ch0data[0] | ch0data[1] << 8;
                 ratio = ch1 / (ch0 + ch1);
                 lux = 0;
@@ -21806,20 +21728,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   lux = 0.5926 * ch0 + 0.1185 * ch1;
                 }
 
-                return _context13.abrupt("return", Math.round(lux * 10) / 10);
+                return _context7.abrupt("return", Math.round(lux * 10) / 10);
 
               case 27:
-                _context13.prev = 27;
-                _context13.t0 = _context13["catch"](10);
-                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context13.t0));
-                return _context13.abrupt("return", 0);
+                _context7.prev = 27;
+                _context7.t0 = _context7["catch"](10);
+                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context7.t0));
+                return _context7.abrupt("return", '');
 
               case 31:
               case "end":
-                return _context13.stop();
+                return _context7.stop();
             }
           }
-        }, _callee13, this, [[10, 27]]);
+        }, _callee7, this, [[10, 27]]);
       }));
 
       function getBrightnessLTR303() {
@@ -21837,14 +21759,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getTemperatureDS18B20",
     value: function getTemperatureDS18B20(pin) {
-      var _this13 = this;
+      var _this14 = this;
 
       return this.board.sendOneWireReset(pin).then(function () {
-        return _this13.board.oneWireWrite(pin, 0x44);
+        return _this14.board.oneWireWrite(pin, 0x44);
       }).then(function () {
-        return _this13.board.sendOneWireReset(pin);
+        return _this14.board.sendOneWireReset(pin);
       }).then(function () {
-        return _this13.board.oneWireWriteAndRead(pin, 0xBE, 9);
+        return _this14.board.oneWireWriteAndRead(pin, 0xBE, 9);
       }).then(function (readData) {
         var buffer = new Uint8Array(readData).buffer;
         var dataView = new DataView(buffer);
@@ -21853,92 +21775,81 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
+     * Get water temp [℃] by sensor on the pin.
+     * @param {number} pin - pin number for the sensor
+     * @returns {Promise<number>} a Promise which resolves temperature [℃]
+     */
+
+  }, {
+    key: "getWaterTemp",
+    value: function getWaterTemp(pin) {
+      if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
+        // STEAM BOX v2.0.1 and later
+        return this.board.getWaterTemp(pin).then(function (data) {
+          return data / 10;
+        });
+      }
+
+      return this.getTemperatureDS18B20(pin);
+    }
+    /**
      * Get water temperature on Digital A1.
-     * Return 0 if it was not connected.
+     *
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
 
   }, {
     key: "getWaterTemperatureA",
     value: function getWaterTemperatureA(_args, util) {
-      var _this14 = this;
+      var _this15 = this;
 
-      if (!this.isConnected()) return Promise.resolve(0);
+      if (!this.isConnected()) return Promise.resolve('');
 
-      if (this.waterTemperatureASensing) {
+      if (this.waterTempAGetting) {
         util.yield(); // re-try this call after a while.
 
         return; // Do not return Promise.resolve() to re-try.
       }
 
-      this.waterTemperatureASensing = true;
-      return this.getTemperatureDS18B20(10) // Digital A1: 10
+      this.waterTempAGetting = true;
+      return this.getWaterTemp(10, util) // Digital A1: 10
       .catch(function () {
-        return 0;
+        return '';
       }).finally(function () {
-        _this14.waterTemperatureASensing = false;
+        _this15.waterTempAGetting = false;
       });
     }
     /**
      * Get water temperature on Digital B1.
-     * Return 0 if it was not connected.
+     *
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number>} a Promise which resolves value of temperature [℃]
+     * @returns {?Promise<number | string>} a Promise which resolves temperature [℃] or empty string if it was fail
      */
 
   }, {
     key: "getWaterTemperatureB",
-    value: function () {
-      var _getWaterTemperatureB = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee14(_args, util) {
-        var _this15 = this;
+    value: function getWaterTemperatureB(_args, util) {
+      var _this16 = this;
 
-        return regenerator.wrap(function _callee14$(_context14) {
-          while (1) {
-            switch (_context14.prev = _context14.next) {
-              case 0:
-                if (this.isConnected()) {
-                  _context14.next = 2;
-                  break;
-                }
+      if (!this.isConnected()) return Promise.resolve('');
 
-                return _context14.abrupt("return", Promise.resolve(0));
+      if (this.waterTempBGetting) {
+        util.yield(); // re-try this call after a while.
 
-              case 2:
-                if (!this.waterTemperatureBSensing) {
-                  _context14.next = 5;
-                  break;
-                }
-
-                util.yield(); // re-try this call after a while.
-
-                return _context14.abrupt("return");
-
-              case 5:
-                this.waterTemperatureBSensing = true;
-                return _context14.abrupt("return", this.getTemperatureDS18B20(6) // Digital B1: 6
-                .catch(function () {
-                  return 0;
-                }).finally(function () {
-                  _this15.waterTemperatureBSensing = false;
-                }));
-
-              case 7:
-              case "end":
-                return _context14.stop();
-            }
-          }
-        }, _callee14, this);
-      }));
-
-      function getWaterTemperatureB(_x, _x2) {
-        return _getWaterTemperatureB.apply(this, arguments);
+        return; // Do not return Promise.resolve() to re-try.
       }
 
-      return getWaterTemperatureB;
-    }()
+      this.waterTempBGetting = true;
+      return this.getWaterTemp(6, util) // Digital B1: 6;
+      .catch(function () {
+        return '';
+      }).finally(function () {
+        _this16.waterTempBGetting = false;
+      });
+    }
     /**
      * Return whether the accelerometer was shaken.
      * @returns {boolean} true when the accelerometer was shaken
@@ -21947,18 +21858,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "whenShaken",
     value: function whenShaken() {
-      var _this16 = this;
+      var _this17 = this;
 
       if (!this.resetShakeEventTimer) {
         this.getAccelerationAbsolute().then(function (prev) {
           setTimeout(function () {
-            _this16.getAccelerationAbsolute().then(function (next) {
-              _this16.shaken = next - prev > _this16.shakeEventThreshold;
-              _this16.resetShakeEventTimer = setTimeout(function () {
-                _this16.resetShakeEventTimer = null;
-              }, _this16.runtime.currentStepTime);
+            _this17.getAccelerationAbsolute().then(function (next) {
+              _this17.shaken = next - prev > _this17.shakeEventThreshold;
+              _this17.resetShakeEventTimer = setTimeout(function () {
+                _this17.resetShakeEventTimer = null;
+              }, _this17.runtime.currentStepTime);
             });
-          }, _this16.shakeEventInterval);
+          }, _this17.shakeEventInterval);
         });
       }
 
@@ -21975,6 +21886,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "numberAtIndex",
     value: function numberAtIndex(args) {
       var array = readAsNumericArray(args.ARRAY);
+      if (!array.length) return '';
       var index = Number(args.INDEX);
 
       if (isNaN(index)) {
