@@ -185,6 +185,24 @@ class ExtensionBlocks {
         this.accelerometer = null;
 
         /**
+         * Cached acceleration values.
+         * @type {?{x: number y: number z: number}}
+         */
+        this.acceleration = null;
+
+        /**
+         * Last updated time of acceleration.
+         * @type {number} [milliseconds]
+         */
+        this.accelerationUpdatedTime = 0;
+
+        /**
+         * Interval time for acceleration updating.
+         * @type {number} [milliseconds]
+         */
+        this.accelerationUpdateIntervalTime = 100;
+
+        /**
          * Environment sensor BME280
          * @type {BME280}
          */
@@ -304,6 +322,7 @@ class ExtensionBlocks {
         this.vl53l0x = null;
         this.bme280 = null;
         this.accelerometer = null;
+        this.accelerationUpdating = false;
         this.waterTempAGetting = false;
         this.waterTempBGetting = false;
         this.neoPixelBusy = false;
@@ -876,98 +895,155 @@ class ExtensionBlocks {
      * @returns {Promise<?{x: number, y: number, z: number}>} a Promise which resolves acceleration
      */
     async getAcceleration () {
-        if (!this.isConnected()) return null;
         try {
             const sensor = await this.getAccelerometer();
-            const data = await sensor.getAcceleration();
-            return data;
+            this.acceleration = await sensor.getAcceleration();
+            this.accelerationUpdatedTime = Date.now();
+            return this.acceleration;
         } catch (reason) {
-            console.log(`KXTJ3.getAcceleration() was rejected by ${reason}`);
+            console.log(`getAcceleration() was rejected by ${reason}`);
             this.accelerometer = null;
+            this.acceleration = null;
             return null;
         }
+    }
+
+    updateAcceleration (util) {
+        const getRequest = Promise.resolve(this.acceleration);
+        if ((Date.now() - this.accelerationUpdatedTime) > this.accelerationUpdateIntervalTime) {
+            if (this.accelerationUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.accelerationUpdating = true;
+            getRequest.then(() => this.getAcceleration())
+                .finally(() => {
+                    this.accelerationUpdating = false;
+                });
+        }
+        return getRequest;
     }
 
     /**
      * Get acceleration [m/s^2] for axis X.
      *
-     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
-    async getAccelerationX () {
+    getAccelerationX (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        return (Math.round(data.x * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                return (Math.round(acc.x * 100)) / 100;
+            });
     }
 
     /**
      * Get acceleration [m/s^2] for axis Y.
      *
-     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
-    async getAccelerationY () {
+    getAccelerationY (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        return (Math.round(data.y * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                return (Math.round(acc.y * 100)) / 100;
+            });
     }
 
     /**
      * Get acceleration [m/s^2] for axis Z.
-     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
-    async getAccelerationZ () {
+    getAccelerationZ (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        return (Math.round(data.z * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                return (Math.round(acc.z * 100)) / 100;
+            });
     }
 
     /**
      * Get absolute acceleration [m/s^2].
-     * @returns {Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves acceleration or empty string if it was fail
      */
-    async getAccelerationAbsolute () {
+    getAccelerationAbsolute (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        const absolute = Math.sqrt(
-            (data.x ** 2) +
-            (data.y ** 2) +
-            (data.z ** 2)
-        );
-        return (Math.round(absolute * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                const absolute = Math.sqrt(
+                    (acc.x ** 2) +
+                    (acc.y ** 2) +
+                    (acc.z ** 2)
+                );
+                return (Math.round(absolute * 100)) / 100;
+            });
     }
 
     /**
      * Get roll [degree] from accelerometer.
-     * @returns {Promise<number | string>} a Promise which resolves roll or empty string if it was fail
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number | string>} a Promise which resolves roll or empty string if it was fail
      */
-    async getRoll () {
+    getRoll (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        const roll = Math.atan2(data.y, data.z) * 180.0 / Math.PI;
-        return (Math.round(roll * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                const roll = Math.atan2(acc.y, acc.z) * 180.0 / Math.PI;
+                return (Math.round(roll * 100)) / 100;
+            });
     }
 
     /**
      * Get pitch [degree] from accelerometer.
-     * @returns {Promise<number |string>} a Promise which resolves pitch or empty string if it was fail
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {?Promise<number |string>} a Promise which resolves pitch or empty string if it was fail
      */
-    async getPitch () {
+    getPitch (_args, util) {
         if (!this.isConnected()) return '';
-        const data = await this.getAcceleration();
-        if (!data) return '';
-        const angle = Math.atan2(
-            data.x,
-            Math.sqrt((data.y * data.y) + (data.z * data.z))
-        ) * 180.0 / Math.PI;
-        let pitch = angle;
-        if (data.z < 0) {
-            pitch = ((angle > 0) ? 180 : -180) - angle;
-        }
-        return (Math.round(pitch * 100)) / 100;
+        const updateAcc = this.updateAcceleration(util);
+        if ((typeof updateAcc) === 'undefined') return; // re-try thread
+        return updateAcc
+            .then(acc => {
+                if (!acc) return '';
+                const angle = Math.atan2(
+                    acc.x,
+                    Math.sqrt((acc.y * acc.y) + (acc.z * acc.z))
+                ) * 180.0 / Math.PI;
+                let pitch = angle;
+                if (acc.z < 0) {
+                    pitch = ((angle > 0) ? 180 : -180) - angle;
+                }
+                return (Math.round(pitch * 100)) / 100;
+            });
     }
 
     /**
