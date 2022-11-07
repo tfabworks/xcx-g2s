@@ -279,7 +279,7 @@ class ExtensionBlocks {
          * Interval time to check shake event [milliseconds]
          * @type {number}
          */
-        this.shakeEventInterval = 100;
+        this.shakeEventInterval = 200;
 
         // eslint-disable-next-line no-unused-vars
         window.addEventListener('beforeunload', e => {
@@ -323,6 +323,7 @@ class ExtensionBlocks {
         this.bme280 = null;
         this.accelerometer = null;
         this.accelerationUpdating = false;
+        this.shakeEventUpdating = false;
         this.waterTempAGetting = false;
         this.waterTempBGetting = false;
         this.neoPixelBusy = false;
@@ -1241,22 +1242,44 @@ class ExtensionBlocks {
 
     /**
      * Return whether the accelerometer was shaken.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {boolean} true when the accelerometer was shaken
      */
-    whenShaken () {
-        if (!this.resetShakeEventTimer) {
-            this.getAccelerationAbsolute()
-                .then(prev => {
+    whenShaken (_args, util) {
+        if (!this.shakeEventUpdating) {
+            const updater = this.getAccelerationAbsolute(null, util);
+            if (updater) {
+                if (((typeof this.prevAccAbsolute) !== 'undefined') && (this.prevAccAbsolute !== null)) {
+                    this.shakeEventUpdating = true;
                     setTimeout(() => {
-                        this.getAccelerationAbsolute()
-                            .then(next => {
-                                this.shaken = ((next - prev) > this.shakeEventThreshold);
-                                this.resetShakeEventTimer = setTimeout(() => {
-                                    this.resetShakeEventTimer = null;
-                                }, this.runtime.currentStepTime);
+                        updater.then(currentAcc => {
+                            if (currentAcc === '') {
+                                this.shakeEventUpdating = false;
+                                return;
+                            }
+                            this.shaken = ((currentAcc - this.prevAccAbsolute) > this.shakeEventThreshold);
+                            this.prevAccAbsolute = currentAcc;
+                            setTimeout(() => {
+                                this.shakeEventUpdating = false;
+                            }, this.runtime.currentStepTime);
+                        })
+                            .catch(reason => {
+                                this.shakeEventUpdating = false;
+                                console.log(`promise rejected on whenShake: ${reason}`);
+                                return;
                             });
                     }, this.shakeEventInterval);
-                });
+                } else {
+                    updater.then(currentAcc => {
+                        if (currentAcc === '') {
+                            return;
+                        }
+                        this.prevAccAbsolute = currentAcc;
+                    });
+                }
+            }
         }
         return !!this.shaken;
     }
