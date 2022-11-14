@@ -215,6 +215,24 @@ class ExtensionBlocks {
         this.vl53l0x = null;
 
         /**
+         * Cached optical distance.
+         * @type {?number}
+         */
+        this.opticalDistance = null;
+
+        /**
+         * Last updated time of optical distance.
+         * @type {number} [milliseconds]
+         */
+        this.opticalDistanceUpdatedTime = 0;
+
+        /**
+         * Interval time for optical distance updating.
+         * @type {number} [milliseconds]
+         */
+        this.opticalDistanceUpdateIntervalTime = 100;
+
+        /**
          * Busy flag for water temp sensor on Digital A.
          * @type {boolean}
          */
@@ -784,44 +802,59 @@ class ExtensionBlocks {
         return this.board.neoPixelClear(pin);
     }
 
-    /**
-     * Measure distance [mm] using ToF sensor VL53L0X.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
-     */
-    async measureDistanceWithLight () {
-        if (!this.isConnected()) return '';
-        if (this.board.boardType() === 'STEAM BOX') {
-            this.board.enableDevice(0x00);
-        }
+    async getOpticalDistanceSensor () {
         if (!this.vl53l0x) {
-            let newSensor = null;
-            if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
-                // STEAM BOX v2.0.1 and later
-                newSensor = new VL53L0X(this.board, 0x08);
-            } else {
-                newSensor = new VL53L0X(this.board);
+            let address = 0x08; // STEAM BOX v2.0.1 or later
+            if ((this.board.version.type <= 1) ||
+            (this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0)) {
+                address = null;
             }
+            const newSensor = new VL53L0X(this.board, address);
             const found = await newSensor.init(true);
             if (!found) {
                 console.log('Distance sensor (laser) is not found.');
-                return '';
+                return null;
             }
-            await newSensor.startContinuous()
-                .catch(reason => {
-                    console.log(`fail to VL53L0X.startContinuous() by ${reason}`);
-                    newSensor = null;
-                });
-            if (!newSensor) return '';
+            await newSensor.startContinuous();
             this.vl53l0x = newSensor;
         }
-        try {
-            const distance = await this.vl53l0x.readRangeContinuousMillimeters();
-            return distance / 10;
-        } catch (reason) {
-            console.log(`VL53L0X.readRangeContinuousMillimeters() was rejected by ${reason}`);
-            this.vl53l0x = null;
-            return '';
+        return this.vl53l0x;
+    }
+
+    /**
+     * Measure distance [mm] using ToF sensor VL53L0X.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     */
+    measureDistanceWithLight (_args, util) {
+        if (!this.isConnected()) return Promise.resolve('');
+        let measureRequest = Promise.resolve(this.opticalDistance);
+        if ((Date.now() - this.opticalDistanceUpdatedTime) > this.opticalDistanceUpdateIntervalTime) {
+            if (this.opticalDistanceUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.opticalDistanceUpdating = true;
+            measureRequest = measureRequest
+                .then(() => this.getOpticalDistanceSensor())
+                .then(() => this.vl53l0x.readRangeContinuousMillimeters())
+                .then(distance => {
+                    this.opticalDistance = distance;
+                    return distance;
+                })
+                .finally(() => {
+                    this.opticalDistanceUpdating = false;
+                });
         }
+        return measureRequest
+            .then(distance => distance / 10)
+            .catch(reason => {
+                console.log(`measureDistanceWithLight was rejected by ${reason}`);
+                this.opticalDistance = null;
+                return '';
+            });
     }
 
     /**
