@@ -906,21 +906,20 @@ class ExtensionBlocks {
             return this.acceleration;
         } catch (reason) {
             console.log(`getAcceleration() was rejected by ${reason}`);
-            this.accelerometer = null;
             this.acceleration = null;
             return null;
         }
     }
 
     updateAcceleration (util) {
-        const getRequest = Promise.resolve(this.acceleration);
+        let getRequest = Promise.resolve(this.acceleration);
         if ((Date.now() - this.accelerationUpdatedTime) > this.accelerationUpdateIntervalTime) {
             if (this.accelerationUpdating) {
                 util.yield(); // re-try this call after a while.
                 return; // Do not return Promise to re-try.
             }
             this.accelerationUpdating = true;
-            getRequest.then(() => this.getAcceleration())
+            getRequest = getRequest.then(() => this.getAcceleration())
                 .finally(() => {
                     this.accelerationUpdating = false;
                 });
