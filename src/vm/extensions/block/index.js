@@ -1189,12 +1189,13 @@ class ExtensionBlocks {
      * @returns {Promise<number>} a Promise which resolves temperature [℃]
      */
     getWaterTemp (pin) {
-        if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
-            // STEAM BOX v2.0.1 and later
-            return this.board.getWaterTemp(pin)
-                .then(data => data / 10);
+        if ((this.board.version.type <= 1) ||
+        (this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0)) {
+            return this.getTemperatureDS18B20(pin);
         }
-        return this.getTemperatureDS18B20(pin);
+        // STEAM BOX v2.0.1 or later
+        return this.board.getWaterTemp(pin)
+            .then(data => data / 10);
     }
 
     /**
