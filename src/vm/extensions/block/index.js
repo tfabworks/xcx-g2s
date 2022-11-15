@@ -1167,10 +1167,6 @@ class ExtensionBlocks {
      */
     async getBrightnessLTR303 () {
         if (!this.isConnected()) return '';
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            this.board.enableDevice(0x01);
-        }
         const i2cAddr = 0x29;
         const partIDReg = 0x86;
         const partID = await this.board.i2cReadOnce(i2cAddr, partIDReg, 1);

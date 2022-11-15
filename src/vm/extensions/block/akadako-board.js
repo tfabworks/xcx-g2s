@@ -538,18 +538,6 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Return type name of the board.
-     *
-     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM Tool'].
-     */
-    boardType () {
-        if (this.version.type === 0) return 'AkaDako';
-        if (this.version.type === 1) return 'KuroDako';
-        if (this.version.type === 2) return 'STEAM Tool';
-        return 'unknown';
-    }
-
-    /**
      * Enable a device on the board.
      *
      * @param {number} deviceID ID to be enabled.
