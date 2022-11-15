@@ -360,9 +360,8 @@ class AkaDakoBoard extends EventEmitter {
         }
         this.portInfo = {manufacturer: inputPort.manufacturer, name: inputPort.name};
         const transport = new MidiDakoTransport(inputPort, outputPort);
-        if (!transport.isConnected()) {
-            await transport.open();
-        }
+        await transport.close();
+        await transport.open();
         return transport;
     }
 
