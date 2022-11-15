@@ -422,7 +422,7 @@ class AkaDakoBoard extends EventEmitter {
             `${this.version.type}.${String(this.version.major)}.${String(this.version.minor)}` +
             ` on: ${JSON.stringify(this.portInfo)}`
         );
-        const digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM BOX
+        const digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM Tool
         // Set up to report digital inputs.
         digitalPins.forEach(pin => {
             this.firmata.pinMode(pin, this.firmata.MODES.INPUT);
@@ -540,12 +540,12 @@ class AkaDakoBoard extends EventEmitter {
     /**
      * Return type name of the board.
      *
-     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM BOX'].
+     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM Tool'].
      */
     boardType () {
         if (this.version.type === 0) return 'AkaDako';
         if (this.version.type === 1) return 'KuroDako';
-        if (this.version.type === 2) return 'STEAM BOX';
+        if (this.version.type === 2) return 'STEAM Tool';
         return 'unknown';
     }
 

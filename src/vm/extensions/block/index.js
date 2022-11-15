@@ -804,7 +804,7 @@ class ExtensionBlocks {
 
     async getOpticalDistanceSensor () {
         if (!this.vl53l0x) {
-            let address = 0x08; // STEAM BOX v2.0.1 or later
+            let address = 0x08; // STEAM Tool v2.0.1 or later
             if ((this.board.version.type <= 1) ||
             (this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0)) {
                 address = null;
@@ -915,7 +915,8 @@ class ExtensionBlocks {
     async getAccelerometer () {
         if (!this.accelerometer) {
             let newSensor = null;
-            if (this.board.boardType() === 'STEAM BOX') {
+            if (this.board.version.type === 2) {
+                // STEAM Tool
                 newSensor = new KXTJ3(this.board);
             } else {
                 newSensor = new ADXL345(this.board);
@@ -1166,7 +1167,8 @@ class ExtensionBlocks {
      */
     async getBrightnessLTR303 () {
         if (!this.isConnected()) return '';
-        if (this.board.boardType() === 'STEAM BOX') {
+        if (this.board.version.type === 2) {
+            // STEAM Tool
             this.board.enableDevice(0x01);
         }
         const i2cAddr = 0x29;
@@ -1226,7 +1228,7 @@ class ExtensionBlocks {
         (this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0)) {
             return this.getTemperatureDS18B20(pin);
         }
-        // STEAM BOX v2.0.1 or later
+        // STEAM Tool v2.0.1 or later
         return this.board.getWaterTemp(pin)
             .then(data => data / 10);
     }
@@ -2506,8 +2508,8 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
-                    default: 'relay on STEAM BOX',
-                    description: 'label for relay on STEAM BOX in digital level set connector menu for g2s'
+                    default: 'relay on Tool',
+                    description: 'label for relay on STEAM Tool in digital level set connector menu for g2s'
                 }),
                 value: '4'
             }
@@ -2543,8 +2545,8 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.pwmConnectorMenu.vibrationMotorOnSteamBox',
-                    default: 'vibration motor on STEAM BOX',
-                    description: 'label for vibration motor on STEAM BOX in PWM connector menu for g2s'
+                    default: 'vibration motor on Tool',
+                    description: 'label for vibration motor on STEAM Tool in PWM connector menu for g2s'
                 }),
                 value: '3'
             }
@@ -2684,8 +2686,8 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.neoPixelConnectorMenu.steamBox',
-                    default: 'STEAM BOX',
-                    description: 'label for STEAM BOX in neoPixel connector menu for g2s'
+                    default: 'Tool',
+                    description: 'label for STEAM Tool in neoPixel connector menu for g2s'
                 }),
                 value: '7'
             }
