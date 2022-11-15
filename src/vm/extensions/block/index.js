@@ -1552,7 +1552,7 @@ class ExtensionBlocks {
                     arguments: {
                         CONNECTOR: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalConnectorMenu'
+                            menu: 'servoConnectorMenu'
                         },
                         ANGLE: {
                             type: ArgumentType.ANGLE
@@ -2375,6 +2375,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getPWMConnectorMenu()
                 },
+                servoConnectorMenu: {
+                    acceptReporters: false,
+                    items: this.getServoConnectorMenu()
+                },
                 neoPixelConnectorMenu: {
                     acceptReporters: false,
                     items: this.getNeoPixelConnectorMenu()
@@ -2451,6 +2455,22 @@ class ExtensionBlocks {
             {
                 text: `${digitalPrefix}B (B2)`,
                 value: '9'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.digitalConnectorMenu.buttonAOnTool',
+                    default: 'button A on STEAM Tool',
+                    description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
+                }),
+                value: '6'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.digitalConnectorMenu.buttonBOnTool',
+                    default: 'button B on STEAM Tool',
+                    description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
+                }),
+                value: '9'
             }
         ];
     }
@@ -2525,6 +2545,35 @@ class ExtensionBlocks {
                     description: 'label for vibration motor on STEAM BOX in PWM connector menu for g2s'
                 }),
                 value: '3'
+            }
+        ];
+    }
+
+    /**
+     * Returns menu items to select servo connectors.
+     * @returns {Array<object>} menu items
+     */
+    getServoConnectorMenu () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        return [
+            {
+                text: `${digitalPrefix}A (A1)`,
+                value: '10'
+            },
+            {
+                text: `${digitalPrefix}A (A2)`,
+                value: '11'
+            },
+            {
+                text: `${digitalPrefix}B (B1)`,
+                value: '6'
+            },
+            {
+                text: `${digitalPrefix}B (B2)`,
+                value: '9'
             }
         ];
     }
