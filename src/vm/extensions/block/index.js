@@ -1985,7 +1985,8 @@ class ExtensionBlocks {
                         },
                         LEVEL: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalLevelMenu'
+                            menu: 'digitalLevelMenu',
+                            defaultValue: 'true'
                         }
                     }
                 },
@@ -2019,7 +2020,8 @@ class ExtensionBlocks {
                         },
                         LEVEL: {
                             type: ArgumentType.STRING,
-                            menu: 'digitalLevelMenu'
+                            menu: 'digitalLevelMenu',
+                            defaultValue: 'true'
                         }
                     }
                 },
