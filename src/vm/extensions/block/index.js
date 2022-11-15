@@ -822,11 +822,11 @@ class ExtensionBlocks {
     }
 
     /**
-     * Measure distance [mm] using ToF sensor VL53L0X.
+     * Measure distance using ToF sensor VL53L0X.
      *
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
      */
     measureDistanceWithLight (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
@@ -849,7 +849,7 @@ class ExtensionBlocks {
                 });
         }
         return measureRequest
-            .then(distance => distance / 10)
+            .then(distance => Math.min(200, distance / 10))
             .catch(reason => {
                 console.log(`measureDistanceWithLight was rejected by ${reason}`);
                 this.opticalDistance = null;
@@ -858,10 +858,10 @@ class ExtensionBlocks {
     }
 
     /**
-     * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * Measure distance using ultrasonic sensor on Digital A.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
      */
     measureDistanceWithUltrasonicA (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
@@ -872,7 +872,7 @@ class ExtensionBlocks {
         this.pingSendingA = true;
         const pin = 10;
         return this.board.getDistanceByUltrasonic(pin)
-            .then(value => Math.round(value / 10))
+            .then(value => Math.min(350, Math.round(value / 10)))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
                 return '';
@@ -883,10 +883,10 @@ class ExtensionBlocks {
     }
 
     /**
-     * Measure distance [cm] using ultrasonic sensor on Digital B.
+     * Measure distance using ultrasonic sensor on Digital B.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
      */
     measureDistanceWithUltrasonicB (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
@@ -897,7 +897,7 @@ class ExtensionBlocks {
         this.pingSendingB = true;
         const pin = 6;
         return this.board.getDistanceByUltrasonic(pin)
-            .then(value => Math.round(value / 10))
+            .then(value => Math.min(350, Math.round(value / 10)))
             .catch(reason => {
                 console.log(`pingSensor(${pin}) was rejected by ${reason}`);
                 return '';
