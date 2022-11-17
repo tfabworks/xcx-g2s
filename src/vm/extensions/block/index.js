@@ -11,6 +11,7 @@ import VL53L0X from './vl53l0x';
 import ADXL345 from './adxl345';
 import BME280 from './bme280';
 import KXTJ3 from './kxtj3';
+import LTR303 from './ltr303';
 
 /**
  * Returns a Long Integer converted from the value.
@@ -203,6 +204,30 @@ class ExtensionBlocks {
         this.accelerationUpdateIntervalTime = 100;
 
         /**
+         * Brightness sensor
+         * @type {LTR303}
+         */
+        this.brightnessSensor = null;
+
+        /**
+          * Cached brightness.
+          * @type {?number}
+          */
+        this.brightness = null;
+ 
+        /**
+          * Last updated time of brightness.
+          * @type {number} [milliseconds]
+          */
+        this.brightnessUpdatedTime = 0;
+ 
+        /**
+          * Interval time for brightness updating.
+          * @type {number} [milliseconds]
+          */
+        this.brightnessUpdateIntervalTime = 100;
+ 
+        /**
          * Environment sensor BME280
          * @type {BME280}
          */
@@ -343,6 +368,8 @@ class ExtensionBlocks {
         this.accelerometer = null;
         this.accelerationUpdating = false;
         this.shakeEventUpdating = false;
+        this.brightnessSensor = null;
+        this.brightnessUpdating = false;
         this.waterTempAGetting = false;
         this.waterTempBGetting = false;
         this.neoPixelBusy = false;
@@ -1185,38 +1212,54 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get instance of a brightness sensor.
+     *
+     * @returns {Promise} A Promise which resolves a sensor.
+     */
+    async getBrightnessSensor () {
+        if (!this.brightnessSensor) {
+            const newSensor = new LTR303(this.board);
+            await newSensor.init();
+            this.brightnessSensor = newSensor;
+        }
+        return this.brightnessSensor;
+    }
+
+    /**
      * Get brightness [lx] from LTR-303 on I2C
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number | string>} a Promise which resolves value of brightness or empty string if it was fail
      */
-    async getBrightnessLTR303 () {
-        if (!this.isConnected()) return '';
-        const i2cAddr = 0x29;
-        const partIDReg = 0x86;
-        const partID = await this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
-        if ((partID[0] & 0xF0) !== 0xA0) {
-            // no LTR-303 on I2C
-            return '';
-        }
-        try {
-            await this.board.i2cWrite(i2cAddr, 0x80, 1);
-            const ch1data = await this.board.i2cReadOnce(i2cAddr, 0x88, 2);
-            const ch1 = ch1data[0] | (ch1data[1] << 8);
-            const ch0data = await this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
-            const ch0 = ch0data[0] | (ch0data[1] << 8);
-            const ratio = ch1 / (ch0 + ch1);
-            let lux = 0;
-            if (ratio < 0.45) {
-                lux = ((1.7743 * ch0) + (1.1059 * ch1));
-            } else if (ratio < 0.64 && ratio >= 0.45) {
-                lux = ((4.2785 * ch0) - (1.9548 * ch1));
-            } else if (ratio < 0.85 && ratio >= 0.64) {
-                lux = ((0.5926 * ch0) + (0.1185 * ch1));
+    async getBrightness (_args, util) {
+        if (!this.isConnected()) return Promise.resolve('');
+        let getter = Promise.resolve(this.brightness);
+        if ((Date.now() - this.brightnessUpdatedTime) > this.brightnessUpdateIntervalTime) {
+            if (this.brightnessUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
             }
-            return Math.round(lux * 10) / 10;
-        } catch (error) {
-            console.log(`Reading brightness from LTR-303 I2C was rejected by ${error}`);
-            return '';
+            this.brightnessUpdating = true;
+            getter = getter
+                .then(() => this.getBrightnessSensor())
+                .then(() => this.brightnessSensor.getBrightness())
+                .then(brightness => {
+                    this.brightness = brightness;
+                    this.brightnessUpdatedTime = Date.now();
+                    return brightness;
+                })
+                .finally(() => {
+                    this.brightnessUpdating = false;
+                });
         }
+        return getter
+            .then(brightness => Math.round(brightness * 10) / 10)
+            .catch(reason => {
+                console.log(`getting brightness was rejected by ${reason}`);
+                this.brightness = null;
+                this.brightnessSensor = null;
+                return '';
+            });
     }
 
     /**
@@ -1623,7 +1666,7 @@ class ExtensionBlocks {
                 '---',
                 {
                     opcode: 'getBrightness',
-                    func: 'getBrightnessLTR303',
+                    func: 'getBrightness',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
