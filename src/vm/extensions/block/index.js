@@ -437,7 +437,18 @@ class ExtensionBlocks {
      */
     digitalIsHigh (args) {
         if (!this.isConnected()) return false;
-        const pin = parseInt(args.CONNECTOR, 10);
+        let pin = null;
+        switch (args.CONNECTOR) {
+        case 'A':
+            pin = 6;
+            break;
+        case 'B':
+            pin = 9;
+            break;
+        default:
+            pin = parseInt(args.CONNECTOR, 10);
+            break;
+        }
         return !!this.board.getDigitalValue(pin);
     }
 
@@ -486,7 +497,18 @@ class ExtensionBlocks {
      */
     digitalLevelChanged (args) {
         if (!this.isConnected()) return false;
-        const pin = parseInt(args.CONNECTOR, 10);
+        let pin = null;
+        switch (args.CONNECTOR) {
+        case 'A':
+            pin = 6;
+            break;
+        case 'B':
+            pin = 9;
+            break;
+        default:
+            pin = parseInt(args.CONNECTOR, 10);
+            break;
+        }
         const rise = Cast.toBoolean(args.LEVEL);
         return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
@@ -2462,7 +2484,7 @@ class ExtensionBlocks {
                     default: 'button A on STEAM Tool',
                     description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
                 }),
-                value: '6'
+                value: 'A'
             },
             {
                 text: formatMessage({
@@ -2470,7 +2492,7 @@ class ExtensionBlocks {
                     default: 'button B on STEAM Tool',
                     description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
                 }),
-                value: '9'
+                value: 'B'
             }
         ];
     }
