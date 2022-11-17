@@ -338,6 +338,7 @@ class ExtensionBlocks {
         this.board = this.boardConnector.findBoard();
         if (prev === this.board) return;
         this.vl53l0x = null;
+        this.opticalDistanceUpdating = false;
         this.bme280 = null;
         this.accelerometer = null;
         this.accelerationUpdating = false;
