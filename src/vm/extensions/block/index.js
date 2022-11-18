@@ -1910,14 +1910,10 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.neoPixelShow',
-                        default: 'color LED [CONNECTOR] show',
+                        default: 'color LED show',
                         description: 'show color LED'
                     }),
                     arguments: {
-                        CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'neoPixelConnectorMenu'
-                        }
                     }
                 },
                 {
