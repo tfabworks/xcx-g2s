@@ -1561,10 +1561,12 @@ var en = {
 	"g2s.inputBiasMenu.pullUp": "pull up",
 	"g2s.digitalIsHigh": "[CONNECTOR] value is 1",
 	"g2s.digitalLevelChanged": "When [CONNECTOR] is [LEVEL]",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "button A on STEAM Tool",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "button B on STEAM Tool",
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "relay on STEAM BOX",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "relay on Tool",
 	"g2s.analogLevelSet": "PWM [CONNECTOR] set duty cycle [LEVEL] %",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "vibration motor on STEAM BOX",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "vibration motor on Tool",
 	"g2s.servoTurn": "Servo [CONNECTOR] turn [ANGLE] degrees",
 	"g2s.i2cWrite": "I2C write on [ADDRESS] register [REGISTER] with [DATA]",
 	"g2s.i2cReadOnce": "I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]",
@@ -1573,7 +1575,7 @@ var en = {
 	"g2s.oneWireRead": "OneWire [CONNECTOR] read [LENGTH] bytes",
 	"g2s.oneWireWriteAndRead": "OneWire [CONNECTOR] write [DATA] then read [LENGTH] bytes",
 	"g2s.neoPixelConfigStrip": "set color LED [CONNECTOR] length [LENGTH]",
-	"g2s.neoPixelConnectorMenu.steamBox": "STEAM BOX",
+	"g2s.neoPixelConnectorMenu.steamBox": "Tool",
 	"g2s.neoPixelSetColor": "color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]",
 	"g2s.neoPixelColorMenu.red": "red",
 	"g2s.neoPixelColorMenu.orange": "orange",
@@ -1586,7 +1588,7 @@ var en = {
 	"g2s.neoPixelColorMenu.white": "white",
 	"g2s.neoPixelColorMenu.black": "black",
 	"g2s.neoPixelColor": "color LED color R [RED] G [GREEN] B [BLUE]",
-	"g2s.neoPixelShow": "color LED [CONNECTOR] show",
+	"g2s.neoPixelShow": "color LED show",
 	"g2s.neoPixelClear": "color LED [CONNECTOR] clear",
 	"g2s.measureDistanceWithLight": "distance by laser on I2C (cm)",
 	"g2s.measureDistanceWithUltrasonicA": "distance by ultrasonic on Digital A (cm)",
@@ -1638,10 +1640,12 @@ var ja = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "ツールのAボタン",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "ツールのBボタン",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "STEAM BOXの制御スイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールの制御スイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティー比[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "STEAM BOXの振動モーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールの振動モーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
@@ -1650,7 +1654,7 @@ var ja = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]を長さ[LENGTH]に設定する",
-	"g2s.neoPixelConnectorMenu.steamBox": "STEAM BOX",
+	"g2s.neoPixelConnectorMenu.steamBox": "ツール",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]番目を[COLOR]色で明るさ[BRIGHTNESS]に設定する",
 	"g2s.neoPixelColorMenu.red": "赤",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -1663,7 +1667,7 @@ var ja = {
 	"g2s.neoPixelColorMenu.white": "白",
 	"g2s.neoPixelColorMenu.black": "黒",
 	"g2s.neoPixelColor": "カラーLED RGB 赤[RED] 緑[GREEN] 青[BLUE]",
-	"g2s.neoPixelShow": "カラーLED[CONNECTOR]を光らせる",
+	"g2s.neoPixelShow": "カラーLEDを光らせる",
 	"g2s.neoPixelClear": "カラーLED[CONNECTOR]を消す",
 	"g2s.measureDistanceWithLight": "距離 レーザーI2Cの距離(cm)",
 	"g2s.measureDistanceWithUltrasonicA": "距離 超音波デジタルAの距離(cm)",
@@ -1718,10 +1722,12 @@ var translations = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "ツールのAボタン",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "ツールのBボタン",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "スチームボックスのせいぎょスイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールのせいぎょスイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティーひ[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "スチームボックスのしんどうモーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールのしんどうモーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
@@ -1730,7 +1736,7 @@ var translations = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]をながさ[LENGTH]にせっていする",
-	"g2s.neoPixelConnectorMenu.steamBox": "スチームボックス",
+	"g2s.neoPixelConnectorMenu.steamBox": "ツール",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]ばんめを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
 	"g2s.neoPixelColorMenu.red": "あか",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -1743,7 +1749,7 @@ var translations = {
 	"g2s.neoPixelColorMenu.white": "しろ",
 	"g2s.neoPixelColorMenu.black": "くろ",
 	"g2s.neoPixelColor": "カラーLED RGB あか[RED] みどり[GREEN] あお[BLUE]",
-	"g2s.neoPixelShow": "カラーLED[CONNECTOR]をひからせる",
+	"g2s.neoPixelShow": "カラーLEDをひからせる",
 	"g2s.neoPixelClear": "カラーLED[CONNECTOR]をけす",
 	"g2s.measureDistanceWithLight": "きょり レーザーI2Cのきょり(cm)",
 	"g2s.measureDistanceWithUltrasonicA": "きょり ちょうおんぱデジタルAのきょり(cm)",
@@ -16492,19 +16498,17 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   name: inputPort.name
                 };
                 transport = new MidiDakoTransport(inputPort, outputPort);
+                _context4.next = 66;
+                return transport.close();
 
-                if (transport.isConnected()) {
-                  _context4.next = 67;
-                  break;
-                }
-
-                _context4.next = 67;
+              case 66:
+                _context4.next = 68;
                 return transport.open();
 
-              case 67:
+              case 68:
                 return _context4.abrupt("return", transport);
 
-              case 68:
+              case 69:
               case "end":
                 return _context4.stop();
             }
@@ -16629,7 +16633,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       var _this5 = this;
 
       console.log("".concat(this.version.type, ".").concat(String(this.version.major), ".").concat(String(this.version.minor)) + " on: ".concat(JSON.stringify(this.portInfo)));
-      var digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM BOX
+      var digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM Tool
       // Set up to report digital inputs.
 
       digitalPins.forEach(function (pin) {
@@ -16762,20 +16766,6 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         firmata.removeAllListeners(event);
         return Promise.reject(reason);
       });
-    }
-    /**
-     * Return type name of the board.
-     *
-     * @returns {string} Type name ['AkaDako' | 'KuroDako' | 'STEAM BOX'].
-     */
-
-  }, {
-    key: "boardType",
-    value: function boardType() {
-      if (this.version.type === 0) return 'AkaDako';
-      if (this.version.type === 1) return 'KuroDako';
-      if (this.version.type === 2) return 'STEAM BOX';
-      return 'unknown';
     }
     /**
      * Enable a device on the board.
@@ -17442,6 +17432,9 @@ var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
     }, {
       manufacturer: null,
       name: /MidiDako/
+    }, {
+      manufacturer: null,
+      name: /AkaDako/
     }];
     /**
      * Settings for WebSerial
@@ -17651,6 +17644,7 @@ var PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51;
 var FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70;
 var FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x71;
 var MSRC_CONFIG_TIMEOUT_MACROP = 0x46;
+var IDENTIFICATION_MODEL_ID = 0xC0;
 var OSC_CALIBRATE_VAL = 0xF8;
 var GLOBAL_CONFIG_VCSEL_WIDTH = 0x32;
 var GLOBAL_CONFIG_SPAD_ENABLES_REF_0 = 0xB0;
@@ -17730,7 +17724,7 @@ var VL53L0X = /*#__PURE__*/function () {
      * @type {number}
      */
 
-    this.io_timeout = 1000;
+    this.io_timeout = 500;
     /**
      * Did a timeout occur in a sequence.
      * @type {boolean}
@@ -17766,37 +17760,51 @@ var VL53L0X = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(io2v8) {
-        var info, refSpadMap, firstSpadToEnable, spadsEnabled, i;
+        var id, info, refSpadMap, firstSpadToEnable, spadsEnabled, i;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                _context.next = 2;
+                return this.readReg(IDENTIFICATION_MODEL_ID);
+
+              case 2:
+                id = _context.sent;
+
+                if (!(id !== 0xEE)) {
+                  _context.next = 5;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 5:
                 if (!io2v8) {
-                  _context.next = 8;
+                  _context.next = 13;
                   break;
                 }
 
                 _context.t0 = this;
                 _context.t1 = VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV;
-                _context.next = 5;
+                _context.next = 10;
                 return this.readReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV);
 
-              case 5:
+              case 10:
                 _context.t2 = _context.sent;
                 _context.t3 = _context.t2 | 0x01;
 
                 _context.t0.writeReg.call(_context.t0, _context.t1, _context.t3);
 
-              case 8:
+              case 13:
                 // "Set I2C standard mode"
                 this.writeReg(0x88, 0x00);
                 this.writeReg(0x80, 0x01);
                 this.writeReg(0xFF, 0x01);
                 this.writeReg(0x00, 0x00);
-                _context.next = 14;
+                _context.next = 19;
                 return this.readReg(0x91);
 
-              case 14:
+              case 19:
                 this.stop_variable = _context.sent;
                 this.writeReg(0x00, 0x01);
                 this.writeReg(0xFF, 0x00);
@@ -17804,10 +17812,10 @@ var VL53L0X = /*#__PURE__*/function () {
 
                 _context.t4 = this;
                 _context.t5 = MSRC_CONFIG_CONTROL;
-                _context.next = 22;
+                _context.next = 27;
                 return this.readReg(MSRC_CONFIG_CONTROL);
 
-              case 22:
+              case 27:
                 _context.t6 = _context.sent;
                 _context.t7 = _context.t6 | 0x12;
 
@@ -17822,22 +17830,22 @@ var VL53L0X = /*#__PURE__*/function () {
                   count: 0,
                   isAperture: false
                 };
-                _context.next = 30;
+                _context.next = 35;
                 return this.getSpadInfo(info);
 
-              case 30:
+              case 35:
                 if (_context.sent) {
-                  _context.next = 32;
+                  _context.next = 37;
                   break;
                 }
 
                 return _context.abrupt("return", false);
 
-              case 32:
-                _context.next = 34;
+              case 37:
+                _context.next = 39;
                 return this.readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, 6);
 
-              case 34:
+              case 39:
                 refSpadMap = _context.sent;
                 // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
                 this.writeReg(0xFF, 0x01);
@@ -17949,10 +17957,10 @@ var VL53L0X = /*#__PURE__*/function () {
                 this.writeReg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
                 _context.t8 = this;
                 _context.t9 = GPIO_HV_MUX_ACTIVE_HIGH;
-                _context.next = 129;
+                _context.next = 134;
                 return this.readReg(GPIO_HV_MUX_ACTIVE_HIGH);
 
-              case 129:
+              case 134:
                 _context.t10 = _context.sent;
                 _context.t11 = ~0x10;
                 _context.t12 = _context.t10 & _context.t11;
@@ -17962,10 +17970,10 @@ var VL53L0X = /*#__PURE__*/function () {
                 // active low
                 this.writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01); // -- VL53L0X_SetGpioConfig() end
 
-                _context.next = 136;
+                _context.next = 141;
                 return this.getMeasurementTimingBudget();
 
-              case 136:
+              case 141:
                 this.measurement_timing_budget_us = _context.sent;
                 // "Disable MSRC and TCC by default"
                 // MSRC = Minimum Signal Rate Check
@@ -17974,31 +17982,16 @@ var VL53L0X = /*#__PURE__*/function () {
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // -- VL53L0X_SetSequenceStepEnable() end
                 // "Recalculate timing budget"
 
-                _context.next = 140;
+                _context.next = 145;
                 return this.setMeasurementTimingBudget(this.measurement_timing_budget_us);
 
-              case 140:
+              case 145:
                 // VL53L0X_StaticInit() end
                 // VL53L0X_PerformRefCalibration() begin (VL53L0X_perform_ref_calibration())
                 // -- VL53L0X_perform_vhv_calibration() begin
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x01);
-                _context.next = 143;
-                return this.performSingleRefCalibration(0x40);
-
-              case 143:
-                if (_context.sent) {
-                  _context.next = 145;
-                  break;
-                }
-
-                return _context.abrupt("return", false);
-
-              case 145:
-                // -- VL53L0X_perform_vhv_calibration() end
-                // -- VL53L0X_perform_phase_calibration() begin
-                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
                 _context.next = 148;
-                return this.performSingleRefCalibration(0x00);
+                return this.performSingleRefCalibration(0x40);
 
               case 148:
                 if (_context.sent) {
@@ -18009,13 +18002,28 @@ var VL53L0X = /*#__PURE__*/function () {
                 return _context.abrupt("return", false);
 
               case 150:
+                // -- VL53L0X_perform_vhv_calibration() end
+                // -- VL53L0X_perform_phase_calibration() begin
+                this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0x02);
+                _context.next = 153;
+                return this.performSingleRefCalibration(0x00);
+
+              case 153:
+                if (_context.sent) {
+                  _context.next = 155;
+                  break;
+                }
+
+                return _context.abrupt("return", false);
+
+              case 155:
                 // -- VL53L0X_perform_phase_calibration() end
                 // "restore the previous Sequence Config"
                 this.writeReg(SYSTEM_SEQUENCE_CONFIG, 0xE8); // VL53L0X_PerformRefCalibration() end
 
                 return _context.abrupt("return", true);
 
-              case 152:
+              case 157:
               case "end":
                 return _context.stop();
             }
@@ -20197,6 +20205,181 @@ var KXTJ3 = /*#__PURE__*/function () {
 }();
 
 /**
+ * acceleration sensor LTR303 API
+ */
+var ADDR = 0x29;
+var ID_REG = 0x86;
+var ID = 0xA0;
+/**
+ * This class is representing a LTR303.
+ */
+
+var LTR303 = /*#__PURE__*/function () {
+  /**
+   * Constructor of LTR303 instance.
+   * @param {AkadakoBoard} board - connecting akadako board
+   */
+  function LTR303(board) {
+    _classCallCheck(this, LTR303);
+
+    /**
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
+     */
+    this.board = board;
+    /**
+     * I2C address
+     * @type {number}
+     */
+
+    this.address = ADDR;
+    /**
+     * Timeout for readings in milliseconds.
+     * @type {number}
+     */
+
+    this.timeout = 200;
+  }
+  /**
+   * Initialize the sensor
+   * @returns {Promise} a Promise which resolves when the sensor was initialized
+   */
+
+
+  _createClass(LTR303, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+        var id;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.readID();
+
+              case 2:
+                id = _context.sent;
+
+                if (!(id !== ID)) {
+                  _context.next = 5;
+                  break;
+                }
+
+                return _context.abrupt("return", Promise.reject("0x".concat(this.address.toString(16), " is not LTR303")));
+
+              case 5:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+    /**
+     * Read ID of a LTR303
+     * @returns {Promise} a Promise which resolves ID
+     */
+
+  }, {
+    key: "readID",
+    value: function () {
+      var _readID = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
+        var partID;
+        return regenerator.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.board.i2cReadOnce(ADDR, ID_REG, 1, this.timeout);
+
+              case 2:
+                partID = _context2.sent;
+                return _context2.abrupt("return", partID[0] & 0xF0);
+
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function readID() {
+        return _readID.apply(this, arguments);
+      }
+
+      return readID;
+    }()
+    /**
+     * Return value of brightness.
+     * @returns {promise<number>} a Promise which resolves brightness
+     */
+
+  }, {
+    key: "getBrightness",
+    value: function () {
+      var _getBrightness = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+        var ch1data, ch1, ch0data, ch0, ratio, lux;
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.board.i2cWrite(this.address, 0x80, 1);
+
+              case 2:
+                _context3.next = 4;
+                return this.board.i2cReadOnce(this.address, 0x88, 2, this.timeout);
+
+              case 4:
+                ch1data = _context3.sent;
+                ch1 = ch1data[0] | ch1data[1] << 8;
+                _context3.next = 8;
+                return this.board.i2cReadOnce(this.address, 0x8A, 2, this.timeout);
+
+              case 8:
+                ch0data = _context3.sent;
+                ch0 = ch0data[0] | ch0data[1] << 8;
+                ratio = ch1 / (ch0 + ch1);
+                lux = 0;
+
+                if (ratio < 0.45) {
+                  lux = 1.7743 * ch0 + 1.1059 * ch1;
+                } else if (ratio < 0.64 && ratio >= 0.45) {
+                  lux = 4.2785 * ch0 - 1.9548 * ch1;
+                } else if (ratio < 0.85 && ratio >= 0.64) {
+                  lux = 0.5926 * ch0 + 0.1185 * ch1;
+                }
+
+                return _context3.abrupt("return", Math.round(lux * 10) / 10);
+
+              case 14:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function getBrightness() {
+        return _getBrightness.apply(this, arguments);
+      }
+
+      return getBrightness;
+    }()
+  }]);
+
+  return LTR303;
+}();
+
+/**
  * Returns a Long Integer converted from the value.
  * @param {number|string} value - value to be converted
  * @param {boolean} unsigned - true for unsigned long
@@ -20359,6 +20542,30 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.accelerationUpdateIntervalTime = 100;
     /**
+     * Brightness sensor
+     * @type {LTR303}
+     */
+
+    this.brightnessSensor = null;
+    /**
+      * Cached brightness.
+      * @type {?number}
+      */
+
+    this.brightness = null;
+    /**
+      * Last updated time of brightness.
+      * @type {number} [milliseconds]
+      */
+
+    this.brightnessUpdatedTime = 0;
+    /**
+      * Interval time for brightness updating.
+      * @type {number} [milliseconds]
+      */
+
+    this.brightnessUpdateIntervalTime = 100;
+    /**
      * Environment sensor BME280
      * @type {BME280}
      */
@@ -20370,6 +20577,24 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
 
     this.vl53l0x = null;
+    /**
+     * Cached optical distance.
+     * @type {?number}
+     */
+
+    this.opticalDistance = null;
+    /**
+     * Last updated time of optical distance.
+     * @type {number} [milliseconds]
+     */
+
+    this.opticalDistanceUpdatedTime = 0;
+    /**
+     * Interval time for optical distance updating.
+     * @type {number} [milliseconds]
+     */
+
+    this.opticalDistanceUpdateIntervalTime = 100;
     /**
      * Busy flag for water temp sensor on Digital A.
      * @type {boolean}
@@ -20438,7 +20663,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @type {number}
      */
 
-    this.shakeEventInterval = 100; // eslint-disable-next-line no-unused-vars
+    this.shakeEventInterval = 200; // eslint-disable-next-line no-unused-vars
 
     window.addEventListener('beforeunload', function (e) {
       _this.disconnectBoard();
@@ -20487,9 +20712,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.board = this.boardConnector.findBoard();
       if (prev === this.board) return;
       this.vl53l0x = null;
+      this.opticalDistanceUpdating = false;
       this.bme280 = null;
       this.accelerometer = null;
       this.accelerationUpdating = false;
+      this.shakeEventUpdating = false;
+      this.brightnessSensor = null;
+      this.brightnessUpdating = false;
       this.waterTempAGetting = false;
       this.waterTempBGetting = false;
       this.neoPixelBusy = false;
@@ -20603,7 +20832,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "digitalIsHigh",
     value: function digitalIsHigh(args) {
       if (!this.isConnected()) return false;
-      var pin = parseInt(args.CONNECTOR, 10);
+      var pin = null;
+
+      switch (args.CONNECTOR) {
+        case 'A':
+          pin = 6;
+          break;
+
+        case 'B':
+          pin = 9;
+          break;
+
+        default:
+          pin = parseInt(args.CONNECTOR, 10);
+          break;
+      }
+
       return !!this.board.getDigitalValue(pin);
     }
     /**
@@ -20662,7 +20906,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "digitalLevelChanged",
     value: function digitalLevelChanged(args) {
       if (!this.isConnected()) return false;
-      var pin = parseInt(args.CONNECTOR, 10);
+      var pin = null;
+
+      switch (args.CONNECTOR) {
+        case 'A':
+          pin = 6;
+          break;
+
+        case 'B':
+          pin = 9;
+          break;
+
+        default:
+          pin = parseInt(args.CONNECTOR, 10);
+          break;
+      }
+
       var rise = cast.toBoolean(args.LEVEL);
       return rise === !!this.board.pins[pin].value; // Do NOT return Promise for the hat execute correctly.
     }
@@ -21026,119 +21285,120 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var pin = parseInt(args.CONNECTOR, 10);
       return this.board.neoPixelClear(pin);
     }
-    /**
-     * Measure distance [mm] using ToF sensor VL53L0X.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
-     */
-
   }, {
-    key: "measureDistanceWithLight",
+    key: "getOpticalDistanceSensor",
     value: function () {
-      var _measureDistanceWithLight = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
-        var newSensor, found, distance;
+      var _getOpticalDistanceSensor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+        var address, newSensor, found;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context.next = 2;
-                  break;
-                }
-
-                return _context.abrupt("return", '');
-
-              case 2:
-                if (this.board.boardType() === 'STEAM BOX') {
-                  this.board.enableDevice(0x00);
-                }
-
                 if (this.vl53l0x) {
-                  _context.next = 17;
+                  _context.next = 13;
                   break;
                 }
 
-                newSensor = null;
+                address = 0x08; // STEAM Tool v2.0.1 or later
 
-                if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
-                  // STEAM BOX v2.0.1 and later
-                  newSensor = new VL53L0X(this.board, 0x08);
-                } else {
-                  newSensor = new VL53L0X(this.board);
+                if (this.board.version.type <= 1 || this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0) {
+                  address = null;
                 }
 
-                _context.next = 8;
+                newSensor = new VL53L0X(this.board, address);
+                _context.next = 6;
                 return newSensor.init(true);
 
-              case 8:
+              case 6:
                 found = _context.sent;
 
                 if (found) {
-                  _context.next = 12;
+                  _context.next = 10;
                   break;
                 }
 
                 console.log('Distance sensor (laser) is not found.');
-                return _context.abrupt("return", '');
+                return _context.abrupt("return", null);
+
+              case 10:
+                _context.next = 12;
+                return newSensor.startContinuous();
 
               case 12:
-                _context.next = 14;
-                return newSensor.startContinuous().catch(function (reason) {
-                  console.log("fail to VL53L0X.startContinuous() by ".concat(reason));
-                  newSensor = null;
-                });
-
-              case 14:
-                if (newSensor) {
-                  _context.next = 16;
-                  break;
-                }
-
-                return _context.abrupt("return", '');
-
-              case 16:
                 this.vl53l0x = newSensor;
 
-              case 17:
-                _context.prev = 17;
-                _context.next = 20;
-                return this.vl53l0x.readRangeContinuousMillimeters();
+              case 13:
+                return _context.abrupt("return", this.vl53l0x);
 
-              case 20:
-                distance = _context.sent;
-                return _context.abrupt("return", distance / 10);
-
-              case 24:
-                _context.prev = 24;
-                _context.t0 = _context["catch"](17);
-                console.log("VL53L0X.readRangeContinuousMillimeters() was rejected by ".concat(_context.t0));
-                this.vl53l0x = null;
-                return _context.abrupt("return", '');
-
-              case 29:
+              case 14:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[17, 24]]);
+        }, _callee, this);
       }));
 
-      function measureDistanceWithLight() {
-        return _measureDistanceWithLight.apply(this, arguments);
+      function getOpticalDistanceSensor() {
+        return _getOpticalDistanceSensor.apply(this, arguments);
       }
 
-      return measureDistanceWithLight;
+      return getOpticalDistanceSensor;
     }()
     /**
-     * Measure distance [cm] using ultrasonic sensor on Digital A.
+     * Measure distance using ToF sensor VL53L0X.
+     *
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
+     */
+
+  }, {
+    key: "measureDistanceWithLight",
+    value: function measureDistanceWithLight(_args, util) {
+      var _this8 = this;
+
+      if (!this.isConnected()) return Promise.resolve('');
+      var measureRequest = Promise.resolve(this.opticalDistance);
+
+      if (Date.now() - this.opticalDistanceUpdatedTime > this.opticalDistanceUpdateIntervalTime) {
+        if (this.opticalDistanceUpdating) {
+          util.yield(); // re-try this call after a while.
+
+          return; // Do not return Promise to re-try.
+        }
+
+        this.opticalDistanceUpdating = true;
+        measureRequest = measureRequest.then(function () {
+          return _this8.getOpticalDistanceSensor();
+        }).then(function () {
+          return _this8.vl53l0x.readRangeContinuousMillimeters();
+        }).then(function (distance) {
+          _this8.opticalDistance = distance;
+          return distance;
+        }).finally(function () {
+          _this8.opticalDistanceUpdating = false;
+        });
+      }
+
+      return measureRequest.then(function (distance) {
+        return Math.min(200, distance / 10);
+      }).catch(function (reason) {
+        console.log("measureDistanceWithLight was rejected by ".concat(reason));
+        _this8.opticalDistance = null;
+        return '';
+      });
+    }
+    /**
+     * Measure distance using ultrasonic sensor on Digital A.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
      */
 
   }, {
     key: "measureDistanceWithUltrasonicA",
     value: function measureDistanceWithUltrasonicA(_args, util) {
-      var _this8 = this;
+      var _this9 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
 
@@ -21151,25 +21411,25 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.pingSendingA = true;
       var pin = 10;
       return this.board.getDistanceByUltrasonic(pin).then(function (value) {
-        return Math.round(value / 10);
+        return Math.min(350, Math.round(value / 10));
       }).catch(function (reason) {
         console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
         return '';
       }).finally(function () {
-        _this8.pingSendingA = false;
+        _this9.pingSendingA = false;
       });
     }
     /**
-     * Measure distance [cm] using ultrasonic sensor on Digital B.
+     * Measure distance using ultrasonic sensor on Digital B.
      * @param {object} _args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
-     * @returns {Promise<number | string>} a Promise which resolves distance or empty string if it was fail
+     * @returns {Promise<number | string>} a Promise which resolves distance [cm] or empty string if it was fail
      */
 
   }, {
     key: "measureDistanceWithUltrasonicB",
     value: function measureDistanceWithUltrasonicB(_args, util) {
-      var _this9 = this;
+      var _this10 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
 
@@ -21182,12 +21442,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.pingSendingB = true;
       var pin = 6;
       return this.board.getDistanceByUltrasonic(pin).then(function (value) {
-        return Math.round(value / 10);
+        return Math.min(350, Math.round(value / 10));
       }).catch(function (reason) {
         console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
         return '';
       }).finally(function () {
-        _this9.pingSendingB = false;
+        _this10.pingSendingB = false;
       });
     }
     /**
@@ -21212,7 +21472,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
                 newSensor = null;
 
-                if (this.board.boardType() === 'STEAM BOX') {
+                if (this.board.version.type === 2) {
+                  // STEAM Tool
                   newSensor = new KXTJ3(this.board);
                 } else {
                   newSensor = new ADXL345(this.board);
@@ -21274,11 +21535,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 _context3.prev = 11;
                 _context3.t0 = _context3["catch"](0);
                 console.log("getAcceleration() was rejected by ".concat(_context3.t0));
-                this.accelerometer = null;
                 this.acceleration = null;
                 return _context3.abrupt("return", null);
 
-              case 17:
+              case 16:
               case "end":
                 return _context3.stop();
             }
@@ -21295,7 +21555,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "updateAcceleration",
     value: function updateAcceleration(util) {
-      var _this10 = this;
+      var _this11 = this;
 
       var getRequest = Promise.resolve(this.acceleration);
 
@@ -21307,10 +21567,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         }
 
         this.accelerationUpdating = true;
-        getRequest.then(function () {
-          return _this10.getAcceleration();
+        getRequest = getRequest.then(function () {
+          return _this11.getAcceleration();
         }).finally(function () {
-          _this10.accelerationUpdating = false;
+          _this11.accelerationUpdating = false;
         });
       }
 
@@ -21454,7 +21714,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getTemperatureBME280",
     value: function () {
       var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this11 = this;
+        var _this12 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
@@ -21498,7 +21758,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(temp * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this11.bme280 = null;
+                  _this12.bme280 = null;
                   return '';
                 }));
 
@@ -21525,7 +21785,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getPressureBME280",
     value: function () {
       var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this12 = this;
+        var _this13 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee5$(_context5) {
@@ -21569,7 +21829,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(press * 100) / 10000;
                 }).catch(function (reason) {
                   console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this12.bme280 = null;
+                  _this13.bme280 = null;
                   return '';
                 }));
 
@@ -21596,7 +21856,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getHumidityBME280",
     value: function () {
       var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var _this13 = this;
+        var _this14 = this;
 
         var newSensor;
         return regenerator.wrap(function _callee6$(_context6) {
@@ -21640,7 +21900,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                   return Math.round(hum * 100) / 100;
                 }).catch(function (reason) {
                   console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this13.bme280 = null;
+                  _this14.bme280 = null;
                   return '';
                 }));
 
@@ -21659,96 +21919,128 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getHumidityBME280;
     }()
     /**
-     * Get brightness [lx] from LTR-303 on I2C
-     * @returns {Promise<number | string>} a Promise which resolves value of brightness or empty string if it was fail
+     * Get instance of a brightness sensor.
+     *
+     * @returns {Promise} A Promise which resolves a sensor.
      */
 
   }, {
-    key: "getBrightnessLTR303",
+    key: "getBrightnessSensor",
     value: function () {
-      var _getBrightnessLTR = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
-        var i2cAddr, partIDReg, partID, ch1data, ch1, ch0data, ch0, ratio, lux;
+      var _getBrightnessSensor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
+        var newSensor;
         return regenerator.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context7.next = 2;
+                if (this.brightnessSensor) {
+                  _context7.next = 5;
                   break;
                 }
 
-                return _context7.abrupt("return", '');
+                newSensor = new LTR303(this.board);
+                _context7.next = 4;
+                return newSensor.init();
 
-              case 2:
-                if (this.board.boardType() === 'STEAM BOX') {
-                  this.board.enableDevice(0x01);
-                }
+              case 4:
+                this.brightnessSensor = newSensor;
 
-                i2cAddr = 0x29;
-                partIDReg = 0x86;
-                _context7.next = 7;
-                return this.board.i2cReadOnce(i2cAddr, partIDReg, 1);
+              case 5:
+                return _context7.abrupt("return", this.brightnessSensor);
 
-              case 7:
-                partID = _context7.sent;
-
-                if (!((partID[0] & 0xF0) !== 0xA0)) {
-                  _context7.next = 10;
-                  break;
-                }
-
-                return _context7.abrupt("return", '');
-
-              case 10:
-                _context7.prev = 10;
-                _context7.next = 13;
-                return this.board.i2cWrite(i2cAddr, 0x80, 1);
-
-              case 13:
-                _context7.next = 15;
-                return this.board.i2cReadOnce(i2cAddr, 0x88, 2);
-
-              case 15:
-                ch1data = _context7.sent;
-                ch1 = ch1data[0] | ch1data[1] << 8;
-                _context7.next = 19;
-                return this.board.i2cReadOnce(i2cAddr, 0x8A, 2);
-
-              case 19:
-                ch0data = _context7.sent;
-                ch0 = ch0data[0] | ch0data[1] << 8;
-                ratio = ch1 / (ch0 + ch1);
-                lux = 0;
-
-                if (ratio < 0.45) {
-                  lux = 1.7743 * ch0 + 1.1059 * ch1;
-                } else if (ratio < 0.64 && ratio >= 0.45) {
-                  lux = 4.2785 * ch0 - 1.9548 * ch1;
-                } else if (ratio < 0.85 && ratio >= 0.64) {
-                  lux = 0.5926 * ch0 + 0.1185 * ch1;
-                }
-
-                return _context7.abrupt("return", Math.round(lux * 10) / 10);
-
-              case 27:
-                _context7.prev = 27;
-                _context7.t0 = _context7["catch"](10);
-                console.log("Reading brightness from LTR-303 I2C was rejected by ".concat(_context7.t0));
-                return _context7.abrupt("return", '');
-
-              case 31:
+              case 6:
               case "end":
                 return _context7.stop();
             }
           }
-        }, _callee7, this, [[10, 27]]);
+        }, _callee7, this);
       }));
 
-      function getBrightnessLTR303() {
-        return _getBrightnessLTR.apply(this, arguments);
+      function getBrightnessSensor() {
+        return _getBrightnessSensor.apply(this, arguments);
       }
 
-      return getBrightnessLTR303;
+      return getBrightnessSensor;
+    }()
+    /**
+     * Get brightness [lx] from LTR-303 on I2C
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves value of brightness or empty string if it was fail
+     */
+
+  }, {
+    key: "getBrightness",
+    value: function () {
+      var _getBrightness = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(_args, util) {
+        var _this15 = this;
+
+        var getter;
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                if (this.isConnected()) {
+                  _context8.next = 2;
+                  break;
+                }
+
+                return _context8.abrupt("return", Promise.resolve(''));
+
+              case 2:
+                getter = Promise.resolve(this.brightness);
+
+                if (!(Date.now() - this.brightnessUpdatedTime > this.brightnessUpdateIntervalTime)) {
+                  _context8.next = 9;
+                  break;
+                }
+
+                if (!this.brightnessUpdating) {
+                  _context8.next = 7;
+                  break;
+                }
+
+                util.yield(); // re-try this call after a while.
+
+                return _context8.abrupt("return");
+
+              case 7:
+                this.brightnessUpdating = true;
+                getter = getter.then(function () {
+                  return _this15.getBrightnessSensor();
+                }).then(function () {
+                  return _this15.brightnessSensor.getBrightness();
+                }).then(function (brightness) {
+                  _this15.brightness = brightness;
+                  _this15.brightnessUpdatedTime = Date.now();
+                  return brightness;
+                }).finally(function () {
+                  _this15.brightnessUpdating = false;
+                });
+
+              case 9:
+                return _context8.abrupt("return", getter.then(function (brightness) {
+                  return Math.round(brightness * 10) / 10;
+                }).catch(function (reason) {
+                  console.log("getting brightness was rejected by ".concat(reason));
+                  _this15.brightness = null;
+                  _this15.brightnessSensor = null;
+                  return '';
+                }));
+
+              case 10:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function getBrightness(_x, _x2) {
+        return _getBrightness.apply(this, arguments);
+      }
+
+      return getBrightness;
     }()
     /**
      * Get temperature using DS18B20 on the pin.
@@ -21759,14 +22051,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getTemperatureDS18B20",
     value: function getTemperatureDS18B20(pin) {
-      var _this14 = this;
+      var _this16 = this;
 
       return this.board.sendOneWireReset(pin).then(function () {
-        return _this14.board.oneWireWrite(pin, 0x44);
+        return _this16.board.oneWireWrite(pin, 0x44);
       }).then(function () {
-        return _this14.board.sendOneWireReset(pin);
+        return _this16.board.sendOneWireReset(pin);
       }).then(function () {
-        return _this14.board.oneWireWriteAndRead(pin, 0xBE, 9);
+        return _this16.board.oneWireWriteAndRead(pin, 0xBE, 9);
       }).then(function (readData) {
         var buffer = new Uint8Array(readData).buffer;
         var dataView = new DataView(buffer);
@@ -21783,14 +22075,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemp",
     value: function getWaterTemp(pin) {
-      if (this.board.version.type >= 2 && this.board.version.minor >= 1) {
-        // STEAM BOX v2.0.1 and later
-        return this.board.getWaterTemp(pin).then(function (data) {
-          return data / 10;
-        });
-      }
+      if (this.board.version.type <= 1 || this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0) {
+        return this.getTemperatureDS18B20(pin);
+      } // STEAM Tool v2.0.1 or later
 
-      return this.getTemperatureDS18B20(pin);
+
+      return this.board.getWaterTemp(pin).then(function (data) {
+        return data / 10;
+      });
     }
     /**
      * Get water temperature on Digital A1.
@@ -21803,7 +22095,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureA",
     value: function getWaterTemperatureA(_args, util) {
-      var _this15 = this;
+      var _this17 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
 
@@ -21818,7 +22110,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       .catch(function () {
         return '';
       }).finally(function () {
-        _this15.waterTempAGetting = false;
+        _this17.waterTempAGetting = false;
       });
     }
     /**
@@ -21832,7 +22124,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemperatureB",
     value: function getWaterTemperatureB(_args, util) {
-      var _this16 = this;
+      var _this18 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
 
@@ -21847,30 +22139,56 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       .catch(function () {
         return '';
       }).finally(function () {
-        _this16.waterTempBGetting = false;
+        _this18.waterTempBGetting = false;
       });
     }
     /**
      * Return whether the accelerometer was shaken.
+     *
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {boolean} true when the accelerometer was shaken
      */
 
   }, {
     key: "whenShaken",
-    value: function whenShaken() {
-      var _this17 = this;
+    value: function whenShaken(_args, util) {
+      var _this19 = this;
 
-      if (!this.resetShakeEventTimer) {
-        this.getAccelerationAbsolute().then(function (prev) {
-          setTimeout(function () {
-            _this17.getAccelerationAbsolute().then(function (next) {
-              _this17.shaken = next - prev > _this17.shakeEventThreshold;
-              _this17.resetShakeEventTimer = setTimeout(function () {
-                _this17.resetShakeEventTimer = null;
-              }, _this17.runtime.currentStepTime);
+      if (!this.shakeEventUpdating) {
+        var updater = this.getAccelerationAbsolute(null, util);
+
+        if (updater) {
+          if (typeof this.prevAccAbsolute !== 'undefined' && this.prevAccAbsolute !== null) {
+            this.shakeEventUpdating = true;
+            setTimeout(function () {
+              updater.then(function (currentAcc) {
+                if (currentAcc === '') {
+                  _this19.shakeEventUpdating = false;
+                  return;
+                }
+
+                _this19.shaken = currentAcc - _this19.prevAccAbsolute > _this19.shakeEventThreshold;
+                _this19.prevAccAbsolute = currentAcc;
+                setTimeout(function () {
+                  _this19.shakeEventUpdating = false;
+                }, _this19.runtime.currentStepTime);
+              }).catch(function (reason) {
+                _this19.shakeEventUpdating = false;
+                console.log("promise rejected on whenShake: ".concat(reason));
+                return;
+              });
+            }, this.shakeEventInterval);
+          } else {
+            updater.then(function (currentAcc) {
+              if (currentAcc === '') {
+                return;
+              }
+
+              _this19.prevAccAbsolute = currentAcc;
             });
-          }, _this17.shakeEventInterval);
-        });
+          }
+        }
       }
 
       return !!this.shaken;
@@ -22142,7 +22460,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             CONNECTOR: {
               type: argumentType.STRING,
-              menu: 'digitalConnectorMenu'
+              menu: 'servoConnectorMenu'
             },
             ANGLE: {
               type: argumentType.ANGLE
@@ -22183,7 +22501,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, '---', {
           opcode: 'getBrightness',
-          func: 'getBrightnessLTR303',
+          func: 'getBrightness',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
@@ -22393,15 +22711,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.neoPixelShow',
-            default: 'color LED [CONNECTOR] show',
+            default: 'color LED show',
             description: 'show color LED'
           }),
-          arguments: {
-            CONNECTOR: {
-              type: argumentType.STRING,
-              menu: 'neoPixelConnectorMenu'
-            }
-          }
+          arguments: {}
         }, {
           opcode: 'neoPixelClear',
           blockType: blockType.COMMAND,
@@ -22511,7 +22824,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             },
             LEVEL: {
               type: argumentType.STRING,
-              menu: 'digitalLevelMenu'
+              menu: 'digitalLevelMenu',
+              defaultValue: 'true'
             }
           }
         }, {
@@ -22543,7 +22857,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             },
             LEVEL: {
               type: argumentType.STRING,
-              menu: 'digitalLevelMenu'
+              menu: 'digitalLevelMenu',
+              defaultValue: 'true'
             }
           }
         }, {
@@ -22882,6 +23197,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             acceptReporters: false,
             items: this.getPWMConnectorMenu()
           },
+          servoConnectorMenu: {
+            acceptReporters: false,
+            items: this.getServoConnectorMenu()
+          },
           neoPixelConnectorMenu: {
             acceptReporters: false,
             items: this.getNeoPixelConnectorMenu()
@@ -22955,6 +23274,20 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: "".concat(digitalPrefix, "B (B2)"),
         value: '9'
+      }, {
+        text: formatMessage({
+          id: 'g2s.digitalConnectorMenu.buttonAOnTool',
+          default: 'button A on STEAM Tool',
+          description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
+        }),
+        value: 'A'
+      }, {
+        text: formatMessage({
+          id: 'g2s.digitalConnectorMenu.buttonBOnTool',
+          default: 'button B on STEAM Tool',
+          description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
+        }),
+        value: 'B'
       }];
     }
     /**
@@ -22984,8 +23317,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: formatMessage({
           id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
-          default: 'relay on STEAM BOX',
-          description: 'label for relay on STEAM BOX in digital level set connector menu for g2s'
+          default: 'relay on Tool',
+          description: 'label for relay on STEAM Tool in digital level set connector menu for g2s'
         }),
         value: '4'
       }];
@@ -23017,10 +23350,36 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: formatMessage({
           id: 'g2s.pwmConnectorMenu.vibrationMotorOnSteamBox',
-          default: 'vibration motor on STEAM BOX',
-          description: 'label for vibration motor on STEAM BOX in PWM connector menu for g2s'
+          default: 'vibration motor on Tool',
+          description: 'label for vibration motor on STEAM Tool in PWM connector menu for g2s'
         }),
         value: '3'
+      }];
+    }
+    /**
+     * Returns menu items to select servo connectors.
+     * @returns {Array<object>} menu items
+     */
+
+  }, {
+    key: "getServoConnectorMenu",
+    value: function getServoConnectorMenu() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "A (A1)"),
+        value: '10'
+      }, {
+        text: "".concat(digitalPrefix, "A (A2)"),
+        value: '11'
+      }, {
+        text: "".concat(digitalPrefix, "B (B1)"),
+        value: '6'
+      }, {
+        text: "".concat(digitalPrefix, "B (B2)"),
+        value: '9'
       }];
     }
     /**
@@ -23119,8 +23478,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: formatMessage({
           id: 'g2s.neoPixelConnectorMenu.steamBox',
-          default: 'STEAM BOX',
-          description: 'label for STEAM BOX in neoPixel connector menu for g2s'
+          default: 'Tool',
+          description: 'label for STEAM Tool in neoPixel connector menu for g2s'
         }),
         value: '7'
       }];
