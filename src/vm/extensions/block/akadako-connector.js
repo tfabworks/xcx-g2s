@@ -46,7 +46,8 @@ export class AkaDakoConnector extends EventEmitter {
          */
         this.midiPortFilters = [
             {manufacturer: null, name: /STEAM BOX/},
-            {manufacturer: null, name: /MidiDako/}
+            {manufacturer: null, name: /MidiDako/},
+            {manufacturer: null, name: /AkaDako/}
         ];
 
         /**
