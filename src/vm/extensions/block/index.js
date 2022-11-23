@@ -228,6 +228,42 @@ class ExtensionBlocks {
         this.brightnessUpdateIntervalTime = 100;
  
         /**
+          * Cached water temperature A.
+          * @type {?number}
+          */
+        this.waterTempA = null;
+ 
+        /**
+           * Last updated time of water temperature A.
+           * @type {number} [milliseconds]
+           */
+        this.waterTempAUpdatedTime = 0;
+  
+        /**
+           * Interval time for water temperature A updating.
+           * @type {number} [milliseconds]
+           */
+        this.waterTempAUpdateIntervalTime = 100;
+
+        /**
+          * Cached water temperature B.
+          * @type {?number}
+          */
+        this.waterTempB = null;
+ 
+        /**
+            * Last updated time of water temperature B.
+            * @type {number} [milliseconds]
+            */
+        this.waterTempBUpdatedTime = 0;
+   
+        /**
+            * Interval time for water temperature B updating.
+            * @type {number} [milliseconds]
+            */
+        this.waterTempBUpdateIntervalTime = 100;
+ 
+        /**
          * Environment sensor BME280
          * @type {BME280}
          */
@@ -310,18 +346,6 @@ class ExtensionBlocks {
          * @type {number} [milliseconds]
          */
         this.opticalDistanceUpdateIntervalTime = 100;
-
-        /**
-         * Busy flag for water temp sensor on Digital A.
-         * @type {boolean}
-         */
-        this.waterTempAGetting = false;
-
-        /**
-         * Busy flag for water temp sensor on Digital B.
-         * @type {boolean}
-         */
-        this.waterTempBGetting = false;
 
         /**
          * Busy flag for color LED.
@@ -427,8 +451,8 @@ class ExtensionBlocks {
         this.shakeEventUpdating = false;
         this.brightnessSensor = null;
         this.brightnessUpdating = false;
-        this.waterTempAGetting = false;
-        this.waterTempBGetting = false;
+        this.waterTempAUpdating = false;
+        this.waterTempBUpdating = false;
         this.neoPixelBusy = false;
         this.pingSendingA = false;
         this.pingSendingB = false;
@@ -1407,15 +1431,29 @@ class ExtensionBlocks {
      */
     getWaterTemperatureA (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (this.waterTempAGetting) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise.resolve() to re-try.
+        let getter = Promise.resolve(this.waterTempA);
+        if ((Date.now() - this.waterTempAUpdatedTime) > this.waterTempAUpdateIntervalTime) {
+            if (this.waterTempAUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.waterTempAUpdating = true;
+            getter = getter
+                .then(() => this.getWaterTemp(10, util)) // Digital A1: 10
+                .then(waterTempA => {
+                    this.waterTempA = waterTempA;
+                    this.waterTempAUpdatedTime = Date.now();
+                    return waterTempA;
+                })
+                .finally(() => {
+                    this.waterTempAUpdating = false;
+                });
         }
-        this.waterTempAGetting = true;
-        return this.getWaterTemp(10, util) // Digital A1: 10
-            .catch(() => '')
-            .finally(() => {
-                this.waterTempAGetting = false;
+        return getter
+            .catch(reason => {
+                console.log(`getting water temperature A was rejected by ${reason}`);
+                this.waterTempA = null;
+                return '';
             });
     }
 
@@ -1428,15 +1466,29 @@ class ExtensionBlocks {
      */
     getWaterTemperatureB (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (this.waterTempBGetting) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise.resolve() to re-try.
+        let getter = Promise.resolve(this.waterTempB);
+        if ((Date.now() - this.waterTempBUpdatedTime) > this.waterTempBUpdateIntervalTime) {
+            if (this.waterTempBUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.waterTempBUpdating = true;
+            getter = getter
+                .then(() => this.getWaterTemp(6, util)) // Digital B1: 6;
+                .then(waterTempB => {
+                    this.waterTempB = waterTempB;
+                    this.waterTempBUpdatedTime = Date.now();
+                    return waterTempB;
+                })
+                .finally(() => {
+                    this.waterTempBUpdating = false;
+                });
         }
-        this.waterTempBGetting = true;
-        return this.getWaterTemp(6, util) // Digital B1: 6;
-            .catch(() => '')
-            .finally(() => {
-                this.waterTempBGetting = false;
+        return getter
+            .catch(reason => {
+                console.log(`getting water temperature A was rejected by ${reason}`);
+                this.waterTempB = null;
+                return '';
             });
     }
 
