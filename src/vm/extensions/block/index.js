@@ -231,7 +231,61 @@ class ExtensionBlocks {
          * Environment sensor BME280
          * @type {BME280}
          */
-        this.bme280 = null;
+        this.envSensor = null;
+
+        /**
+         * Cached environment temperature.
+         * @type {?number}
+         */
+        this.envTemperature = null;
+
+        /**
+          * Last updated time of environment temperature.
+          * @type {number} [milliseconds]
+          */
+        this.envTemperatureUpdatedTime = 0;
+ 
+        /**
+           * Interval time for environment temperature updating.
+           * @type {number} [milliseconds]
+           */
+        this.envTemperatureUpdateIntervalTime = 100;
+
+        /**
+         * Cached environment pressure.
+         * @type {?number}
+         */
+        this.envPressure = null;
+
+        /**
+           * Last updated time of environment pressure.
+           * @type {number} [milliseconds]
+           */
+        this.envPressureUpdatedTime = 0;
+  
+        /**
+            * Interval time for environment pressure updating.
+            * @type {number} [milliseconds]
+            */
+        this.envPressureUpdateIntervalTime = 100;
+   
+        /**
+         * Cached environment humidity.
+         * @type {?number}
+         */
+        this.envHumidity = null;
+
+        /**
+            * Last updated time of environment humidity.
+            * @type {number} [milliseconds]
+            */
+        this.envHumidityUpdatedTime = 0;
+   
+        /**
+             * Interval time for environment humidity updating.
+             * @type {number} [milliseconds]
+             */
+        this.envHumidityUpdateIntervalTime = 100;
 
         /**
          * Distance sensor VL53L0X
@@ -364,7 +418,10 @@ class ExtensionBlocks {
         if (prev === this.board) return;
         this.vl53l0x = null;
         this.opticalDistanceUpdating = false;
-        this.bme280 = null;
+        this.envSensor = null;
+        this.envTemperatureUpdating = false;
+        this.envPressureUpdating = false;
+        this.envHumidityUpdating = false;
         this.accelerometer = null;
         this.accelerationUpdating = false;
         this.shakeEventUpdating = false;
@@ -1133,80 +1190,126 @@ class ExtensionBlocks {
             });
     }
 
+
     /**
-     * Get temperature [℃] from BME280
+     * Get instance of an environment sensor.
+     *
+     * @returns {Promise} A Promise which resolves a sensor.
+     */
+    async getEnvSensor () {
+        if (!this.envSensor) {
+            const newSensor = new BME280(this.board);
+            await newSensor.init();
+            this.envSensor = newSensor;
+        }
+        return this.envSensor;
+    }
+
+    /**
+     * Get temperature [℃] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number | string>} a Promise which resolves temp or empty string if it was fail
      */
-    async getTemperatureBME280 () {
+    async getEvnTemperature (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (!this.bme280) {
-            const newSensor = new BME280(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return Promise.resolve('');
+        let getter = Promise.resolve(this.envTemperature);
+        if ((Date.now() - this.envTemperatureUpdatedTime) > this.envTemperatureUpdateIntervalTime) {
+            if (this.envTemperatureUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
             }
-            this.bme280 = newSensor;
+            this.envTemperatureUpdating = true;
+            getter = getter
+                .then(() => this.getEnvSensor())
+                .then(() => this.envSensor.readTemperature())
+                .then(envTemperature => {
+                    this.envTemperature = envTemperature;
+                    this.envTemperatureUpdatedTime = Date.now();
+                    return envTemperature;
+                })
+                .finally(() => {
+                    this.envTemperatureUpdating = false;
+                });
         }
-        return this.bme280.readTemperature()
-            .then(temp => (Math.round(temp * 100) / 100))
+        return getter
+            .then(envTemperature => (Math.round(envTemperature * 100) / 100))
             .catch(reason => {
-                console.log(`BME280.readTemperature() was rejected by ${reason}`);
-                this.bme280 = null;
+                console.log(`getting environment temperature was rejected by ${reason}`);
+                this.envTemperature = null;
+                this.envSensor = null;
                 return '';
             });
     }
 
     /**
-     * Get pressure [hPa] from BME280
+     * Get pressure [hPa] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number | string>} a Promise which resolves pressure or empty string if it was fail
      */
-    async getPressureBME280 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        if (!this.bme280) {
-            const newSensor = new BME280(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return Promise.resolve('');
+    async getEvnPressure (_args, util) {
+        let getter = Promise.resolve(this.envPressure);
+        if ((Date.now() - this.envPressureUpdatedTime) > this.envPressureUpdateIntervalTime) {
+            if (this.envPressureUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
             }
-            this.bme280 = newSensor;
+            this.envPressureUpdating = true;
+            getter = getter
+                .then(() => this.getEnvSensor())
+                .then(() => this.envSensor.readPressure())
+                .then(envPressure => {
+                    this.envPressure = envPressure;
+                    this.envPressureUpdatedTime = Date.now();
+                    return envPressure;
+                })
+                .finally(() => {
+                    this.envPressureUpdating = false;
+                });
         }
-        return this.bme280.readPressure()
-            .then(press => (Math.round(press * 100) / 10000))
+        return getter
+            .then(envPressure => (Math.round(envPressure * 100) / 10000))
             .catch(reason => {
-                console.log(`BME280.readPressure() was rejected by ${reason}`);
-                this.bme280 = null;
+                console.log(`getting environment pressure was rejected by ${reason}`);
+                this.envPressure = null;
+                this.envSensor = null;
                 return '';
             });
     }
 
     /**
-     * Get humidity [%] from BME280
+     * Get humidity [%] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise<number | string>} a Promise which resolves value of humidity or empty string if it was fail
      */
-    async getHumidityBME280 () {
-        if (!this.isConnected()) return Promise.resolve('');
-        if (!this.bme280) {
-            const newSensor = new BME280(this.board);
-            try {
-                await newSensor.init();
-            } catch (error) {
-                // fail to create instance
-                console.log(error);
-                return Promise.resolve('');
+    async getEnvHumidity (_args, util) {
+        let getter = Promise.resolve(this.envHumidity);
+        if ((Date.now() - this.envHumidityUpdatedTime) > this.envHumidityUpdateIntervalTime) {
+            if (this.envHumidityUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
             }
-            this.bme280 = newSensor;
+            this.envHumidityUpdating = true;
+            getter = getter
+                .then(() => this.getEnvSensor())
+                .then(() => this.envSensor.readHumidity())
+                .then(envHumidity => {
+                    this.envHumidity = envHumidity;
+                    this.envHumidityUpdatedTime = Date.now();
+                    return envHumidity;
+                })
+                .finally(() => {
+                    this.envHumidityUpdating = false;
+                });
         }
-        return this.bme280.readHumidity()
-            .then(hum => (Math.round(hum * 100) / 100))
+        return getter
+            .then(envHumidity => (Math.round(envHumidity * 100) / 100))
             .catch(reason => {
-                console.log(`BME280.readHumidity() was rejected by ${reason}`);
-                this.bme280 = null;
+                console.log(`getting environment humidity was rejected by ${reason}`);
+                this.envHumidity = null;
+                this.envSensor = null;
                 return '';
             });
     }
@@ -1680,7 +1783,7 @@ class ExtensionBlocks {
                 '---',
                 {
                     opcode: 'getTemperature',
-                    func: 'getTemperatureBME280',
+                    func: 'getEvnTemperature',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
@@ -1693,7 +1796,7 @@ class ExtensionBlocks {
                 },
                 {
                     opcode: 'getPressure',
-                    func: 'getPressureBME280',
+                    func: 'getEvnPressure',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
@@ -1706,7 +1809,7 @@ class ExtensionBlocks {
                 },
                 {
                     opcode: 'getHumidity',
-                    func: 'getHumidityBME280',
+                    func: 'getEnvHumidity',
                     blockType: BlockType.REPORTER,
                     disableMonitor: false,
                     text: formatMessage({
