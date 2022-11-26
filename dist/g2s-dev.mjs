@@ -20519,6 +20519,42 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.board = null;
     /**
+     * Cached sonic distance A.
+     * @type {?number}
+     */
+
+    this.sonicDistanceA = null;
+    /**
+      * Last updated time of sonic distance A.
+      * @type {number} [milliseconds]
+      */
+
+    this.sonicDistanceAUpdatedTime = 0;
+    /**
+      * Interval time for sonic distance updating A.
+      * @type {number} [milliseconds]
+      */
+
+    this.sonicDistanceAUpdateIntervalTime = 100;
+    /**
+     * Cached sonic distance B.
+     * @type {?number}
+     */
+
+    this.sonicDistanceB = null;
+    /**
+      * Last updated time of sonic distance B.
+      * @type {number} [milliseconds]
+      */
+
+    this.sonicDistanceBUpdatedTime = 0;
+    /**
+      * Interval time for sonic distance updating B.
+      * @type {number} [milliseconds]
+      */
+
+    this.sonicDistanceBUpdateIntervalTime = 100;
+    /**
      * Default accelerometer
      */
 
@@ -20566,11 +20602,101 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.brightnessUpdateIntervalTime = 100;
     /**
+      * Cached water temperature A.
+      * @type {?number}
+      */
+
+    this.waterTempA = null;
+    /**
+       * Last updated time of water temperature A.
+       * @type {number} [milliseconds]
+       */
+
+    this.waterTempAUpdatedTime = 0;
+    /**
+       * Interval time for water temperature A updating.
+       * @type {number} [milliseconds]
+       */
+
+    this.waterTempAUpdateIntervalTime = 100;
+    /**
+      * Cached water temperature B.
+      * @type {?number}
+      */
+
+    this.waterTempB = null;
+    /**
+        * Last updated time of water temperature B.
+        * @type {number} [milliseconds]
+        */
+
+    this.waterTempBUpdatedTime = 0;
+    /**
+        * Interval time for water temperature B updating.
+        * @type {number} [milliseconds]
+        */
+
+    this.waterTempBUpdateIntervalTime = 100;
+    /**
      * Environment sensor BME280
      * @type {BME280}
      */
 
-    this.bme280 = null;
+    this.envSensor = null;
+    /**
+     * Cached environment temperature.
+     * @type {?number}
+     */
+
+    this.envTemperature = null;
+    /**
+      * Last updated time of environment temperature.
+      * @type {number} [milliseconds]
+      */
+
+    this.envTemperatureUpdatedTime = 0;
+    /**
+       * Interval time for environment temperature updating.
+       * @type {number} [milliseconds]
+       */
+
+    this.envTemperatureUpdateIntervalTime = 100;
+    /**
+     * Cached environment pressure.
+     * @type {?number}
+     */
+
+    this.envPressure = null;
+    /**
+       * Last updated time of environment pressure.
+       * @type {number} [milliseconds]
+       */
+
+    this.envPressureUpdatedTime = 0;
+    /**
+        * Interval time for environment pressure updating.
+        * @type {number} [milliseconds]
+        */
+
+    this.envPressureUpdateIntervalTime = 100;
+    /**
+     * Cached environment humidity.
+     * @type {?number}
+     */
+
+    this.envHumidity = null;
+    /**
+        * Last updated time of environment humidity.
+        * @type {number} [milliseconds]
+        */
+
+    this.envHumidityUpdatedTime = 0;
+    /**
+         * Interval time for environment humidity updating.
+         * @type {number} [milliseconds]
+         */
+
+    this.envHumidityUpdateIntervalTime = 100;
     /**
      * Distance sensor VL53L0X
      * @type {VL53L0X}
@@ -20596,35 +20722,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.opticalDistanceUpdateIntervalTime = 100;
     /**
-     * Busy flag for water temp sensor on Digital A.
-     * @type {boolean}
-     */
-
-    this.waterTempAGetting = false;
-    /**
-     * Busy flag for water temp sensor on Digital B.
-     * @type {boolean}
-     */
-
-    this.waterTempBGetting = false;
-    /**
      * Busy flag for color LED.
      * @type {boolean}
      */
 
     this.neoPixelBusy = false;
-    /**
-     * Busy flag for ultrasonic distance sensor on Digital A.
-     * @type {boolean}
-     */
-
-    this.pingSensingA = false;
-    /**
-     * Busy flag for ultrasonic distance sensor on Digital B.
-     * @type {boolean}
-     */
-
-    this.pingSensingB = false;
     /**
      * Manager of AkaDako boards
      * @type {AkaDakoConnector}
@@ -20711,19 +20813,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var prev = this.board;
       this.board = this.boardConnector.findBoard();
       if (prev === this.board) return;
+      this.sonicDistanceAUpdating = false;
+      this.sonicDistanceBUpdating = false;
       this.vl53l0x = null;
       this.opticalDistanceUpdating = false;
-      this.bme280 = null;
+      this.envSensor = null;
+      this.envTemperatureUpdating = false;
+      this.envPressureUpdating = false;
+      this.envHumidityUpdating = false;
       this.accelerometer = null;
       this.accelerationUpdating = false;
       this.shakeEventUpdating = false;
       this.brightnessSensor = null;
       this.brightnessUpdating = false;
-      this.waterTempAGetting = false;
-      this.waterTempBGetting = false;
+      this.waterTempAUpdating = false;
+      this.waterTempBUpdating = false;
       this.neoPixelBusy = false;
-      this.pingSendingA = false;
-      this.pingSendingB = false;
     }
     /**
      * Called by the runtime when user wants to scan for a peripheral.
@@ -21401,22 +21506,33 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this9 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
+      var getter = Promise.resolve(this.sonicDistanceA);
 
-      if (this.pingSendingA) {
-        util.yield(); // re-try this call after a while.
+      if (Date.now() - this.sonicDistanceAUpdatedTime > this.sonicDistanceAUpdateIntervalTime) {
+        if (this.sonicDistanceAUpdating) {
+          util.yield(); // re-try this call after a while.
 
-        return; // Do not return Promise to re-try.
+          return; // Do not return Promise to re-try.
+        }
+
+        this.sonicDistanceAUpdating = true;
+        var pin = 10;
+        getter = getter.then(function () {
+          return _this9.board.getDistanceByUltrasonic(pin);
+        }).then(function (value) {
+          _this9.sonicDistanceA = value;
+          _this9.sonicDistanceAUpdatedTime = Date.now();
+          return _this9.sonicDistanceA;
+        }).finally(function () {
+          _this9.sonicDistanceAUpdating = false;
+        });
       }
 
-      this.pingSendingA = true;
-      var pin = 10;
-      return this.board.getDistanceByUltrasonic(pin).then(function (value) {
+      return getter.then(function (value) {
         return Math.min(350, Math.round(value / 10));
       }).catch(function (reason) {
-        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
+        console.log("ultrasonic distance A was rejected by ".concat(reason));
         return '';
-      }).finally(function () {
-        _this9.pingSendingA = false;
       });
     }
     /**
@@ -21432,22 +21548,33 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this10 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
+      var getter = Promise.resolve(this.sonicDistanceB);
 
-      if (this.pingSendingB) {
-        util.yield(); // re-try this call after a while.
+      if (Date.now() - this.sonicDistanceBUpdatedTime > this.sonicDistanceBUpdateIntervalTime) {
+        if (this.sonicDistanceBUpdating) {
+          util.yield(); // re-try this call after a while.
 
-        return; // Do not return Promise to re-try.
+          return; // Do not return Promise to re-try.
+        }
+
+        this.sonicDistanceBUpdating = true;
+        var pin = 6;
+        getter = getter.then(function () {
+          return _this10.board.getDistanceByUltrasonic(pin);
+        }).then(function (value) {
+          _this10.sonicDistanceB = value;
+          _this10.sonicDistanceBUpdatedTime = Date.now();
+          return _this10.sonicDistanceB;
+        }).finally(function () {
+          _this10.sonicDistanceBUpdating = false;
+        });
       }
 
-      this.pingSendingB = true;
-      var pin = 6;
-      return this.board.getDistanceByUltrasonic(pin).then(function (value) {
+      return getter.then(function (value) {
         return Math.min(350, Math.round(value / 10));
       }).catch(function (reason) {
-        console.log("pingSensor(".concat(pin, ") was rejected by ").concat(reason));
+        console.log("ultrasonic distance B was rejected by ".concat(reason));
         return '';
-      }).finally(function () {
-        _this10.pingSendingB = false;
       });
     }
     /**
@@ -21706,88 +21833,63 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       });
     }
     /**
-     * Get temperature [℃] from BME280
-     * @returns {Promise<number | string>} a Promise which resolves temp or empty string if it was fail
+     * Get instance of an environment sensor.
+     *
+     * @returns {Promise} A Promise which resolves a sensor.
      */
 
   }, {
-    key: "getTemperatureBME280",
+    key: "getEnvSensor",
     value: function () {
-      var _getTemperatureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
-        var _this12 = this;
-
+      var _getEnvSensor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
         var newSensor;
         return regenerator.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context4.next = 2;
-                  break;
-                }
-
-                return _context4.abrupt("return", Promise.resolve(''));
-
-              case 2:
-                if (this.bme280) {
-                  _context4.next = 14;
+                if (this.envSensor) {
+                  _context4.next = 5;
                   break;
                 }
 
                 newSensor = new BME280(this.board);
-                _context4.prev = 4;
-                _context4.next = 7;
+                _context4.next = 4;
                 return newSensor.init();
 
-              case 7:
-                _context4.next = 13;
-                break;
+              case 4:
+                this.envSensor = newSensor;
 
-              case 9:
-                _context4.prev = 9;
-                _context4.t0 = _context4["catch"](4);
-                // fail to create instance
-                console.log(_context4.t0);
-                return _context4.abrupt("return", Promise.resolve(''));
+              case 5:
+                return _context4.abrupt("return", this.envSensor);
 
-              case 13:
-                this.bme280 = newSensor;
-
-              case 14:
-                return _context4.abrupt("return", this.bme280.readTemperature().then(function (temp) {
-                  return Math.round(temp * 100) / 100;
-                }).catch(function (reason) {
-                  console.log("BME280.readTemperature() was rejected by ".concat(reason));
-                  _this12.bme280 = null;
-                  return '';
-                }));
-
-              case 15:
+              case 6:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, this, [[4, 9]]);
+        }, _callee4, this);
       }));
 
-      function getTemperatureBME280() {
-        return _getTemperatureBME.apply(this, arguments);
+      function getEnvSensor() {
+        return _getEnvSensor.apply(this, arguments);
       }
 
-      return getTemperatureBME280;
+      return getEnvSensor;
     }()
     /**
-     * Get pressure [hPa] from BME280
-     * @returns {Promise<number | string>} a Promise which resolves pressure or empty string if it was fail
+     * Get temperature [℃] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves temp or empty string if it was fail
      */
 
   }, {
-    key: "getPressureBME280",
+    key: "getEvnTemperature",
     value: function () {
-      var _getPressureBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-        var _this13 = this;
+      var _getEvnTemperature = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(_args, util) {
+        var _this12 = this;
 
-        var newSensor;
+        var getter;
         return regenerator.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -21800,123 +21902,203 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 return _context5.abrupt("return", Promise.resolve(''));
 
               case 2:
-                if (this.bme280) {
-                  _context5.next = 14;
+                getter = Promise.resolve(this.envTemperature);
+
+                if (!(Date.now() - this.envTemperatureUpdatedTime > this.envTemperatureUpdateIntervalTime)) {
+                  _context5.next = 9;
                   break;
                 }
 
-                newSensor = new BME280(this.board);
-                _context5.prev = 4;
-                _context5.next = 7;
-                return newSensor.init();
+                if (!this.envTemperatureUpdating) {
+                  _context5.next = 7;
+                  break;
+                }
+
+                util.yield(); // re-try this call after a while.
+
+                return _context5.abrupt("return");
 
               case 7:
-                _context5.next = 13;
-                break;
+                this.envTemperatureUpdating = true;
+                getter = getter.then(function () {
+                  return _this12.getEnvSensor();
+                }).then(function () {
+                  return _this12.envSensor.readTemperature();
+                }).then(function (envTemperature) {
+                  _this12.envTemperature = envTemperature;
+                  _this12.envTemperatureUpdatedTime = Date.now();
+                  return envTemperature;
+                }).finally(function () {
+                  _this12.envTemperatureUpdating = false;
+                });
 
               case 9:
-                _context5.prev = 9;
-                _context5.t0 = _context5["catch"](4);
-                // fail to create instance
-                console.log(_context5.t0);
-                return _context5.abrupt("return", Promise.resolve(''));
-
-              case 13:
-                this.bme280 = newSensor;
-
-              case 14:
-                return _context5.abrupt("return", this.bme280.readPressure().then(function (press) {
-                  return Math.round(press * 100) / 10000;
+                return _context5.abrupt("return", getter.then(function (envTemperature) {
+                  return Math.round(envTemperature * 100) / 100;
                 }).catch(function (reason) {
-                  console.log("BME280.readPressure() was rejected by ".concat(reason));
-                  _this13.bme280 = null;
+                  console.log("getting environment temperature was rejected by ".concat(reason));
+                  _this12.envTemperature = null;
+                  _this12.envSensor = null;
                   return '';
                 }));
 
-              case 15:
+              case 10:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this, [[4, 9]]);
+        }, _callee5, this);
       }));
 
-      function getPressureBME280() {
-        return _getPressureBME.apply(this, arguments);
+      function getEvnTemperature(_x, _x2) {
+        return _getEvnTemperature.apply(this, arguments);
       }
 
-      return getPressureBME280;
+      return getEvnTemperature;
     }()
     /**
-     * Get humidity [%] from BME280
-     * @returns {Promise<number | string>} a Promise which resolves value of humidity or empty string if it was fail
+     * Get pressure [hPa] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves pressure or empty string if it was fail
      */
 
   }, {
-    key: "getHumidityBME280",
+    key: "getEvnPressure",
     value: function () {
-      var _getHumidityBME = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
-        var _this14 = this;
+      var _getEvnPressure = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(_args, util) {
+        var _this13 = this;
 
-        var newSensor;
+        var getter;
         return regenerator.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                if (this.isConnected()) {
-                  _context6.next = 2;
+                getter = Promise.resolve(this.envPressure);
+
+                if (!(Date.now() - this.envPressureUpdatedTime > this.envPressureUpdateIntervalTime)) {
+                  _context6.next = 7;
                   break;
                 }
 
-                return _context6.abrupt("return", Promise.resolve(''));
-
-              case 2:
-                if (this.bme280) {
-                  _context6.next = 14;
+                if (!this.envPressureUpdating) {
+                  _context6.next = 5;
                   break;
                 }
 
-                newSensor = new BME280(this.board);
-                _context6.prev = 4;
-                _context6.next = 7;
-                return newSensor.init();
+                util.yield(); // re-try this call after a while.
+
+                return _context6.abrupt("return");
+
+              case 5:
+                this.envPressureUpdating = true;
+                getter = getter.then(function () {
+                  return _this13.getEnvSensor();
+                }).then(function () {
+                  return _this13.envSensor.readPressure();
+                }).then(function (envPressure) {
+                  _this13.envPressure = envPressure;
+                  _this13.envPressureUpdatedTime = Date.now();
+                  return envPressure;
+                }).finally(function () {
+                  _this13.envPressureUpdating = false;
+                });
 
               case 7:
-                _context6.next = 13;
-                break;
-
-              case 9:
-                _context6.prev = 9;
-                _context6.t0 = _context6["catch"](4);
-                // fail to create instance
-                console.log(_context6.t0);
-                return _context6.abrupt("return", Promise.resolve(''));
-
-              case 13:
-                this.bme280 = newSensor;
-
-              case 14:
-                return _context6.abrupt("return", this.bme280.readHumidity().then(function (hum) {
-                  return Math.round(hum * 100) / 100;
+                return _context6.abrupt("return", getter.then(function (envPressure) {
+                  return Math.round(envPressure * 100) / 10000;
                 }).catch(function (reason) {
-                  console.log("BME280.readHumidity() was rejected by ".concat(reason));
-                  _this14.bme280 = null;
+                  console.log("getting environment pressure was rejected by ".concat(reason));
+                  _this13.envPressure = null;
+                  _this13.envSensor = null;
                   return '';
                 }));
 
-              case 15:
+              case 8:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[4, 9]]);
+        }, _callee6, this);
       }));
 
-      function getHumidityBME280() {
-        return _getHumidityBME.apply(this, arguments);
+      function getEvnPressure(_x3, _x4) {
+        return _getEvnPressure.apply(this, arguments);
       }
 
-      return getHumidityBME280;
+      return getEvnPressure;
+    }()
+    /**
+     * Get humidity [%] from environment sensor.
+     * @param {object} _args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @returns {Promise<number | string>} a Promise which resolves value of humidity or empty string if it was fail
+     */
+
+  }, {
+    key: "getEnvHumidity",
+    value: function () {
+      var _getEnvHumidity = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(_args, util) {
+        var _this14 = this;
+
+        var getter;
+        return regenerator.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                getter = Promise.resolve(this.envHumidity);
+
+                if (!(Date.now() - this.envHumidityUpdatedTime > this.envHumidityUpdateIntervalTime)) {
+                  _context7.next = 7;
+                  break;
+                }
+
+                if (!this.envHumidityUpdating) {
+                  _context7.next = 5;
+                  break;
+                }
+
+                util.yield(); // re-try this call after a while.
+
+                return _context7.abrupt("return");
+
+              case 5:
+                this.envHumidityUpdating = true;
+                getter = getter.then(function () {
+                  return _this14.getEnvSensor();
+                }).then(function () {
+                  return _this14.envSensor.readHumidity();
+                }).then(function (envHumidity) {
+                  _this14.envHumidity = envHumidity;
+                  _this14.envHumidityUpdatedTime = Date.now();
+                  return envHumidity;
+                }).finally(function () {
+                  _this14.envHumidityUpdating = false;
+                });
+
+              case 7:
+                return _context7.abrupt("return", getter.then(function (envHumidity) {
+                  return Math.round(envHumidity * 100) / 100;
+                }).catch(function (reason) {
+                  console.log("getting environment humidity was rejected by ".concat(reason));
+                  _this14.envHumidity = null;
+                  _this14.envSensor = null;
+                  return '';
+                }));
+
+              case 8:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function getEnvHumidity(_x5, _x6) {
+        return _getEnvHumidity.apply(this, arguments);
+      }
+
+      return getEnvHumidity;
     }()
     /**
      * Get instance of a brightness sensor.
@@ -21927,33 +22109,33 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getBrightnessSensor",
     value: function () {
-      var _getBrightnessSensor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7() {
+      var _getBrightnessSensor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8() {
         var newSensor;
-        return regenerator.wrap(function _callee7$(_context7) {
+        return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 if (this.brightnessSensor) {
-                  _context7.next = 5;
+                  _context8.next = 5;
                   break;
                 }
 
                 newSensor = new LTR303(this.board);
-                _context7.next = 4;
+                _context8.next = 4;
                 return newSensor.init();
 
               case 4:
                 this.brightnessSensor = newSensor;
 
               case 5:
-                return _context7.abrupt("return", this.brightnessSensor);
+                return _context8.abrupt("return", this.brightnessSensor);
 
               case 6:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function getBrightnessSensor() {
@@ -21972,37 +22154,37 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getBrightness",
     value: function () {
-      var _getBrightness = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(_args, util) {
+      var _getBrightness = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(_args, util) {
         var _this15 = this;
 
         var getter;
-        return regenerator.wrap(function _callee8$(_context8) {
+        return regenerator.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 if (this.isConnected()) {
-                  _context8.next = 2;
+                  _context9.next = 2;
                   break;
                 }
 
-                return _context8.abrupt("return", Promise.resolve(''));
+                return _context9.abrupt("return", Promise.resolve(''));
 
               case 2:
                 getter = Promise.resolve(this.brightness);
 
                 if (!(Date.now() - this.brightnessUpdatedTime > this.brightnessUpdateIntervalTime)) {
-                  _context8.next = 9;
+                  _context9.next = 9;
                   break;
                 }
 
                 if (!this.brightnessUpdating) {
-                  _context8.next = 7;
+                  _context9.next = 7;
                   break;
                 }
 
                 util.yield(); // re-try this call after a while.
 
-                return _context8.abrupt("return");
+                return _context9.abrupt("return");
 
               case 7:
                 this.brightnessUpdating = true;
@@ -22019,7 +22201,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
                 });
 
               case 9:
-                return _context8.abrupt("return", getter.then(function (brightness) {
+                return _context9.abrupt("return", getter.then(function (brightness) {
                   return Math.round(brightness * 10) / 10;
                 }).catch(function (reason) {
                   console.log("getting brightness was rejected by ".concat(reason));
@@ -22030,13 +22212,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
               case 10:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
-      function getBrightness(_x, _x2) {
+      function getBrightness(_x7, _x8) {
         return _getBrightness.apply(this, arguments);
       }
 
@@ -22075,9 +22257,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "getWaterTemp",
     value: function getWaterTemp(pin) {
-      if (this.board.version.type <= 1 || this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0) {
+      if (this.board.version.type === 0) {
         return this.getTemperatureDS18B20(pin);
-      } // STEAM Tool v2.0.1 or later
+      } // MidiDako v1.0.0 or later
 
 
       return this.board.getWaterTemp(pin).then(function (data) {
@@ -22098,19 +22280,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this17 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
+      var getter = Promise.resolve(this.waterTempA);
 
-      if (this.waterTempAGetting) {
-        util.yield(); // re-try this call after a while.
+      if (Date.now() - this.waterTempAUpdatedTime > this.waterTempAUpdateIntervalTime) {
+        if (this.waterTempAUpdating) {
+          util.yield(); // re-try this call after a while.
 
-        return; // Do not return Promise.resolve() to re-try.
+          return; // Do not return Promise to re-try.
+        }
+
+        this.waterTempAUpdating = true;
+        getter = getter.then(function () {
+          return _this17.getWaterTemp(10, util);
+        }) // Digital A1: 10
+        .then(function (waterTempA) {
+          _this17.waterTempA = waterTempA;
+          _this17.waterTempAUpdatedTime = Date.now();
+          return waterTempA;
+        }).finally(function () {
+          _this17.waterTempAUpdating = false;
+        });
       }
 
-      this.waterTempAGetting = true;
-      return this.getWaterTemp(10, util) // Digital A1: 10
-      .catch(function () {
+      return getter.catch(function (reason) {
+        console.log("getting water temperature A was rejected by ".concat(reason));
+        _this17.waterTempA = null;
         return '';
-      }).finally(function () {
-        _this17.waterTempAGetting = false;
       });
     }
     /**
@@ -22127,19 +22322,32 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this18 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
+      var getter = Promise.resolve(this.waterTempB);
 
-      if (this.waterTempBGetting) {
-        util.yield(); // re-try this call after a while.
+      if (Date.now() - this.waterTempBUpdatedTime > this.waterTempBUpdateIntervalTime) {
+        if (this.waterTempBUpdating) {
+          util.yield(); // re-try this call after a while.
 
-        return; // Do not return Promise.resolve() to re-try.
+          return; // Do not return Promise to re-try.
+        }
+
+        this.waterTempBUpdating = true;
+        getter = getter.then(function () {
+          return _this18.getWaterTemp(6, util);
+        }) // Digital B1: 6;
+        .then(function (waterTempB) {
+          _this18.waterTempB = waterTempB;
+          _this18.waterTempBUpdatedTime = Date.now();
+          return waterTempB;
+        }).finally(function () {
+          _this18.waterTempBUpdating = false;
+        });
       }
 
-      this.waterTempBGetting = true;
-      return this.getWaterTemp(6, util) // Digital B1: 6;
-      .catch(function () {
+      return getter.catch(function (reason) {
+        console.log("getting water temperature A was rejected by ".concat(reason));
+        _this18.waterTempB = null;
         return '';
-      }).finally(function () {
-        _this18.waterTempBGetting = false;
       });
     }
     /**
@@ -22512,7 +22720,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, '---', {
           opcode: 'getTemperature',
-          func: 'getTemperatureBME280',
+          func: 'getEvnTemperature',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
@@ -22523,7 +22731,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, {
           opcode: 'getPressure',
-          func: 'getPressureBME280',
+          func: 'getEvnPressure',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
@@ -22534,7 +22742,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {}
         }, {
           opcode: 'getHumidity',
-          func: 'getHumidityBME280',
+          func: 'getEnvHumidity',
           blockType: blockType.REPORTER,
           disableMonitor: false,
           text: formatMessage({
