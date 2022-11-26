@@ -181,6 +181,42 @@ class ExtensionBlocks {
         this.board = null;
 
         /**
+         * Cached sonic distance A.
+         * @type {?number}
+         */
+        this.sonicDistanceA = null;
+
+        /**
+          * Last updated time of sonic distance A.
+          * @type {number} [milliseconds]
+          */
+        this.sonicDistanceAUpdatedTime = 0;
+ 
+        /**
+          * Interval time for sonic distance updating A.
+          * @type {number} [milliseconds]
+          */
+        this.sonicDistanceAUpdateIntervalTime = 100;
+
+        /**
+         * Cached sonic distance B.
+         * @type {?number}
+         */
+        this.sonicDistanceB = null;
+
+        /**
+          * Last updated time of sonic distance B.
+          * @type {number} [milliseconds]
+          */
+        this.sonicDistanceBUpdatedTime = 0;
+ 
+        /**
+          * Interval time for sonic distance updating B.
+          * @type {number} [milliseconds]
+          */
+        this.sonicDistanceBUpdateIntervalTime = 100;
+
+        /**
          * Default accelerometer
          */
         this.accelerometer = null;
@@ -354,18 +390,6 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
-         * Busy flag for ultrasonic distance sensor on Digital A.
-         * @type {boolean}
-         */
-        this.pingSensingA = false;
-
-        /**
-         * Busy flag for ultrasonic distance sensor on Digital B.
-         * @type {boolean}
-         */
-        this.pingSensingB = false;
-
-        /**
          * Manager of AkaDako boards
          * @type {AkaDakoConnector}
          */
@@ -440,6 +464,8 @@ class ExtensionBlocks {
         const prev = this.board;
         this.board = this.boardConnector.findBoard();
         if (prev === this.board) return;
+        this.sonicDistanceAUpdating = false;
+        this.sonicDistanceBUpdating = false;
         this.vl53l0x = null;
         this.opticalDistanceUpdating = false;
         this.envSensor = null;
@@ -454,8 +480,6 @@ class ExtensionBlocks {
         this.waterTempAUpdating = false;
         this.waterTempBUpdating = false;
         this.neoPixelBusy = false;
-        this.pingSendingA = false;
-        this.pingSendingB = false;
     }
 
     /**
@@ -996,20 +1020,29 @@ class ExtensionBlocks {
      */
     measureDistanceWithUltrasonicA (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (this.pingSendingA) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise to re-try.
+        let getter = Promise.resolve(this.sonicDistanceA);
+        if ((Date.now() - this.sonicDistanceAUpdatedTime) > this.sonicDistanceAUpdateIntervalTime) {
+            if (this.sonicDistanceAUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.sonicDistanceAUpdating = true;
+            const pin = 10;
+            getter = getter.then(() => this.board.getDistanceByUltrasonic(pin))
+                .then(value => {
+                    this.sonicDistanceA = value;
+                    this.sonicDistanceAUpdatedTime = Date.now();
+                    return this.sonicDistanceA;
+                })
+                .finally(() => {
+                    this.sonicDistanceAUpdating = false;
+                });
         }
-        this.pingSendingA = true;
-        const pin = 10;
-        return this.board.getDistanceByUltrasonic(pin)
+        return getter
             .then(value => Math.min(350, Math.round(value / 10)))
             .catch(reason => {
-                console.log(`pingSensor(${pin}) was rejected by ${reason}`);
+                console.log(`ultrasonic distance A was rejected by ${reason}`);
                 return '';
-            })
-            .finally(() => {
-                this.pingSendingA = false;
             });
     }
 
@@ -1021,20 +1054,29 @@ class ExtensionBlocks {
      */
     measureDistanceWithUltrasonicB (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
-        if (this.pingSendingB) {
-            util.yield(); // re-try this call after a while.
-            return; // Do not return Promise to re-try.
+        let getter = Promise.resolve(this.sonicDistanceB);
+        if ((Date.now() - this.sonicDistanceBUpdatedTime) > this.sonicDistanceBUpdateIntervalTime) {
+            if (this.sonicDistanceBUpdating) {
+                util.yield(); // re-try this call after a while.
+                return; // Do not return Promise to re-try.
+            }
+            this.sonicDistanceBUpdating = true;
+            const pin = 6;
+            getter = getter.then(() => this.board.getDistanceByUltrasonic(pin))
+                .then(value => {
+                    this.sonicDistanceB = value;
+                    this.sonicDistanceBUpdatedTime = Date.now();
+                    return this.sonicDistanceB;
+                })
+                .finally(() => {
+                    this.sonicDistanceBUpdating = false;
+                });
         }
-        this.pingSendingB = true;
-        const pin = 6;
-        return this.board.getDistanceByUltrasonic(pin)
+        return getter
             .then(value => Math.min(350, Math.round(value / 10)))
             .catch(reason => {
-                console.log(`pingSensor(${pin}) was rejected by ${reason}`);
+                console.log(`ultrasonic distance B was rejected by ${reason}`);
                 return '';
-            })
-            .finally(() => {
-                this.pingSendingB = false;
             });
     }
 
