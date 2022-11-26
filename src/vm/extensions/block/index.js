@@ -1413,11 +1413,10 @@ class ExtensionBlocks {
      * @returns {Promise<number>} a Promise which resolves temperature [℃]
      */
     getWaterTemp (pin) {
-        if ((this.board.version.type <= 1) ||
-        (this.board.version.type === 2 && this.board.version.major === 0 && this.board.version.minor === 0)) {
+        if ((this.board.version.type === 0)) {
             return this.getTemperatureDS18B20(pin);
         }
-        // STEAM Tool v2.0.1 or later
+        // MidiDako v1.0.0 or later
         return this.board.getWaterTemp(pin)
             .then(data => data / 10);
     }
