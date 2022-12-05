@@ -1,6 +1,6 @@
 {
   "name": "xcx-g2s",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "scripts": {
     "register": "npx xcratch-register --id=g2s --gui=../scratch-gui --block=./src/vm/extensions/block --entry=./src/gui/lib/libraries/extensions/entry --core --link --use=extension-support util",
     "build": "npx xcratch-build --module=g2s --gui=../scratch-gui --block=./src/vm/extensions/block --entry=./src/gui/lib/libraries/extensions/entry",
