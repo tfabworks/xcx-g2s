@@ -8,7 +8,7 @@ import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
 import translations from './translations.json';
 
-const version = 'v0.10.2';
+const version = 'v0.11.0';
 
 const entry = {
     get name () {
