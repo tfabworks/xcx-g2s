@@ -1,5 +1,4 @@
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import formatMessage from 'format-message';
 
 /**
  * This is an extension for Xcratch.
@@ -7,43 +6,30 @@ import {FormattedMessage} from 'react-intl';
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
+import translations from './translations.json';
+
 const version = 'v0.10.2';
-const translations =
-{
-    'en': {
-        'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Connect Grove sensors and actuators. (${version})`
-    },
-    'ja': {
-        'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (${version})`
-    },
-    'ja-Hira': {
-        'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Groveのセンサー・アクチュエーターをせつぞくする。 (${version})`
-    }
-};
 
 const entry = {
-    name: (
-        <FormattedMessage
-            defaultMessage="AkaDako"
-            description="Name for the 'AkaDako' extension"
-            id="g2s.entry.name"
-        />
-    ),
+    get name () {
+        return `${formatMessage({
+            defaultMessage: 'AkaDako',
+            description: 'Name for the "AkaDako" extension',
+            id: 'g2s.entry.name'
+        })} (${version})`;
+    },
     extensionId: 'g2s',
     extensionURL: null,
     collaborator: 'TFabWorks',
     iconURL: iconURL,
     insetIconURL: insetIconURL,
-    description: (
-        <FormattedMessage
-            defaultMessage="Connect Grove sensors and actuators."
-            description="Description for the 'AkaDako' extension"
-            id="g2s.entry.description"
-        />
-    ),
+    get description () {
+        return formatMessage({
+            defaultMessage: 'Connect Grove sensors and actuators.',
+            description: 'Description for the "AkaDako" extension',
+            id: 'g2s.entry.description'
+        });
+    },
     featured: true,
     disabled: false,
     bluetoothRequired: false,
@@ -52,5 +38,4 @@ const entry = {
     translationMap: translations
 };
 
-export {entry}; // loadable-extension needs this line.
 export default entry;
