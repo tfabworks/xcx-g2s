@@ -1,0 +1,41 @@
+name: deploy module
+on:
+  workflow_dispatch:
+    inputs:
+      deployBranch:
+        description: "Branch of the repo"
+        default: "develop"
+        required: true
+      dev:
+        description: "Deploy for development"
+        type: boolean
+        default: true
+        required: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inputs
+        run: echo "${{ toJSON(inputs) }}"
+      - name: checkout extension
+        uses: actions/checkout@v3
+        with:
+          repository: tfabworks/xcx-g2s
+          ref: ${{ inputs.deployBranch }}
+      - name: deploy for dev
+        if: ${{ inputs.dev }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          destination_dir: ./dev
+          keep_files: false
+      - name: deploy
+        if: ${{ !inputs.dev }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          destination_dir: .
+          keep_files: true
