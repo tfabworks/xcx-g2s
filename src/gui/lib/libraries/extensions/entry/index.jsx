@@ -6,6 +6,8 @@ import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
 import translations from './translations.json';
 
+const version = 'v0.11.0';
+
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -16,11 +18,11 @@ let formatMessage = messageData => messageData.defaultMessage;
 
 const entry = {
     get name () {
-        return formatMessage({
-            id: 'g2s.entry.name',
-            default: 'AkaDako',
-            description: 'name of the extension'
-        });
+        return `${formatMessage({
+            defaultMessage: 'AkaDako',
+            description: 'Name for the "AkaDako" extension',
+            id: 'g2s.entry.name'
+        })} (${version})`;
     },
     extensionId: 'g2s',
     extensionURL: 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs',
@@ -28,11 +30,11 @@ const entry = {
     iconURL: iconURL,
     insetIconURL: insetIconURL,
     get description () {
-        return `${formatMessage({
+        return formatMessage({
             defaultMessage: 'Connect Grove sensors and actuators.',
-            description: 'Description for this extension',
+            description: 'Description for the "AkaDako" extension',
             id: 'g2s.entry.description'
-        })} (v0.10.2)`;
+        });
     },
     featured: true,
     disabled: false,
