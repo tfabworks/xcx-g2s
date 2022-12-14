@@ -390,6 +390,30 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
+         * URL of the data sharing server.
+         * @type {string}
+         */
+        this.shareServerURL = 'wss://ws.akadako.com/ws/';
+
+        /**
+         * Received shared data from server.
+         * @type {object}
+         */
+        this.sharedData = {};
+
+        /**
+         * Interval time for sending data to share server.
+         * @type {number} [milliseconds]
+         */
+        this.shareDataSendingIntervalTime = 1000;
+
+        /**
+         * Waiting time for connecting to share server.
+         * @type {number} [milliseconds]
+         */
+        this.shareServerConnectWaitingTime = 10000;
+
+        /**
          * Manager of AkaDako boards
          * @type {AkaDakoConnector}
          */
@@ -412,6 +436,7 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
+            this.resetShareServer();
         });
 
         /**
@@ -1740,6 +1765,242 @@ class ExtensionBlocks {
     }
 
     /**
+     * Reset parameters for data sharing.
+     */
+    resetShareServer () {
+        this.shareGroupID = null;
+        this.shareDataSending = false;
+        this.sharedData = {};
+        this.prevSharedData = {};
+        if (this.shareServer) {
+            this.shareServer.close();
+            this.shareServer = null;
+        }
+    }
+
+    /**
+     * Open dialog to input groupID by user.
+     * @return {?Promise} a Promise that resolves when the dialog closed.
+     */
+    openInputGroupIDDialog () {
+        const inputDialog = document.createElement('dialog');
+        inputDialog.style.padding = '0px';
+        const dialogFace = document.createElement('div');
+        dialogFace.style.padding = '16px';
+        inputDialog.appendChild(dialogFace);
+        const label = document.createTextNode(formatMessage({
+            id: 'g2s.inputShareServerGroupID.message',
+            default: 'set data sharing group ID',
+            description: 'label of groupID input dialog for g2s'
+        }));
+        dialogFace.appendChild(label);
+        // Dialog form
+        const groupIDForm = document.createElement('form');
+        groupIDForm.setAttribute('method', 'dialog');
+        groupIDForm.style.margin = '8px';
+        dialogFace.appendChild(groupIDForm);
+        // API select
+        const groupIDInput = document.createElement('input');
+        groupIDInput.setAttribute('type', 'text');
+        groupIDInput.setAttribute('id', 'groupID');
+        groupIDInput.setAttribute('size', '10');
+        groupIDInput.setAttribute('value', 'group-01');
+        groupIDForm.appendChild(groupIDInput);
+        // Cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = formatMessage({
+            id: 'g2s.inputShareServerGroupID.cancel',
+            default: 'cancel',
+            description: 'cancel button on groupID input dialog for g2s'
+        });
+        cancelButton.style.margin = '8px';
+        dialogFace.appendChild(cancelButton);
+        // OK button
+        const confirmButton = document.createElement('button');
+        confirmButton.textContent = formatMessage({
+            id: 'g2s.inputShareServerGroupID.set',
+            default: 'set',
+            description: 'set button on groupID input dialog for g2s'
+        });
+        confirmButton.style.margin = '8px';
+        dialogFace.appendChild(confirmButton);
+        return new Promise(resolve => {
+            const closer = () => {
+                document.body.removeChild(inputDialog);
+                resolve(this.shareGroupID);
+            };
+            // Add onClick action
+            const confirmed = () => {
+                const inputID = groupIDInput.value.trim();
+                this.shareGroupID = inputID;
+                closer();
+            };
+            confirmButton.onclick = confirmed;
+            const canceled = () => {
+                this.shareGroupID = ''; // Disable data sharing when the groupID was empty string.
+                closer();
+            };
+            cancelButton.onclick = canceled;
+            inputDialog.addEventListener('keydown', e => {
+                if (e.code === 'Enter') {
+                    confirmed();
+                }
+                if (e.code === 'Escape') {
+                    canceled();
+                }
+            });
+            document.body.appendChild(inputDialog);
+            inputDialog.showModal();
+        });
+    }
+
+    /**
+     * Return connected server for data sharing.
+     *
+     * @returns {Promise<?WebSocket>} a Promise that resolves data sharing server
+     */
+    getShareServer () {
+        if (this.shareServer) return Promise.resolve(this.shareServer);
+        let getGroupID;
+        if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
+            getGroupID = this.openInputGroupIDDialog();
+        } else {
+            getGroupID = Promise.resolve(this.shareGroupID);
+        }
+        const connecting = getGroupID.then(groupID => {
+            if (groupID === '') {
+                // Disable data sharing when the groupID was empty string.
+                console.log('Disable data sharing for empty groupID');
+                return null;
+            }
+            const url = this.shareServerURL + encodeURIComponent(groupID);
+            return new Promise(resolve => {
+                const server = new WebSocket(url);
+                server.onmessage = event => {
+                    console.log(`${url}: received ${event.data}`); // for debug
+                    const received = JSON.parse(event.data);
+                    this.sharedData[received.key] =
+                        {
+                            content: received.value,
+                            timestamp: Date.now()
+                        };
+                };
+                server.onclose = () => {
+                    if (this.shareServer === server) {
+                        this.resetShareServer();
+                    }
+                    console.log(`${url}: close`);
+                };
+                server.onopen = () => {
+                    console.log(`${url}: open`);
+                    this.shareServer = server;
+                    resolve(server);
+                };
+            });
+        });
+        return Promise.race([connecting, new Promise(resolve => {
+            setTimeout(() => {
+                resolve(null);
+            }, this.shareServerConnectWaitingTime);
+        })]);
+    }
+
+    /**
+     * Send data to share server.
+     *
+     * @param {object} args - the block's arguments.
+     * @param {string} args.LABEL - label of the data
+     * @param {string} args.DATA - content of the data
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @return {?Promise} a Promise that resolves when sending done or undefined if this process was yield.
+     */
+    sendSharedData (args, util) {
+        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
+        if (this.shareDataSending) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise to re-try.
+        }
+        this.shareDataSending = true;
+        return this.getShareServer()
+            .then(server => {
+                if (!server) {
+                    return;
+                }
+                server.send(JSON.stringify({
+                    groupId: this.shareGroupID,
+                    key: Cast.toString(args.LABEL),
+                    value: Cast.toString(args.DATA)
+                }));
+            })
+            .then(() => new Promise(resolve => {
+                setTimeout(() => {
+                    this.shareDataSending = false;
+                    resolve();
+                }, this.shareDataSendingIntervalTime);
+            }));
+    }
+
+    /**
+     * Rerutn the last content of the messge or undefined if the data which has the label is not received.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.LABEL - label of the data.
+     * @return {?(string | number)} - content of the data or empty string when the data was null
+     */
+    getSharedDataLabeled (args) {
+        const label = Cast.toString(args.LABEL);
+        if (this.sharedData[label]) {
+            return this.sharedData[label].content;
+        }
+        return '';
+    }
+
+    /**
+     * Update the previous occurred time of all received data.
+     */
+    updatePrevSharedData () {
+        this.prevSharedData = {};
+        Object.entries(this.sharedData).forEach(([label, contentObject]) => {
+            this.prevSharedData[label] = {};
+            Object.entries(contentObject).forEach(([key, value]) => {
+                this.prevSharedData[label][key] = value;
+            });
+        });
+    }
+
+    /**
+     * Test whether the data received which had the label.
+     * @param {object} args - the block's arguments.
+     * @param {number} args.LABEL - label of the data.
+     * @return {boolean} - true if the data received.
+     */
+    whenSharedDataReceived (args) {
+        if (!this.isConnected()) return false;
+        if (!this.shareServer) {
+            if (this.shareServerGetting) {
+                return false;
+            }
+            this.shareServerGetting = true;
+            this.getShareServer()
+                .then(() => {
+                    this.shareServerGetting = false;
+                });
+            
+        }
+        if (!this.updateLastSharedDataTimer) {
+            this.updateLastSharedDataTimer = setTimeout(() => {
+                this.updatePrevSharedData();
+                this.updateLastSharedDataTimer = null;
+            }, this.runtime.currentStepTime);
+        }
+        const label = Cast.toString(args.LABEL);
+        if (!this.sharedData[label]) return false;
+        const lastTimestamp = this.sharedData[label].timestamp;
+        if (!this.prevSharedData[label]) return true;
+        const prevTimestamp = this.prevSharedData[label].timestamp;
+        return lastTimestamp !== prevTimestamp;
+    }
+
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
@@ -2445,6 +2706,56 @@ class ExtensionBlocks {
                 //         }
                 //     }
                 // },
+                '---',
+                {
+                    opcode: 'whenSharedDataReceived',
+                    text: formatMessage({
+                        id: 'g2s.whenSharedDataReceived',
+                        default: 'when data with label [LABEL] received from server',
+                        description: 'when the data which has the label received'
+                    }),
+                    blockType: BlockType.HAT,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        }
+                    }
+                },
+                {
+                    opcode: 'getSharedDataLabeled',
+                    text: formatMessage({
+                        id: 'g2s.getSharedDataLabeled',
+                        default: 'data of label [LABEL]',
+                        description: 'the last data which has the label'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        }
+                    }
+                },
+                {
+                    opcode: 'sendSharedData',
+                    text: formatMessage({
+                        id: 'g2s.sendSharedData',
+                        default: 'send data [DATA] with label [LABEL] to server',
+                        description: 'send data content with label to server'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        },
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'data'
+                        }
+                    }
+                },
                 '---',
                 {
                     opcode: 'numberAtIndex',
