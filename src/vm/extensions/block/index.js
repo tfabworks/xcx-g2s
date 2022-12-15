@@ -1768,6 +1768,7 @@ class ExtensionBlocks {
      * Reset parameters for data sharing.
      */
     resetShareServer () {
+        this.prevShareGroupID = this.shareGroupID;
         this.shareGroupID = null;
         this.shareDataSending = false;
         this.sharedData = {};
@@ -1804,6 +1805,9 @@ class ExtensionBlocks {
         groupIDInput.setAttribute('type', 'text');
         groupIDInput.setAttribute('id', 'groupID');
         groupIDInput.setAttribute('size', '10');
+        if (this.prevShareGroupID) {
+            groupIDInput.setAttribute('value', this.prevShareGroupID);
+        }
         groupIDForm.appendChild(groupIDInput);
         // Cancel button
         const cancelButton = document.createElement('button');
