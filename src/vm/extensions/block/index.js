@@ -1831,6 +1831,7 @@ class ExtensionBlocks {
             // Add onClick action
             const confirmed = () => {
                 const inputID = groupIDInput.value.trim();
+                if (inputID === '') return;
                 this.shareGroupID = inputID;
                 closer();
             };
