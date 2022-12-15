@@ -22695,6 +22695,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "resetShareServer",
     value: function resetShareServer() {
+      this.prevShareGroupID = this.shareGroupID;
       this.shareGroupID = null;
       this.shareDataSending = false;
       this.sharedData = {};
@@ -22736,7 +22737,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       groupIDInput.setAttribute('type', 'text');
       groupIDInput.setAttribute('id', 'groupID');
       groupIDInput.setAttribute('size', '10');
-      groupIDInput.setAttribute('value', 'group-01');
+
+      if (this.prevShareGroupID) {
+        groupIDInput.setAttribute('value', this.prevShareGroupID);
+      }
+
       groupIDForm.appendChild(groupIDInput); // Cancel button
 
       var cancelButton = document.createElement('button');
@@ -22765,6 +22770,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
         var confirmed = function confirmed() {
           var inputID = groupIDInput.value.trim();
+          if (inputID === '') return;
           _this20.shareGroupID = inputID;
           closer();
         };
@@ -22814,7 +22820,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var connecting = getGroupID.then(function (groupID) {
         if (groupID === '') {
           // Disable data sharing when the groupID was empty string.
-          console.log('Disable data sharing for empty groupID');
+          console.debug('Disable data sharing for empty groupID');
           return null;
         }
 
@@ -22823,8 +22829,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           var server = new WebSocket(url);
 
           server.onmessage = function (event) {
-            console.log("".concat(url, ": received ").concat(event.data)); // for debug
-
+            console.debug("".concat(url, ": received ").concat(event.data));
             var received = JSON.parse(event.data);
             _this21.sharedData[received.key] = {
               content: received.value,
@@ -22837,11 +22842,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               _this21.resetShareServer();
             }
 
-            console.log("".concat(url, ": close"));
+            console.log("close WebSocket ".concat(url));
           };
 
           server.onopen = function () {
-            console.log("".concat(url, ": open"));
+            console.log("open WebSocket  ".concat(url));
             _this21.shareServer = server;
             resolve(server);
           };

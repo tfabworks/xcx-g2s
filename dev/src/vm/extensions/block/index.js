@@ -1768,6 +1768,7 @@ class ExtensionBlocks {
      * Reset parameters for data sharing.
      */
     resetShareServer () {
+        this.prevShareGroupID = this.shareGroupID;
         this.shareGroupID = null;
         this.shareDataSending = false;
         this.sharedData = {};
@@ -1804,7 +1805,9 @@ class ExtensionBlocks {
         groupIDInput.setAttribute('type', 'text');
         groupIDInput.setAttribute('id', 'groupID');
         groupIDInput.setAttribute('size', '10');
-        groupIDInput.setAttribute('value', 'group-01');
+        if (this.prevShareGroupID) {
+            groupIDInput.setAttribute('value', this.prevShareGroupID);
+        }
         groupIDForm.appendChild(groupIDInput);
         // Cancel button
         const cancelButton = document.createElement('button');
@@ -1832,6 +1835,7 @@ class ExtensionBlocks {
             // Add onClick action
             const confirmed = () => {
                 const inputID = groupIDInput.value.trim();
+                if (inputID === '') return;
                 this.shareGroupID = inputID;
                 closer();
             };
@@ -1870,14 +1874,14 @@ class ExtensionBlocks {
         const connecting = getGroupID.then(groupID => {
             if (groupID === '') {
                 // Disable data sharing when the groupID was empty string.
-                console.log('Disable data sharing for empty groupID');
+                console.debug('Disable data sharing for empty groupID');
                 return null;
             }
             const url = this.shareServerURL + encodeURIComponent(groupID);
             return new Promise(resolve => {
                 const server = new WebSocket(url);
                 server.onmessage = event => {
-                    console.log(`${url}: received ${event.data}`); // for debug
+                    console.debug(`${url}: received ${event.data}`);
                     const received = JSON.parse(event.data);
                     this.sharedData[received.key] =
                         {
@@ -1889,10 +1893,10 @@ class ExtensionBlocks {
                     if (this.shareServer === server) {
                         this.resetShareServer();
                     }
-                    console.log(`${url}: close`);
+                    console.log(`close WebSocket ${url}`);
                 };
                 server.onopen = () => {
-                    console.log(`${url}: open`);
+                    console.log(`open WebSocket  ${url}`);
                     this.shareServer = server;
                     resolve(server);
                 };
