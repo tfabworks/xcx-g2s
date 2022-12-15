@@ -1804,7 +1804,6 @@ class ExtensionBlocks {
         groupIDInput.setAttribute('type', 'text');
         groupIDInput.setAttribute('id', 'groupID');
         groupIDInput.setAttribute('size', '10');
-        groupIDInput.setAttribute('value', 'group-01');
         groupIDForm.appendChild(groupIDInput);
         // Cancel button
         const cancelButton = document.createElement('button');
