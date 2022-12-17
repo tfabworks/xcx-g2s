@@ -436,6 +436,9 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
+        });
+
+        this.runtime.on('PROJECT_START', () => {
             this.resetShareServer();
         });
 
