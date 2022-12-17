@@ -1784,6 +1784,7 @@ class ExtensionBlocks {
      * @return {?Promise} a Promise that resolves when the dialog closed.
      */
     openInputGroupIDDialog () {
+        this.inputGroupIDDialogOpened = true;
         const inputDialog = document.createElement('dialog');
         inputDialog.style.padding = '0px';
         const dialogFace = document.createElement('div');
@@ -1830,6 +1831,7 @@ class ExtensionBlocks {
         return new Promise(resolve => {
             const closer = () => {
                 document.body.removeChild(inputDialog);
+                this.inputGroupIDDialogOpened = false;
                 resolve(this.shareGroupID);
             };
             // Add onClick action
@@ -1867,6 +1869,10 @@ class ExtensionBlocks {
         if (this.shareServer) return Promise.resolve(this.shareServer);
         let getGroupID;
         if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
+            if (this.inputGroupIDDialogOpened) {
+                // prevent to open multiple dialogs
+                return Promise.resolve(null);
+            }
             getGroupID = this.openInputGroupIDDialog();
         } else {
             getGroupID = Promise.resolve(this.shareGroupID);
