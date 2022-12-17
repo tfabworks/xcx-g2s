@@ -1771,7 +1771,9 @@ class ExtensionBlocks {
      * Reset parameters for data sharing.
      */
     resetShareServer () {
-        this.prevShareGroupID = this.shareGroupID;
+        if (this.shareGroupID) {
+            this.prevShareGroupID = this.shareGroupID;
+        }
         this.shareGroupID = null;
         this.shareDataSending = false;
         this.sharedData = {};
