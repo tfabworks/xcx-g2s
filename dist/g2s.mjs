@@ -20838,7 +20838,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       _this.resetPinMode();
 
       _this.neoPixelClearAll();
-
+    });
+    this.runtime.on('PROJECT_START', function () {
       _this.resetShareServer();
     });
     /**
@@ -22695,7 +22696,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "resetShareServer",
     value: function resetShareServer() {
-      this.prevShareGroupID = this.shareGroupID;
+      if (this.shareGroupID) {
+        this.prevShareGroupID = this.shareGroupID;
+      }
+
       this.shareGroupID = null;
       this.shareDataSending = false;
       this.sharedData = {};
@@ -22716,6 +22720,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function openInputGroupIDDialog() {
       var _this20 = this;
 
+      this.inputGroupIDDialogOpened = true;
       var inputDialog = document.createElement('dialog');
       inputDialog.style.padding = '0px';
       var dialogFace = document.createElement('div');
@@ -22764,6 +22769,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return new Promise(function (resolve) {
         var closer = function closer() {
           document.body.removeChild(inputDialog);
+          _this20.inputGroupIDDialogOpened = false;
           resolve(_this20.shareGroupID);
         }; // Add onClick action
 
@@ -22812,6 +22818,11 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var getGroupID;
 
       if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
+        if (this.inputGroupIDDialogOpened) {
+          // prevent to open multiple dialogs
+          return Promise.resolve(null);
+        }
+
         getGroupID = this.openInputGroupIDDialog();
       } else {
         getGroupID = Promise.resolve(this.shareGroupID);
