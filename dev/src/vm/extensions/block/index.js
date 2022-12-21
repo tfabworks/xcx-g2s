@@ -1942,7 +1942,7 @@ class ExtensionBlocks {
                     return;
                 }
                 server.send(JSON.stringify({
-                    groupId: this.shareGroupID,
+                    groupId: encodeURIComponent(this.shareGroupID),
                     key: Cast.toString(args.LABEL),
                     value: Cast.toString(args.DATA)
                 }));

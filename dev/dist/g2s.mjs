@@ -22899,7 +22899,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         }
 
         server.send(JSON.stringify({
-          groupId: _this22.shareGroupID,
+          groupId: encodeURIComponent(_this22.shareGroupID),
           key: cast.toString(args.LABEL),
           value: cast.toString(args.DATA)
         }));
