@@ -413,6 +413,8 @@ class ExtensionBlocks {
          */
         this.shareServerConnectWaitingTime = 10000;
 
+        this.resetShareServer();
+
         /**
          * Manager of AkaDako boards
          * @type {AkaDakoConnector}
