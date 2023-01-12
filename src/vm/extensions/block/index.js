@@ -393,15 +393,12 @@ class ExtensionBlocks {
          * URL of the data sharing server.
          * @type {string}
          */
-        // this.shareServerURL = 'wss://ws.akadako.com/sub/';
-        this.shareServerURL = 'ws://localhost:8090/sub/'; // for dev-server
-
+        this.shareServerURL = 'wss://ws.akadako.com/sub/';
         /**
          * URL for sending data to sharing server.
          * @type {string}
          */
-        // this.shareServerSendingURL = 'https://ws.akadako.com/pub/';
-        this.shareServerSendingURL = 'http://localhost:8090/pub/'; // for dev-server
+        this.shareServerSendingURL = 'https://ws.akadako.com/pub/';
 
         /**
          * Received shared data from server.
