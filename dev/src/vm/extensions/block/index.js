@@ -393,7 +393,12 @@ class ExtensionBlocks {
          * URL of the data sharing server.
          * @type {string}
          */
-        this.shareServerURL = 'wss://ws.akadako.com/ws/';
+        this.shareServerURL = 'wss://ws.akadako.com/sub/';
+        /**
+         * URL for sending data to sharing server.
+         * @type {string}
+         */
+        this.shareServerSendingURL = 'https://ws.akadako.com/pub/';
 
         /**
          * Received shared data from server.
@@ -412,6 +417,8 @@ class ExtensionBlocks {
          * @type {number} [milliseconds]
          */
         this.shareServerConnectWaitingTime = 10000;
+
+        this.resetShareServer();
 
         /**
          * Manager of AkaDako boards
@@ -1450,7 +1457,7 @@ class ExtensionBlocks {
                 });
         }
         return getter
-            .then(brightness => Math.round(brightness * 10) / 10)
+            .then(brightness => Math.min(64000, (Math.round(brightness * 10) / 10))) // Ignore too big value
             .catch(reason => {
                 console.log(`getting brightness was rejected by ${reason}`);
                 this.brightness = null;
@@ -1941,18 +1948,34 @@ class ExtensionBlocks {
                 if (!server) {
                     return;
                 }
-                server.send(JSON.stringify({
-                    groupId: encodeURIComponent(this.shareGroupID),
-                    key: Cast.toString(args.LABEL),
-                    value: Cast.toString(args.DATA)
-                }));
+                return fetch(this.shareServerSendingURL + this.shareGroupID, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        groupId: encodeURIComponent(this.shareGroupID),
+                        key: Cast.toString(args.LABEL),
+                        value: Cast.toString(args.DATA)
+                    })
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Share server returns: ${response.status}`);
+                }
             })
             .then(() => new Promise(resolve => {
                 setTimeout(() => {
                     this.shareDataSending = false;
                     resolve();
                 }, this.shareDataSendingIntervalTime);
-            }));
+            }))
+            .catch(reason => {
+                console.error(reason);
+                return reason;
+            });
     }
 
     /**
