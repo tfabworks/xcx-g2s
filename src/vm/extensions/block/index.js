@@ -1460,7 +1460,7 @@ class ExtensionBlocks {
                 });
         }
         return getter
-            .then(brightness => Math.round(brightness * 10) / 10)
+            .then(brightness => Math.min(64000, (Math.round(brightness * 10) / 10))) // Ignore too big value
             .catch(reason => {
                 console.log(`getting brightness was rejected by ${reason}`);
                 this.brightness = null;
