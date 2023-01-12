@@ -16158,7 +16158,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * @type {number}
      */
 
-    _this.defaultNeoPixelLength = 32;
+    _this.defaultNeoPixelLength = 3;
     return _this;
   }
   /**
@@ -20793,7 +20793,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @type {string}
      */
 
-    this.shareServerURL = 'wss://ws.akadako.com/ws/';
+    this.shareServerURL = 'wss://ws.akadako.com/sub/';
+    /**
+     * URL for sending data to sharing server.
+     * @type {string}
+     */
+
+    this.shareServerSendingURL = 'https://ws.akadako.com/pub/';
     /**
      * Received shared data from server.
      * @type {object}
@@ -20812,6 +20818,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
 
     this.shareServerConnectWaitingTime = 10000;
+    this.resetShareServer();
     /**
      * Manager of AkaDako boards
      * @type {AkaDakoConnector}
@@ -22290,8 +22297,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
               case 9:
                 return _context9.abrupt("return", getter.then(function (brightness) {
-                  return Math.round(brightness * 10) / 10;
-                }).catch(function (reason) {
+                  return Math.min(64000, Math.round(brightness * 10) / 10);
+                }) // Ignore too big value
+                .catch(function (reason) {
                   console.log("getting brightness was rejected by ".concat(reason));
                   _this15.brightness = null;
                   _this15.brightnessSensor = null;
@@ -22898,11 +22906,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           return;
         }
 
-        server.send(JSON.stringify({
-          groupId: encodeURIComponent(_this22.shareGroupID),
-          key: cast.toString(args.LABEL),
-          value: cast.toString(args.DATA)
-        }));
+        return fetch(_this22.shareServerSendingURL + _this22.shareGroupID, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            groupId: encodeURIComponent(_this22.shareGroupID),
+            key: cast.toString(args.LABEL),
+            value: cast.toString(args.DATA)
+          })
+        });
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error("Share server returns: ".concat(response.status));
+        }
       }).then(function () {
         return new Promise(function (resolve) {
           setTimeout(function () {
@@ -22910,6 +22929,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             resolve();
           }, _this22.shareDataSendingIntervalTime);
         });
+      }).catch(function (reason) {
+        console.error(reason);
+        return reason;
       });
     }
     /**
