@@ -196,7 +196,7 @@ class AkaDakoBoard extends EventEmitter {
          * Default length for NeoPixel module.
          * @type {number}
          */
-        this.defaultNeoPixelLength = 32;
+        this.defaultNeoPixelLength = 3;
     }
 
     /**
