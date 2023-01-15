@@ -1005,6 +1005,7 @@ class ExtensionBlocks {
                 console.log('Distance sensor (laser) is not found.');
                 return null;
             }
+            await newSensor.setRangeProfile('LONG_RANGE');
             await newSensor.startContinuous();
             this.vl53l0x = newSensor;
         }
