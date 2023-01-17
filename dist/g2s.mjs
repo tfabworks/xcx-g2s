@@ -19270,6 +19270,107 @@ var VL53L0X = /*#__PURE__*/function () {
 
       return performSingleRefCalibration;
     }()
+    /**
+     * Set the range profile.
+     * @param {string} rangeProfile profile ID {'LONG_RANGE' | 'HIGH_SPEED' | 'HIGH_ACCURACY'}
+     * @returns {Promise} a Promise which resolves the settings was done.
+     */
+
+  }, {
+    key: "setRangeProfile",
+    value: function () {
+      var _setRangeProfile = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee14(rangeProfile) {
+        return regenerator.wrap(function _callee14$(_context14) {
+          while (1) {
+            switch (_context14.prev = _context14.next) {
+              case 0:
+                _context14.t0 = rangeProfile;
+                _context14.next = _context14.t0 === 'LONG_RANGE' ? 3 : _context14.t0 === 'HIGH_SPEED' ? 11 : _context14.t0 === 'HIGH_ACCURACY' ? 19 : 27;
+                break;
+
+              case 3:
+                // lower the return signal rate limit (default is 0.25 MCPS)
+                this.setSignalRateLimit(0.1); // set timing budget to 33 ms (near the default value)
+
+                _context14.next = 6;
+                return this.setMeasurementTimingBudget(33000);
+
+              case 6:
+                _context14.next = 8;
+                return this.setVcselPulsePeriod(VcselPeriodPreRange, 18);
+
+              case 8:
+                _context14.next = 10;
+                return this.setVcselPulsePeriod(VcselPeriodFinalRange, 14);
+
+              case 10:
+                return _context14.abrupt("break", 35);
+
+              case 11:
+                this.setSignalRateLimit(0.25); // reduce timing budget to 20 ms (default is about 33 ms)
+
+                _context14.next = 14;
+                return this.setMeasurementTimingBudget(20000);
+
+              case 14:
+                _context14.next = 16;
+                return this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+
+              case 16:
+                _context14.next = 18;
+                return this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+
+              case 18:
+                return _context14.abrupt("break", 35);
+
+              case 19:
+                this.setSignalRateLimit(0.25); // increase timing budget to 200 ms
+
+                _context14.next = 22;
+                return this.setMeasurementTimingBudget(200000);
+
+              case 22:
+                _context14.next = 24;
+                return this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+
+              case 24:
+                _context14.next = 26;
+                return this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+
+              case 26:
+                return _context14.abrupt("break", 35);
+
+              case 27:
+                // set the default profile
+                this.setSignalRateLimit(0.25);
+                _context14.next = 30;
+                return this.setMeasurementTimingBudget(30000);
+
+              case 30:
+                _context14.next = 32;
+                return this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+
+              case 32:
+                _context14.next = 34;
+                return this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+
+              case 34:
+                return _context14.abrupt("break", 35);
+
+              case 35:
+              case "end":
+                return _context14.stop();
+            }
+          }
+        }, _callee14, this);
+      }));
+
+      function setRangeProfile(_x12) {
+        return _setRangeProfile.apply(this, arguments);
+      }
+
+      return setRangeProfile;
+    }()
   }]);
 
   return VL53L0X;
@@ -21495,7 +21596,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             switch (_context.prev = _context.next) {
               case 0:
                 if (this.vl53l0x) {
-                  _context.next = 13;
+                  _context.next = 15;
                   break;
                 }
 
@@ -21522,15 +21623,19 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
               case 10:
                 _context.next = 12;
-                return newSensor.startContinuous();
+                return newSensor.setRangeProfile('LONG_RANGE');
 
               case 12:
-                this.vl53l0x = newSensor;
-
-              case 13:
-                return _context.abrupt("return", this.vl53l0x);
+                _context.next = 14;
+                return newSensor.startContinuous();
 
               case 14:
+                this.vl53l0x = newSensor;
+
+              case 15:
+                return _context.abrupt("return", this.vl53l0x);
+
+              case 16:
               case "end":
                 return _context.stop();
             }
@@ -21570,8 +21675,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         this.opticalDistanceUpdating = true;
         measureRequest = measureRequest.then(function () {
           return _this8.getOpticalDistanceSensor();
-        }).then(function () {
-          return _this8.vl53l0x.readRangeContinuousMillimeters();
+        }).then(function (sensor) {
+          return sensor.readRangeContinuousMillimeters();
+        }).then(function (distance) {
+          // STEAM Tool supplement: - 50[mm]
+          distance = distance - 50; // STEAM Tool limit: 100 - 2000[mm]
+
+          return Math.max(100, Math.min(distance, 2000));
         }).then(function (distance) {
           _this8.opticalDistance = distance;
           return distance;
@@ -21581,8 +21691,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }
 
       return measureRequest.then(function (distance) {
-        return Math.min(200, distance / 10);
-      }).catch(function (reason) {
+        return distance / 10;
+      }) // convert unit [mm] to [cm]
+      .catch(function (reason) {
         console.log("measureDistanceWithLight was rejected by ".concat(reason));
         _this8.opticalDistance = null;
         return '';
