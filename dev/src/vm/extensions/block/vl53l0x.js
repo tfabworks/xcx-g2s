@@ -1153,4 +1153,47 @@ export default class VL53L0X {
         return true;
     }
 
+    /**
+     * Set the range profile.
+     * @param {string} rangeProfile profile ID {'LONG_RANGE' | 'HIGH_SPEED' | 'HIGH_ACCURACY'}
+     * @returns {Promise} a Promise which resolves the settings was done.
+     */
+    async setRangeProfile (rangeProfile) {
+        switch (rangeProfile) {
+        case 'LONG_RANGE':
+            // lower the return signal rate limit (default is 0.25 MCPS)
+            this.setSignalRateLimit(0.1);
+            // set timing budget to 33 ms (near the default value)
+            await this.setMeasurementTimingBudget(33000);
+            // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+            await this.setVcselPulsePeriod(VcselPeriodPreRange, 18);
+            await this.setVcselPulsePeriod(VcselPeriodFinalRange, 14);
+            break;
+        
+        case 'HIGH_SPEED':
+            this.setSignalRateLimit(0.25);
+            // reduce timing budget to 20 ms (default is about 33 ms)
+            await this.setMeasurementTimingBudget(20000);
+            await this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+            await this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+            break;
+
+        case 'HIGH_ACCURACY':
+            this.setSignalRateLimit(0.25);
+            // increase timing budget to 200 ms
+            await this.setMeasurementTimingBudget(200000);
+            await this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+            await this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+            break;
+
+        default:
+            // set the default profile
+            this.setSignalRateLimit(0.25);
+            await this.setMeasurementTimingBudget(30000);
+            await this.setVcselPulsePeriod(VcselPeriodPreRange, 14);
+            await this.setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+            break;
+        }
+
+    }
 }

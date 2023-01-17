@@ -1005,6 +1005,7 @@ class ExtensionBlocks {
                 console.log('Distance sensor (laser) is not found.');
                 return null;
             }
+            await newSensor.setRangeProfile('LONG_RANGE');
             await newSensor.startContinuous();
             this.vl53l0x = newSensor;
         }
@@ -1029,7 +1030,13 @@ class ExtensionBlocks {
             this.opticalDistanceUpdating = true;
             measureRequest = measureRequest
                 .then(() => this.getOpticalDistanceSensor())
-                .then(() => this.vl53l0x.readRangeContinuousMillimeters())
+                .then(sensor => sensor.readRangeContinuousMillimeters())
+                .then(distance => {
+                    // STEAM Tool supplement: - 50[mm]
+                    distance = distance - 50;
+                    // STEAM Tool limit: 100 - 2000[mm]
+                    return Math.max(100, Math.min(distance, 2000));
+                })
                 .then(distance => {
                     this.opticalDistance = distance;
                     return distance;
@@ -1039,7 +1046,7 @@ class ExtensionBlocks {
                 });
         }
         return measureRequest
-            .then(distance => Math.min(200, distance / 10))
+            .then(distance => distance / 10) // convert unit [mm] to [cm]
             .catch(reason => {
                 console.log(`measureDistanceWithLight was rejected by ${reason}`);
                 this.opticalDistance = null;
