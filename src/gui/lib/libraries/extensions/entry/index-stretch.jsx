@@ -1,4 +1,5 @@
-import formatMessage from 'format-message';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 /**
  * This is an extension for Xcratch.
@@ -6,30 +7,43 @@ import formatMessage from 'format-message';
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
-import translations from './translations.json';
-
-const version = 'v0.11.0';
+const version = 'v0.12.0';
+const translations =
+{
+    'en': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Connect Grove sensors and actuators. (${version})`
+    },
+    'ja': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (${version})`
+    },
+    'ja-Hira': {
+        'g2s.entry.name': 'AkaDako',
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターをせつぞくする。 (${version})`
+    }
+};
 
 const entry = {
-    get name () {
-        return `${formatMessage({
-            defaultMessage: 'AkaDako',
-            description: 'Name for the "AkaDako" extension',
-            id: 'g2s.entry.name'
-        })} (${version})`;
-    },
+    name: (
+        <FormattedMessage
+            defaultMessage="AkaDako"
+            description="Name for the 'AkaDako' extension"
+            id="g2s.entry.name"
+        />
+    ),
     extensionId: 'g2s',
     extensionURL: null,
     collaborator: 'TFabWorks',
     iconURL: iconURL,
     insetIconURL: insetIconURL,
-    get description () {
-        return formatMessage({
-            defaultMessage: 'Connect Grove sensors and actuators.',
-            description: 'Description for the "AkaDako" extension',
-            id: 'g2s.entry.description'
-        });
-    },
+    description: (
+        <FormattedMessage
+            defaultMessage="Connect Grove sensors and actuators."
+            description="Description for the 'AkaDako' extension"
+            id="g2s.entry.description"
+        />
+    ),
     featured: true,
     disabled: false,
     bluetoothRequired: false,
