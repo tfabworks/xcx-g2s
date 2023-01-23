@@ -49,7 +49,7 @@ const BME280_REG_CHIP_ID = 0xD0;
 
 const BME280_REG_CONTROLHUMID = 0xF2;
 const BME280_REG_CONTROL = 0xF4;
-// const BME280_REG_CONFIG = 0xF5;
+const BME280_REG_CONFIG = 0xF5;
 const BME280_REG_PRESSUREDATA = 0xF7;
 const BME280_REG_TEMPDATA = 0xFA;
 const BME280_REG_HUMIDITYDATA = 0xFD;
@@ -208,8 +208,9 @@ export default class BME280 {
             (0x0F & (await this.read8(BME280_REG_DIG_H5) >> 4));
         this.dig_H6 = await this.read8(BME280_REG_DIG_H6);
 
-        await this.write8(BME280_REG_CONTROLHUMID, 0x05); // Choose 16X oversampling
-        await this.write8(BME280_REG_CONTROL, 0xB7); // Choose 16X oversampling
+        await this.write8(BME280_REG_CONTROLHUMID, 0x01); // humidity-oversampling:x1
+        await this.write8(BME280_REG_CONTROL, 0x4F); // temperature-oversampling:x2, pressure-oversampling:x8
+        await this.write8(BME280_REG_CONFIG, 0x40); // standby-duration:125ms
     }
 
     /**
