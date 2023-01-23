@@ -168,9 +168,10 @@ export default class BME280 {
      * Write an 8-bit at the register.
      * @param {number} register - register to write
      * @param {number} value - written 8-bit value
+     * @returns {Promise} a Promise which resolves when wrote
      */
     write8 (register, value) {
-        this.board.i2cWrite(this.address, register, value);
+        return this.board.i2cWrite(this.address, register, value);
     }
 
     /**
@@ -207,8 +208,8 @@ export default class BME280 {
             (0x0F & (await this.read8(BME280_REG_DIG_H5) >> 4));
         this.dig_H6 = await this.read8(BME280_REG_DIG_H6);
 
-        this.write8(BME280_REG_CONTROLHUMID, 0x05); // Choose 16X oversampling
-        this.write8(BME280_REG_CONTROL, 0xB7); // Choose 16X oversampling
+        await this.write8(BME280_REG_CONTROLHUMID, 0x05); // Choose 16X oversampling
+        await this.write8(BME280_REG_CONTROL, 0xB7); // Choose 16X oversampling
     }
 
     /**
