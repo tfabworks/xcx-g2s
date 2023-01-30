@@ -1949,12 +1949,12 @@ class ExtensionBlocks {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
         }
-        this.shareDataSending = true;
         return this.getShareServer()
             .then(server => {
                 if (!server) {
-                    return;
+                    throw new Error(`Share server was not set.`);
                 }
+                this.shareDataSending = true;
                 return fetch(this.shareServerSendingURL + this.shareGroupID, {
                     method: 'POST',
                     mode: 'cors',
@@ -1980,8 +1980,8 @@ class ExtensionBlocks {
                 }, this.shareDataSendingIntervalTime);
             }))
             .catch(reason => {
-                console.error(reason);
-                return reason;
+                console.info(reason);
+                return reason.toString();
             });
     }
 
