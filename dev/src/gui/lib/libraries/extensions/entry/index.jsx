@@ -40,7 +40,7 @@ const entry = {
     disabled: false,
     bluetoothRequired: false,
     internetConnectionRequired: false,
-    helpLink: 'https://tfabworks.com/akadako/',
+    helpLink: 'https://akadako.com/',
     setFormatMessage: formatter => {
         formatMessage = formatter;
     },
