@@ -61,7 +61,7 @@ var entry = {
   disabled: false,
   bluetoothRequired: false,
   internetConnectionRequired: false,
-  helpLink: 'https://tfabworks.com/akadako/',
+  helpLink: 'https://akadako.com/',
   setFormatMessage: function setFormatMessage(formatter) {
     formatMessage$1 = formatter;
   },
@@ -19515,8 +19515,8 @@ var BME280_REG_CHIP_ID = 0xD0; // const BME280_REG_VERSION = 0xD1;
 // const BME280_REG_CAL26 = 0xE1;
 
 var BME280_REG_CONTROLHUMID = 0xF2;
-var BME280_REG_CONTROL = 0xF4; // const BME280_REG_CONFIG = 0xF5;
-
+var BME280_REG_CONTROL = 0xF4;
+var BME280_REG_CONFIG = 0xF5;
 var BME280_REG_PRESSUREDATA = 0xF7;
 var BME280_REG_TEMPDATA = 0xFA;
 var BME280_REG_HUMIDITYDATA = 0xFD;
@@ -19645,12 +19645,13 @@ var BME280 = /*#__PURE__*/function () {
      * Write an 8-bit at the register.
      * @param {number} register - register to write
      * @param {number} value - written 8-bit value
+     * @returns {Promise} a Promise which resolves when wrote
      */
 
   }, {
     key: "write8",
     value: function write8(register, value) {
-      this.board.i2cWrite(this.address, register, value);
+      return this.board.i2cWrite(this.address, register, value);
     }
     /**
      * Initialize the sensor
@@ -19787,11 +19788,18 @@ var BME280 = /*#__PURE__*/function () {
 
               case 71:
                 this.dig_H6 = _context.sent;
-                this.write8(BME280_REG_CONTROLHUMID, 0x05); // Choose 16X oversampling
-
-                this.write8(BME280_REG_CONTROL, 0xB7); // Choose 16X oversampling
+                _context.next = 74;
+                return this.write8(BME280_REG_CONTROLHUMID, 0x01);
 
               case 74:
+                _context.next = 76;
+                return this.write8(BME280_REG_CONTROL, 0x4F);
+
+              case 76:
+                _context.next = 78;
+                return this.write8(BME280_REG_CONFIG, 0x40);
+
+              case 78:
               case "end":
                 return _context.stop();
             }
