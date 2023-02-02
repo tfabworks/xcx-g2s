@@ -2660,6 +2660,56 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'whenSharedDataReceived',
+                    text: formatMessage({
+                        id: 'g2s.whenSharedDataReceived',
+                        default: 'when data with label [LABEL] received from server',
+                        description: 'when the data which has the label received'
+                    }),
+                    blockType: BlockType.HAT,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        }
+                    }
+                },
+                {
+                    opcode: 'getSharedDataLabeled',
+                    text: formatMessage({
+                        id: 'g2s.getSharedDataLabeled',
+                        default: 'data of label [LABEL]',
+                        description: 'the last data which has the label'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        }
+                    }
+                },
+                {
+                    opcode: 'sendSharedData',
+                    text: formatMessage({
+                        id: 'g2s.sendSharedData',
+                        default: 'send data [DATA] with label [LABEL] to server',
+                        description: 'send data content with label to server'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'label-01'
+                        },
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'data'
+                        }
+                    }
+                },
+                '---',
+                {
                     opcode: 'i2cWrite',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -2783,56 +2833,6 @@ class ExtensionBlocks {
                 //         }
                 //     }
                 // },
-                '---',
-                {
-                    opcode: 'whenSharedDataReceived',
-                    text: formatMessage({
-                        id: 'g2s.whenSharedDataReceived',
-                        default: 'when data with label [LABEL] received from server',
-                        description: 'when the data which has the label received'
-                    }),
-                    blockType: BlockType.HAT,
-                    arguments: {
-                        LABEL: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
-                        }
-                    }
-                },
-                {
-                    opcode: 'getSharedDataLabeled',
-                    text: formatMessage({
-                        id: 'g2s.getSharedDataLabeled',
-                        default: 'data of label [LABEL]',
-                        description: 'the last data which has the label'
-                    }),
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        LABEL: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
-                        }
-                    }
-                },
-                {
-                    opcode: 'sendSharedData',
-                    text: formatMessage({
-                        id: 'g2s.sendSharedData',
-                        default: 'send data [DATA] with label [LABEL] to server',
-                        description: 'send data content with label to server'
-                    }),
-                    blockType: BlockType.COMMAND,
-                    arguments: {
-                        LABEL: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
-                        },
-                        DATA: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'data'
-                        }
-                    }
-                },
                 '---',
                 {
                     opcode: 'numberAtIndex',
