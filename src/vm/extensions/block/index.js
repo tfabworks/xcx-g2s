@@ -443,6 +443,7 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
+            this.resetShareServer();
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -1793,8 +1794,9 @@ class ExtensionBlocks {
         this.sharedData = {};
         this.prevSharedData = {};
         if (this.shareServer) {
-            this.shareServer.close();
+            const server = this.shareServer;
             this.shareServer = null;
+            server.close();
         }
     }
 
@@ -1803,6 +1805,10 @@ class ExtensionBlocks {
      * @return {?Promise} a Promise that resolves when the dialog closed.
      */
     openInputGroupIDDialog () {
+        if (this.inputGroupIDDialogOpened) {
+            // prevent to open multiple dialogs
+            return Promise.resolve(null);
+        }
         this.inputGroupIDDialogOpened = true;
         const inputDialog = document.createElement('dialog');
         inputDialog.style.padding = '0px';
@@ -1856,7 +1862,10 @@ class ExtensionBlocks {
             // Add onClick action
             const confirmed = () => {
                 const inputID = groupIDInput.value.trim();
-                if (inputID === '') return;
+                if (inputID === '') {
+                    console.info('Empty group ID is not acceptable.');
+                    return;
+                }
                 this.shareGroupID = inputID;
                 closer();
             };
@@ -1880,58 +1889,81 @@ class ExtensionBlocks {
     }
 
     /**
-     * Return connected server for data sharing.
-     *
-     * @returns {Promise<?WebSocket>} a Promise that resolves data sharing server
+     * Return data sharing group ID. This will request for user to input group ID if it was not set.
+     * @returns {Promise<string>} a Promise that resolves group ID
      */
-    getShareServer () {
-        if (this.shareServer) return Promise.resolve(this.shareServer);
-        let getGroupID;
+    getShareGroupID () {
+        let getter;
         if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
-            if (this.inputGroupIDDialogOpened) {
-                // prevent to open multiple dialogs
-                return Promise.resolve(null);
-            }
-            getGroupID = this.openInputGroupIDDialog();
+            getter = this.openInputGroupIDDialog();
         } else {
-            getGroupID = Promise.resolve(this.shareGroupID);
+            getter = Promise.resolve(this.shareGroupID);
         }
-        const connecting = getGroupID.then(groupID => {
-            if (groupID === '') {
-                // Disable data sharing when the groupID was empty string.
-                console.debug('Disable data sharing for empty groupID');
-                return null;
-            }
-            const url = this.shareServerURL + encodeURIComponent(groupID);
-            return new Promise(resolve => {
-                const server = new WebSocket(url);
-                server.onmessage = event => {
-                    console.debug(`${url}: received ${event.data}`);
-                    const received = JSON.parse(event.data);
-                    this.sharedData[received.key] =
-                        {
-                            content: received.value,
-                            timestamp: Date.now()
-                        };
+        return getter;
+    }
+
+    /**
+     * Connect and return a data sharing server.
+     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     */
+    connectShareServer () {
+        const url = this.shareServerURL + encodeURIComponent(this.shareGroupID);
+        const connecting = new Promise(resolve => {
+            const server = new WebSocket(url);
+            server.onmessage = event => {
+                console.debug(`${url}: received ${event.data}`);
+                const received = JSON.parse(event.data);
+                this.sharedData[received.key] =
+                {
+                    content: received.value,
+                    timestamp: Date.now()
                 };
-                server.onclose = () => {
-                    if (this.shareServer === server) {
-                        this.resetShareServer();
-                    }
-                    console.log(`close WebSocket ${url}`);
-                };
-                server.onopen = () => {
-                    console.log(`open WebSocket  ${url}`);
-                    this.shareServer = server;
-                    resolve(server);
-                };
-            });
+            };
+            server.onclose = () => {
+                console.info(`ShareServer closed ${url}`);
+            };
+            server.onopen = () => {
+                console.info(`ShareServer opened ${url}`);
+                this.shareServer = server;
+                resolve(server);
+            };
         });
         return Promise.race([connecting, new Promise(resolve => {
             setTimeout(() => {
                 resolve(null);
             }, this.shareServerConnectWaitingTime);
         })]);
+    }
+
+    /**
+     * Whether the data sharing server is open or not.
+     * @returns {boolean} true when it was opened
+     */
+    isShareServerConnected () {
+        return (this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
+    }
+
+    /**
+     * Return a connected server for data sharing.
+     *
+     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     */
+    getShareServer () {
+        if (this.shareServer) {
+            if (!this.isShareServerConnected()) {
+                // re-connect using the same group ID
+                return this.connectShareServer();
+            }
+            return Promise.resolve(this.shareServer);
+        }
+        return this.getShareGroupID()
+            .then(groupID => {
+                if (groupID === '' || typeof groupID === 'undefined' || groupID === null) {
+                    // Prevent to connect when the groupID was invalid.
+                    return null;
+                }
+                return this.connectShareServer();
+            });
     }
 
     /**
@@ -2020,7 +2052,7 @@ class ExtensionBlocks {
      */
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
-        if (!this.shareServer) {
+        if (!this.isShareServerConnected()) {
             if (this.shareServerGetting) {
                 return false;
             }
