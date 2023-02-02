@@ -1903,6 +1903,17 @@ class ExtensionBlocks {
     }
 
     /**
+     * Return the share group ID for reporter value.
+     * @returns {string} group ID
+     */
+    reportShareGroupID () {
+        if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
+            return '';
+        }
+        return this.shareGroupID;
+    }
+
+    /**
      * Connect and return a data sharing server.
      * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
      */
@@ -2659,6 +2670,18 @@ class ExtensionBlocks {
                     }
                 },
                 '---',
+                {
+                    opcode: 'reportShareGroupID',
+                    text: formatMessage({
+                        id: 'g2s.reportShareGroupID',
+                        default: 'data sharing group ID',
+                        description: 'reporter of group ID for data sharing'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    arguments: {
+                    }
+                },
                 {
                     opcode: 'whenSharedDataReceived',
                     text: formatMessage({
