@@ -1804,19 +1804,19 @@ class ExtensionBlocks {
      * Open dialog to input groupID by user.
      * @return {?Promise} a Promise that resolves when the dialog closed.
      */
-    openInputGroupIDDialog () {
-        if (this.inputGroupIDDialogOpened) {
+    openShareGroupIDDialog () {
+        if (this.shareGroupIDDialogOpened) {
             // prevent to open multiple dialogs
             return Promise.resolve(null);
         }
-        this.inputGroupIDDialogOpened = true;
+        this.shareGroupIDDialogOpened = true;
         const inputDialog = document.createElement('dialog');
         inputDialog.style.padding = '0px';
         const dialogFace = document.createElement('div');
         dialogFace.style.padding = '16px';
         inputDialog.appendChild(dialogFace);
         const label = document.createTextNode(formatMessage({
-            id: 'g2s.inputShareServerGroupID.message',
+            id: 'g2s.shareGroupIDDialog.message',
             default: 'set data sharing group ID',
             description: 'label of groupID input dialog for g2s'
         }));
@@ -1838,7 +1838,7 @@ class ExtensionBlocks {
         // Cancel button
         const cancelButton = document.createElement('button');
         cancelButton.textContent = formatMessage({
-            id: 'g2s.inputShareServerGroupID.cancel',
+            id: 'g2s.shareGroupIDDialog.cancel',
             default: 'cancel',
             description: 'cancel button on groupID input dialog for g2s'
         });
@@ -1847,7 +1847,7 @@ class ExtensionBlocks {
         // OK button
         const confirmButton = document.createElement('button');
         confirmButton.textContent = formatMessage({
-            id: 'g2s.inputShareServerGroupID.set',
+            id: 'g2s.shareGroupIDDialog.set',
             default: 'set',
             description: 'set button on groupID input dialog for g2s'
         });
@@ -1856,7 +1856,7 @@ class ExtensionBlocks {
         return new Promise(resolve => {
             const closer = () => {
                 document.body.removeChild(inputDialog);
-                this.inputGroupIDDialogOpened = false;
+                this.shareGroupIDDialogOpened = false;
                 resolve(this.shareGroupID);
             };
             // Add onClick action
@@ -1895,7 +1895,7 @@ class ExtensionBlocks {
     getShareGroupID () {
         let getter;
         if (typeof this.shareGroupID === 'undefined' || this.shareGroupID === null) {
-            getter = this.openInputGroupIDDialog();
+            getter = this.openShareGroupIDDialog();
         } else {
             getter = Promise.resolve(this.shareGroupID);
         }
