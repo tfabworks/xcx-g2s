@@ -416,7 +416,25 @@ class ExtensionBlocks {
          * Waiting time for connecting to share server.
          * @type {number} [milliseconds]
          */
-        this.shareServerConnectWaitingTime = 10000;
+        this.shareServerConnectWaitingTime = 1000;
+
+        /**
+         * Longest time of backoff for reconnection to share server.
+         * @type {number} [milliseconds]
+         */
+        this.shareServerBackoffCap = 10000;
+
+        /**
+         * Base time of backoff for reconnection to share server.
+         * @type {number} [milliseconds]
+         */
+        this.shareServerBackoffBase = 100;
+
+        /**
+         * Attempt count of backoff for reconnection to share server.
+         * @type {number} [times]
+         */
+        this.shareServerBackoffAttempt = 0;
 
         this.resetShareServer();
 
@@ -1793,6 +1811,7 @@ class ExtensionBlocks {
         this.shareDataSending = false;
         this.sharedData = {};
         this.prevSharedData = {};
+        this.shareServerBackoffAttempt = 0;
         if (this.shareServer) {
             const server = this.shareServer;
             this.shareServer = null;
@@ -1936,6 +1955,7 @@ class ExtensionBlocks {
             server.onopen = () => {
                 console.info(`ShareServer opened ${url}`);
                 this.shareServer = server;
+                this.shareServerBackoffAttempt = 0;
                 resolve(server);
             };
         });
@@ -1963,7 +1983,17 @@ class ExtensionBlocks {
         if (this.shareServer) {
             if (!this.isShareServerConnected()) {
                 // re-connect using the same group ID
-                return this.connectShareServer();
+                // Using backoff with equal jitter
+                const jitter = Math.min(
+                    this.shareServerBackoffCap,
+                    this.shareServerBackoffBase * (2 ** this.shareServerBackoffAttempt));
+                this.shareServerBackoffAttempt++;
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, ((jitter / 2) + (Math.random() * (jitter / 2))));
+                })
+                    .then(() => this.connectShareServer());
             }
             return Promise.resolve(this.shareServer);
         }
@@ -2023,6 +2053,7 @@ class ExtensionBlocks {
                 }, this.shareDataSendingIntervalTime);
             }))
             .catch(reason => {
+                this.shareDataSending = false;
                 console.info(reason);
                 return reason.toString();
             });
