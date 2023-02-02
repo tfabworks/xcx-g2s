@@ -481,7 +481,8 @@ class ExtensionBlocks {
         this.shakeEventInterval = 200;
 
         // eslint-disable-next-line no-unused-vars
-        window.addEventListener('beforeunload', e => {
+        window.addEventListener('beforeunload', _e => {
+            this.resetShareServer();
             this.disconnectBoard();
         });
     }
