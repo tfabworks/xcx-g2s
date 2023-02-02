@@ -1998,7 +1998,7 @@ class ExtensionBlocks {
                     throw new Error(`Share server was not set.`);
                 }
                 this.shareDataSending = true;
-                return fetch(this.shareServerSendingURL + this.shareGroupID, {
+                return fetch(this.shareServerSendingURL + encodeURIComponent(this.shareGroupID), {
                     method: 'POST',
                     mode: 'cors',
                     headers: {
