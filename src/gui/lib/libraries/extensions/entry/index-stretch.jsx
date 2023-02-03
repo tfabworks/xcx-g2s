@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
-const version = 'v0.12.0';
+const version = 'v0.13.0';
 const translations =
 {
     'en': {
@@ -48,7 +48,7 @@ const entry = {
     disabled: false,
     bluetoothRequired: false,
     internetConnectionRequired: false,
-    helpLink: 'https://tfabworks.com/akadako/',
+    helpLink: 'https://akadako.com/',
     translationMap: translations
 };
 
