@@ -17524,7 +17524,7 @@ var AkaDakoConnector = /*#__PURE__*/function (_EventEmitter) {
      * @type {boolean}
      */
 
-    _this.useSerial = true;
+    _this.useSerial = false;
     return _this;
   }
   /**
