@@ -581,7 +581,11 @@ class ExtensionBlocks {
                 } else {
                     console.log(`fail to connect AkaDako Board`);
                 }
-                return Promise.reject(reason);
+                this.runtime.emit(this.runtime.constructor.PERIPHERAL_REQUEST_ERROR, {
+                    message: `Scratch lost connection to`,
+                    extensionId: EXTENSION_ID
+                });
+                return reason.toString();
             });
     }
 
@@ -1837,7 +1841,7 @@ class ExtensionBlocks {
         inputDialog.appendChild(dialogFace);
         const label = document.createTextNode(formatMessage({
             id: 'g2s.shareGroupIDDialog.message',
-            default: 'set data sharing group ID',
+            default: 'set communication group ID',
             description: 'label of groupID input dialog for g2s'
         }));
         dialogFace.appendChild(label);
@@ -2706,7 +2710,7 @@ class ExtensionBlocks {
                     opcode: 'reportShareGroupID',
                     text: formatMessage({
                         id: 'g2s.reportShareGroupID',
-                        default: 'data sharing group ID',
+                        default: 'communication group ID',
                         description: 'reporter of group ID for data sharing'
                     }),
                     blockType: BlockType.REPORTER,
