@@ -581,7 +581,11 @@ class ExtensionBlocks {
                 } else {
                     console.log(`fail to connect AkaDako Board`);
                 }
-                return Promise.reject(reason);
+                this.runtime.emit(this.runtime.constructor.PERIPHERAL_REQUEST_ERROR, {
+                    message: `Scratch lost connection to`,
+                    extensionId: EXTENSION_ID
+                });
+                return reason.toString();
             });
     }
 
