@@ -60,6 +60,12 @@ export class AkaDakoConnector extends EventEmitter {
                 {usbVendorId: 0x04D9, usbProductId: 0xB534} // Use in the future
             ]
         };
+
+        /**
+         * Flag whether to use serial or not
+         * @type {boolean}
+         */
+        this.useSerial = true;
     }
 
     /**
@@ -109,8 +115,10 @@ export class AkaDakoConnector extends EventEmitter {
         }
         return this.connectMIDI(extensionId)
             .catch(reason => {
-                console.log(reason);
-                return this.connectSerial(extensionId);
+                if (this.useSerial) {
+                    return this.connectSerial(extensionId);
+                }
+                return Promise.reject(reason);
             });
     }
 
@@ -155,7 +163,6 @@ export class AkaDakoConnector extends EventEmitter {
                 return connected;
             });
     }
-
 }
 
 /**
