@@ -1911,6 +1911,15 @@ class ExtensionBlocks {
     }
 
     /**
+     * Whether the data sharing was canceled by user.
+     *
+     * @returns {boolean} true after data sharing was canceled by user
+     */
+    dataSharingWasCanceled () {
+        return this.shareGroupID === '';
+    }
+
+    /**
      * Return data sharing group ID. This will request for user to input group ID if it was not set.
      * @returns {Promise<string>} a Promise that resolves group ID
      */
@@ -2037,6 +2046,7 @@ class ExtensionBlocks {
      */
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
+        if (this.dataSharingWasCanceled()) return Promise.resolve('Data sharing was canceled by user.');
         if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2086,6 +2096,11 @@ class ExtensionBlocks {
      */
     getSharedDataLabeled (args) {
         const label = Cast.toString(args.LABEL);
+        if (this.isConnected()){
+            if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
+                this.getShareServer();
+            }
+        }
         if (this.sharedData[label]) {
             return this.sharedData[label].content;
         }
@@ -2113,7 +2128,7 @@ class ExtensionBlocks {
      */
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
-        if (!this.isShareServerConnected()) {
+        if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
             this.getShareServer();
             return false;
         }
