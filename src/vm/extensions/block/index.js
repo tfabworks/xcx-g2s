@@ -1980,9 +1980,13 @@ class ExtensionBlocks {
     /**
      * Return a connected server for data sharing.
      *
-     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     * @returns {Promise<?WebSocket>} which resolves a server or null during connection or timeout occurred
      */
     getShareServer () {
+        if (this.shareServerGetting) {
+            return Promise.resolve(null);
+        }
+        this.shareServerGetting = true;
         if (this.shareServer) {
             if (!this.isShareServerConnected()) {
                 // re-connect using the same group ID
@@ -1996,8 +2000,12 @@ class ExtensionBlocks {
                         resolve();
                     }, ((jitter / 2) + (Math.random() * (jitter / 2))));
                 })
-                    .then(() => this.connectShareServer());
+                    .then(() => this.connectShareServer())
+                    .finally(() => {
+                        this.shareServerGetting = false;
+                    });
             }
+            this.shareServerGetting = false;
             return Promise.resolve(this.shareServer);
         }
         return this.getShareGroupID()
@@ -2012,6 +2020,9 @@ class ExtensionBlocks {
                 }
                 this.prevShareGroupID = groupID;
                 return this.connectShareServer();
+            })
+            .finally(() => {
+                this.shareServerGetting = false;
             });
     }
 
@@ -2026,7 +2037,7 @@ class ExtensionBlocks {
      */
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
-        if (this.shareDataSending) {
+        if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
         }
@@ -2103,15 +2114,8 @@ class ExtensionBlocks {
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
         if (!this.isShareServerConnected()) {
-            if (this.shareServerGetting) {
-                return false;
-            }
-            this.shareServerGetting = true;
-            this.getShareServer()
-                .then(() => {
-                    this.shareServerGetting = false;
-                });
-            
+            this.getShareServer();
+            return false;
         }
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {
