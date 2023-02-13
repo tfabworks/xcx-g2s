@@ -394,6 +394,7 @@ class ExtensionBlocks {
          * @type {string}
          */
         this.shareServerURL = 'wss://ws.akadako.com/sub/';
+
         /**
          * URL for sending data to sharing server.
          * @type {string}
@@ -1809,9 +1810,6 @@ class ExtensionBlocks {
      * Reset parameters for data sharing.
      */
     resetShareServer () {
-        if (this.shareGroupID) {
-            this.prevShareGroupID = this.shareGroupID;
-        }
         this.shareGroupID = null;
         this.shareDataSending = false;
         this.sharedData = {};
@@ -1878,25 +1876,21 @@ class ExtensionBlocks {
         confirmButton.style.margin = '8px';
         dialogFace.appendChild(confirmButton);
         return new Promise(resolve => {
-            const closer = () => {
-                document.body.removeChild(inputDialog);
-                this.shareGroupIDDialogOpened = false;
-                resolve(this.shareGroupID);
+            const closer = groupID => {
+                resolve(groupID);
             };
             // Add onClick action
             const confirmed = () => {
-                const inputID = groupIDInput.value.trim();
-                if (inputID === '') {
+                const inputValue = groupIDInput.value.trim();
+                if (inputValue === '') {
                     console.info('Empty group ID is not acceptable.');
                     return;
                 }
-                this.shareGroupID = inputID;
-                closer();
+                closer(inputValue);
             };
             confirmButton.onclick = confirmed;
             const canceled = () => {
-                this.shareGroupID = ''; // Disable data sharing when the groupID was empty string.
-                closer();
+                closer('');
             };
             cancelButton.onclick = canceled;
             inputDialog.addEventListener('keydown', e => {
@@ -1909,7 +1903,11 @@ class ExtensionBlocks {
             });
             document.body.appendChild(inputDialog);
             inputDialog.showModal();
-        });
+        })
+            .finally(() => {
+                document.body.removeChild(inputDialog);
+                this.shareGroupIDDialogOpened = false;
+            });
     }
 
     /**
@@ -2004,10 +2002,15 @@ class ExtensionBlocks {
         }
         return this.getShareGroupID()
             .then(groupID => {
-                if (groupID === '' || typeof groupID === 'undefined' || groupID === null) {
+                if (typeof groupID === 'undefined' || groupID === null) {
                     // Prevent to connect when the groupID was invalid.
                     return null;
                 }
+                this.shareGroupID = groupID;
+                if (groupID === '') {
+                    return null;
+                }
+                this.prevShareGroupID = groupID;
                 return this.connectShareServer();
             });
     }
