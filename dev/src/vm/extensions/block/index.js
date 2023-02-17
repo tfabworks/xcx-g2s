@@ -437,6 +437,13 @@ class ExtensionBlocks {
          */
         this.shareServerBackoffAttempt = 0;
 
+
+        /**
+         * Whether the data sharing was canceled by user.
+         * @type {boolean} true after data sharing was canceled by user
+         */
+        this.dataSharingWasCanceled = false;
+
         this.resetShareServer();
 
         /**
@@ -462,7 +469,7 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
-            this.resetShareServer();
+            this.dataSharingWasCanceled = true;
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -1867,6 +1874,7 @@ class ExtensionBlocks {
             this.shareServer = null;
             server.close();
         }
+        this.dataSharingWasCanceled = false;
     }
 
     /**
@@ -1937,6 +1945,7 @@ class ExtensionBlocks {
             };
             confirmButton.onclick = confirmed;
             const canceled = () => {
+                this.dataSharingWasCanceled = true;
                 closer('');
             };
             cancelButton.onclick = canceled;
@@ -1955,15 +1964,6 @@ class ExtensionBlocks {
                 document.body.removeChild(inputDialog);
                 this.shareGroupIDDialogOpened = false;
             });
-    }
-
-    /**
-     * Whether the data sharing was canceled by user.
-     *
-     * @returns {boolean} true after data sharing was canceled by user
-     */
-    dataSharingWasCanceled () {
-        return this.shareGroupID === '';
     }
 
     /**
@@ -2093,7 +2093,7 @@ class ExtensionBlocks {
      */
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
-        if (this.dataSharingWasCanceled()) return Promise.resolve('Data sharing was canceled by user.');
+        if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
         if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2144,7 +2144,7 @@ class ExtensionBlocks {
     getSharedDataLabeled (args) {
         const label = Cast.toString(args.LABEL);
         if (this.isConnected()){
-            if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
+            if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
                 this.getShareServer();
             }
         }
@@ -2174,8 +2174,8 @@ class ExtensionBlocks {
      * @return {boolean} - true if the data received.
      */
     whenSharedDataReceived (args) {
-        if (!this.isConnected()) return false;
-        if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
+        // if (!this.isConnected()) return false;
+        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
             this.getShareServer();
             return false;
         }

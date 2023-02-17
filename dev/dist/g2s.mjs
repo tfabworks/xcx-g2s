@@ -20957,6 +20957,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
 
     this.shareServerBackoffAttempt = 0;
+    /**
+     * Whether the data sharing was canceled by user.
+     * @type {boolean} true after data sharing was canceled by user
+     */
+
+    this.dataSharingWasCanceled = false;
     this.resetShareServer();
     /**
      * Manager of AkaDako boards
@@ -20985,7 +20991,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       _this.neoPixelClearAll();
 
-      _this.resetShareServer();
+      _this.dataSharingWasCanceled = true;
     });
     this.runtime.on('PROJECT_START', function () {
       _this.resetShareServer();
@@ -22934,6 +22940,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         this.shareServer = null;
         server.close();
       }
+
+      this.dataSharingWasCanceled = false;
     }
     /**
      * Open dialog to input groupID by user.
@@ -23016,6 +23024,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         confirmButton.onclick = confirmed;
 
         var canceled = function canceled() {
+          _this20.dataSharingWasCanceled = true;
           closer('');
         };
 
@@ -23035,17 +23044,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         document.body.removeChild(inputDialog);
         _this20.shareGroupIDDialogOpened = false;
       });
-    }
-    /**
-     * Whether the data sharing was canceled by user.
-     *
-     * @returns {boolean} true after data sharing was canceled by user
-     */
-
-  }, {
-    key: "dataSharingWasCanceled",
-    value: function dataSharingWasCanceled() {
-      return this.shareGroupID === '';
     }
     /**
      * Return data sharing group ID. This will request for user to input group ID if it was not set.
@@ -23201,7 +23199,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this23 = this;
 
       if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
-      if (this.dataSharingWasCanceled()) return Promise.resolve('Data sharing was canceled by user.');
+      if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
 
       if (this.shareDataSending || this.shareServerGetting) {
         util.yield(); // re-try this call after a while.
@@ -23257,7 +23255,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var label = cast.toString(args.LABEL);
 
       if (this.isConnected()) {
-        if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
+        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
           this.getShareServer();
         }
       }
@@ -23305,9 +23303,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function whenSharedDataReceived(args) {
       var _this25 = this;
 
-      if (!this.isConnected()) return false;
-
-      if (!this.dataSharingWasCanceled() && !this.isShareServerConnected()) {
+      // if (!this.isConnected()) return false;
+      if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
         this.getShareServer();
         return false;
       }
