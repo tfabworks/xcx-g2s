@@ -20957,6 +20957,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      */
 
     this.shareServerBackoffAttempt = 0;
+    /**
+     * Whether the data sharing was canceled by user.
+     * @type {boolean} true after data sharing was canceled by user
+     */
+
+    this.dataSharingWasCanceled = false;
     this.resetShareServer();
     /**
      * Manager of AkaDako boards
@@ -20985,7 +20991,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       _this.neoPixelClearAll();
 
-      _this.resetShareServer();
+      _this.dataSharingWasCanceled = true;
     });
     this.runtime.on('PROJECT_START', function () {
       _this.resetShareServer();
@@ -21302,6 +21308,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function digitalLevelSet(args) {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       var value = cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
       this.board.pinMode(pin, this.board.MODES.OUTPUT);
       return this.board.digitalWrite(pin, value);
@@ -21367,6 +21382,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function analogLevelSet(args) {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // This pin is used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       var percent = Math.min(Math.max(cast.toNumber(args.LEVEL), 0), 100);
       var value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
       this.board.pinMode(pin, this.board.MODES.PWM);
@@ -21385,6 +21409,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function servoTurn(args) {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       var angle = cast.toNumber(args.ANGLE);
       var servoValue = 90 - angle; // = 180 - (angle + 90)
 
@@ -21533,6 +21566,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       this.neoPixelBusy = true;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       var length = parseInt(cast.toNumber(args.LENGTH), 10);
       return this.board.neoPixelConfigStrip(pin, length).finally(function () {
         _this5.neoPixelBusy = false;
@@ -21592,6 +21634,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
       this.neoPixelBusy = true;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       var index = cast.toNumber(args.POSITION) - 1;
       var brightness = Math.max(0, Math.min(100, cast.toNumber(args.BRIGHTNESS))) / 100;
       var color = readAsNumericArray(args.COLOR);
@@ -21631,6 +21682,15 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function neoPixelClear(args) {
       if (!this.isConnected()) return;
       var pin = parseInt(args.CONNECTOR, 10);
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return;
+        }
+      }
+
       return this.board.neoPixelClear(pin);
     }
   }, {
@@ -21801,6 +21861,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this10 = this;
 
       if (!this.isConnected()) return Promise.resolve('');
+
+      if (this.board.version.type === 2) {
+        // STEAM Tool
+        // This pin is used for on-board buttons in the STEAM tool.
+        return Promise.resolve('');
+      }
+
       var getter = Promise.resolve(this.sonicDistanceB);
 
       if (Date.now() - this.sonicDistanceBUpdatedTime > this.sonicDistanceBUpdateIntervalTime) {
@@ -22862,10 +22929,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
   }, {
     key: "resetShareServer",
     value: function resetShareServer() {
-      if (this.shareGroupID) {
-        this.prevShareGroupID = this.shareGroupID;
-      }
-
       this.shareGroupID = null;
       this.shareDataSending = false;
       this.sharedData = {};
@@ -22877,6 +22940,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         this.shareServer = null;
         server.close();
       }
+
+      this.dataSharingWasCanceled = false;
     }
     /**
      * Open dialog to input groupID by user.
@@ -22940,31 +23005,27 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       confirmButton.style.margin = '8px';
       dialogFace.appendChild(confirmButton);
       return new Promise(function (resolve) {
-        var closer = function closer() {
-          document.body.removeChild(inputDialog);
-          _this20.shareGroupIDDialogOpened = false;
-          resolve(_this20.shareGroupID);
+        var closer = function closer(groupID) {
+          resolve(groupID);
         }; // Add onClick action
 
 
         var confirmed = function confirmed() {
-          var inputID = groupIDInput.value.trim();
+          var inputValue = groupIDInput.value.trim();
 
-          if (inputID === '') {
+          if (inputValue === '') {
             console.info('Empty group ID is not acceptable.');
             return;
           }
 
-          _this20.shareGroupID = inputID;
-          closer();
+          closer(inputValue);
         };
 
         confirmButton.onclick = confirmed;
 
         var canceled = function canceled() {
-          _this20.shareGroupID = ''; // Disable data sharing when the groupID was empty string.
-
-          closer();
+          _this20.dataSharingWasCanceled = true;
+          closer('');
         };
 
         cancelButton.onclick = canceled;
@@ -22979,6 +23040,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         });
         document.body.appendChild(inputDialog);
         inputDialog.showModal();
+      }).finally(function () {
+        document.body.removeChild(inputDialog);
+        _this20.shareGroupIDDialogOpened = false;
       });
     }
     /**
@@ -23066,13 +23130,19 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     /**
      * Return a connected server for data sharing.
      *
-     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     * @returns {Promise<?WebSocket>} which resolves a server or null during connection or timeout occurred
      */
 
   }, {
     key: "getShareServer",
     value: function getShareServer() {
       var _this22 = this;
+
+      if (this.shareServerGetting) {
+        return Promise.resolve(null);
+      }
+
+      this.shareServerGetting = true;
 
       if (this.shareServer) {
         if (!this.isShareServerConnected()) {
@@ -23086,19 +23156,31 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }, jitter / 2 + Math.random() * (jitter / 2));
           }).then(function () {
             return _this22.connectShareServer();
+          }).finally(function () {
+            _this22.shareServerGetting = false;
           });
         }
 
+        this.shareServerGetting = false;
         return Promise.resolve(this.shareServer);
       }
 
       return this.getShareGroupID().then(function (groupID) {
-        if (groupID === '' || typeof groupID === 'undefined' || groupID === null) {
+        if (typeof groupID === 'undefined' || groupID === null) {
           // Prevent to connect when the groupID was invalid.
           return null;
         }
 
+        _this22.shareGroupID = groupID;
+
+        if (groupID === '') {
+          return null;
+        }
+
+        _this22.prevShareGroupID = groupID;
         return _this22.connectShareServer();
+      }).finally(function () {
+        _this22.shareServerGetting = false;
       });
     }
     /**
@@ -23117,8 +23199,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var _this23 = this;
 
       if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
+      if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
 
-      if (this.shareDataSending) {
+      if (this.shareDataSending || this.shareServerGetting) {
         util.yield(); // re-try this call after a while.
 
         return; // Do not return Promise to re-try.
@@ -23171,6 +23254,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function getSharedDataLabeled(args) {
       var label = cast.toString(args.LABEL);
 
+      if (this.isConnected()) {
+        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
+          this.getShareServer();
+        }
+      }
+
       if (this.sharedData[label]) {
         return this.sharedData[label].content;
       }
@@ -23214,17 +23303,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function whenSharedDataReceived(args) {
       var _this25 = this;
 
-      if (!this.isConnected()) return false;
-
-      if (!this.isShareServerConnected()) {
-        if (this.shareServerGetting) {
-          return false;
-        }
-
-        this.shareServerGetting = true;
-        this.getShareServer().then(function () {
-          _this25.shareServerGetting = false;
-        });
+      // if (!this.isConnected()) return false;
+      if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
+        this.getShareServer();
+        return false;
       }
 
       if (!this.updateLastSharedDataTimer) {
