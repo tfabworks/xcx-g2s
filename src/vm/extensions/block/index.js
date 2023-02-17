@@ -730,6 +730,13 @@ class ExtensionBlocks {
     digitalLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
         this.board.pinMode(pin, this.board.MODES.OUTPUT);
         return this.board.digitalWrite(pin, value);
@@ -785,6 +792,13 @@ class ExtensionBlocks {
     analogLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // This pin is used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
         const value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
         this.board.pinMode(pin, this.board.MODES.PWM);
@@ -801,6 +815,13 @@ class ExtensionBlocks {
     servoTurn (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const angle = Cast.toNumber(args.ANGLE);
         let servoValue = 90 - angle; // = 180 - (angle + 90)
         servoValue = Math.min(180, Math.max(0, servoValue));
@@ -931,6 +952,13 @@ class ExtensionBlocks {
         }
         this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.neoPixelConfigStrip(pin, length)
             .finally(() => {
@@ -978,6 +1006,13 @@ class ExtensionBlocks {
         }
         this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
@@ -1014,6 +1049,13 @@ class ExtensionBlocks {
     neoPixelClear (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         return this.board.neoPixelClear(pin);
     }
 
@@ -1121,6 +1163,11 @@ class ExtensionBlocks {
      */
     measureDistanceWithUltrasonicB (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            // This pin is used for on-board buttons in the STEAM tool.
+            return Promise.resolve('');
+        }
         let getter = Promise.resolve(this.sonicDistanceB);
         if ((Date.now() - this.sonicDistanceBUpdatedTime) > this.sonicDistanceBUpdateIntervalTime) {
             if (this.sonicDistanceBUpdating) {
