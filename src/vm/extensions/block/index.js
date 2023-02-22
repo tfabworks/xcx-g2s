@@ -394,6 +394,7 @@ class ExtensionBlocks {
          * @type {string}
          */
         this.shareServerURL = 'wss://ws.akadako.com/sub/';
+
         /**
          * URL for sending data to sharing server.
          * @type {string}
@@ -436,6 +437,13 @@ class ExtensionBlocks {
          */
         this.shareServerBackoffAttempt = 0;
 
+
+        /**
+         * Whether the data sharing was canceled by user.
+         * @type {boolean} true after data sharing was canceled by user
+         */
+        this.dataSharingWasCanceled = false;
+
         this.resetShareServer();
 
         /**
@@ -461,7 +469,7 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
-            this.resetShareServer();
+            this.dataSharingWasCanceled = true;
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -729,6 +737,13 @@ class ExtensionBlocks {
     digitalLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
         this.board.pinMode(pin, this.board.MODES.OUTPUT);
         return this.board.digitalWrite(pin, value);
@@ -784,6 +799,13 @@ class ExtensionBlocks {
     analogLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // This pin is used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
         const value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
         this.board.pinMode(pin, this.board.MODES.PWM);
@@ -800,6 +822,13 @@ class ExtensionBlocks {
     servoTurn (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const angle = Cast.toNumber(args.ANGLE);
         let servoValue = 90 - angle; // = 180 - (angle + 90)
         servoValue = Math.min(180, Math.max(0, servoValue));
@@ -930,6 +959,13 @@ class ExtensionBlocks {
         }
         this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const length = parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.neoPixelConfigStrip(pin, length)
             .finally(() => {
@@ -977,6 +1013,13 @@ class ExtensionBlocks {
         }
         this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
@@ -1013,6 +1056,13 @@ class ExtensionBlocks {
     neoPixelClear (args) {
         if (!this.isConnected()) return;
         const pin = parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return;
+            }
+        }
         return this.board.neoPixelClear(pin);
     }
 
@@ -1120,6 +1170,11 @@ class ExtensionBlocks {
      */
     measureDistanceWithUltrasonicB (_args, util) {
         if (!this.isConnected()) return Promise.resolve('');
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            // This pin is used for on-board buttons in the STEAM tool.
+            return Promise.resolve('');
+        }
         let getter = Promise.resolve(this.sonicDistanceB);
         if ((Date.now() - this.sonicDistanceBUpdatedTime) > this.sonicDistanceBUpdateIntervalTime) {
             if (this.sonicDistanceBUpdating) {
@@ -1809,9 +1864,6 @@ class ExtensionBlocks {
      * Reset parameters for data sharing.
      */
     resetShareServer () {
-        if (this.shareGroupID) {
-            this.prevShareGroupID = this.shareGroupID;
-        }
         this.shareGroupID = null;
         this.shareDataSending = false;
         this.sharedData = {};
@@ -1822,6 +1874,7 @@ class ExtensionBlocks {
             this.shareServer = null;
             server.close();
         }
+        this.dataSharingWasCanceled = false;
     }
 
     /**
@@ -1878,25 +1931,22 @@ class ExtensionBlocks {
         confirmButton.style.margin = '8px';
         dialogFace.appendChild(confirmButton);
         return new Promise(resolve => {
-            const closer = () => {
-                document.body.removeChild(inputDialog);
-                this.shareGroupIDDialogOpened = false;
-                resolve(this.shareGroupID);
+            const closer = groupID => {
+                resolve(groupID);
             };
             // Add onClick action
             const confirmed = () => {
-                const inputID = groupIDInput.value.trim();
-                if (inputID === '') {
+                const inputValue = groupIDInput.value.trim();
+                if (inputValue === '') {
                     console.info('Empty group ID is not acceptable.');
                     return;
                 }
-                this.shareGroupID = inputID;
-                closer();
+                closer(inputValue);
             };
             confirmButton.onclick = confirmed;
             const canceled = () => {
-                this.shareGroupID = ''; // Disable data sharing when the groupID was empty string.
-                closer();
+                this.dataSharingWasCanceled = true;
+                closer('');
             };
             cancelButton.onclick = canceled;
             inputDialog.addEventListener('keydown', e => {
@@ -1909,7 +1959,11 @@ class ExtensionBlocks {
             });
             document.body.appendChild(inputDialog);
             inputDialog.showModal();
-        });
+        })
+            .finally(() => {
+                document.body.removeChild(inputDialog);
+                this.shareGroupIDDialogOpened = false;
+            });
     }
 
     /**
@@ -1982,9 +2036,13 @@ class ExtensionBlocks {
     /**
      * Return a connected server for data sharing.
      *
-     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     * @returns {Promise<?WebSocket>} which resolves a server or null during connection or timeout occurred
      */
     getShareServer () {
+        if (this.shareServerGetting) {
+            return Promise.resolve(null);
+        }
+        this.shareServerGetting = true;
         if (this.shareServer) {
             if (!this.isShareServerConnected()) {
                 // re-connect using the same group ID
@@ -1998,17 +2056,29 @@ class ExtensionBlocks {
                         resolve();
                     }, ((jitter / 2) + (Math.random() * (jitter / 2))));
                 })
-                    .then(() => this.connectShareServer());
+                    .then(() => this.connectShareServer())
+                    .finally(() => {
+                        this.shareServerGetting = false;
+                    });
             }
+            this.shareServerGetting = false;
             return Promise.resolve(this.shareServer);
         }
         return this.getShareGroupID()
             .then(groupID => {
-                if (groupID === '' || typeof groupID === 'undefined' || groupID === null) {
+                if (typeof groupID === 'undefined' || groupID === null) {
                     // Prevent to connect when the groupID was invalid.
                     return null;
                 }
+                this.shareGroupID = groupID;
+                if (groupID === '') {
+                    return null;
+                }
+                this.prevShareGroupID = groupID;
                 return this.connectShareServer();
+            })
+            .finally(() => {
+                this.shareServerGetting = false;
             });
     }
 
@@ -2023,7 +2093,8 @@ class ExtensionBlocks {
      */
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
-        if (this.shareDataSending) {
+        if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
+        if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
         }
@@ -2072,6 +2143,11 @@ class ExtensionBlocks {
      */
     getSharedDataLabeled (args) {
         const label = Cast.toString(args.LABEL);
+        if (this.isConnected()){
+            if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
+                this.getShareServer();
+            }
+        }
         if (this.sharedData[label]) {
             return this.sharedData[label].content;
         }
@@ -2098,17 +2174,10 @@ class ExtensionBlocks {
      * @return {boolean} - true if the data received.
      */
     whenSharedDataReceived (args) {
-        if (!this.isConnected()) return false;
-        if (!this.isShareServerConnected()) {
-            if (this.shareServerGetting) {
-                return false;
-            }
-            this.shareServerGetting = true;
-            this.getShareServer()
-                .then(() => {
-                    this.shareServerGetting = false;
-                });
-            
+        // if (!this.isConnected()) return false;
+        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
+            this.getShareServer();
+            return false;
         }
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {

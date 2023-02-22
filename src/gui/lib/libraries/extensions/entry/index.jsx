@@ -6,7 +6,7 @@ import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
 import translations from './translations.json';
 
-const version = 'v1.0.0';
+const version = 'v1.0.1';
 
 /**
  * Formatter to translate the messages in this extension.
