@@ -1011,7 +1011,6 @@ class ExtensionBlocks {
             }
             return; // Do not return Promise.resolve() to re-try.
         }
-        this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
@@ -1026,6 +1025,7 @@ class ExtensionBlocks {
         const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
         const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
         const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+        this.neoPixelBusy = true;
         this.board.neoPixelSetColor(pin, index, [r, g, b])
             .finally(() => {
                 this.neoPixelBusy = false;
