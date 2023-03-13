@@ -1022,9 +1022,22 @@ class ExtensionBlocks {
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
-        const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
-        const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
-        const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+        if (color.length === 0) {
+            // no effect for empty string
+            return;
+        }
+        let r;
+        let g;
+        let b;
+        if (color.length >= 3) {
+            r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
+            g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
+            b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+        } else {
+            r = Math.round(Math.max(0, Math.min(255, ((color[0] & 0xff0000) >> 16))) * brightness);
+            g = Math.round(Math.max(0, Math.min(255, ((color[0] & 0x00ff00) >> 8))) * brightness);
+            b = Math.round(Math.max(0, Math.min(255, (color[0] & 0x0000ff))) * brightness);
+        }
         this.neoPixelBusy = true;
         this.board.neoPixelSetColor(pin, index, [r, g, b])
             .finally(() => {
