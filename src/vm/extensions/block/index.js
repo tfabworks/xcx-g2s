@@ -2501,7 +2501,7 @@ class ExtensionBlocks {
                         },
                         LENGTH: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '16'
+                            defaultValue: '3'
                         }
                     }
                 },
