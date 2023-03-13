@@ -1051,13 +1051,14 @@ class ExtensionBlocks {
      * @param {string} args.RED - value for red [0...255]
      * @param {string} args.GREEN - value for green [0...255]
      * @param {string} args.BLUE - value for blue [0...255]
-     * @returns {string} color value [r, g, b] in string
+     * @returns {string} color value 0xRRGGBB in string
      */
     neoPixelColor (args) {
-        const r = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.RED))));
-        const g = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.GREEN))));
-        const b = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.BLUE))));
-        return numericArrayToString([r, g, b]);
+        const readAsColor = value =>
+            Math.round(Math.max(0, Math.min(255, Cast.toNumber(value))))
+                .toString(16)
+                .padStart(2, '0');
+        return `0x${readAsColor(args.RED)}${readAsColor(args.GREEN)}${readAsColor(args.BLUE)}`;
     }
 
     /**
