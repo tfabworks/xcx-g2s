@@ -12,6 +12,7 @@ import {
     PIXEL_SET_PIXEL,
     PIXEL_SHOW
 } from './node-pixel-constants';
+import Servo from './servo';
 
 const Firmata = bindTransport.Firmata;
 
@@ -197,6 +198,12 @@ class AkaDakoBoard extends EventEmitter {
          * @type {number}
          */
         this.defaultNeoPixelLength = 3;
+
+        /**
+         * Servo motors on this board.
+         * @type {Array<Servo>}
+         */
+        this.servo = [];
     }
 
     /**
@@ -620,6 +627,27 @@ class AkaDakoBoard extends EventEmitter {
             this.firmata.pwmWrite(pin, value);
             setTimeout(() => resolve(), this.sendingInterval);
         });
+    }
+
+    /**
+     * Return servo object on the pin
+     * @param {number} pin - pin number of the servo
+     * @returns {Servo?} servo which is connected on the pin
+     */
+    getServo (pin) {
+        if (this.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                return null;
+            }
+        }
+        let servo = this.servo[pin];
+        if (!servo) {
+            servo = new Servo(this, pin);
+            this.servo[pin] = servo;
+        }
+        return servo;
     }
 
     /**

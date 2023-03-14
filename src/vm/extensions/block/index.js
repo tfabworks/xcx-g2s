@@ -817,23 +817,28 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {number} args.ANGLE - degrees to the servo to turn
+     * @param {number} args.SPEED - speed of turning
+     * @param {BlockUtility} util - utility object provided by the runtime
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    servoTurn (args) {
-        if (!this.isConnected()) return;
+    servoTurn (args, util) {
+        if (!this.isConnected()) return Promise.resolve();
         const pin = parseInt(args.CONNECTOR, 10);
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            if (pin === 6 || pin === 9) {
-                // These pins are used for on-board buttons in the STEAM tool.
-                return;
+        const servo = this.board.getServo(pin);
+        if (!servo) return Promise.resolve();
+        if (servo.isBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
             }
+            return; // Do not return Promise.resolve() to re-try.
         }
         const angle = Cast.toNumber(args.ANGLE);
-        let servoValue = 90 - angle; // = 180 - (angle + 90)
-        servoValue = Math.min(180, Math.max(0, servoValue));
-        this.board.pinMode(pin, this.board.MODES.SERVO);
-        return this.board.servoWrite(pin, servoValue);
+        const speed = Cast.toNumber(args.SPEED);
+        servo.isBusy = true;
+        return servo.turnWithSpeed(angle, speed)
+            .finally(() => {
+                servo.isBusy = false;
+            });
     }
 
     /**
@@ -2274,7 +2279,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.servoTurn',
-                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
+                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees [SPEED] % speed',
                         description: 'turn servo motor'
                     }),
                     arguments: {
@@ -2284,6 +2289,10 @@ class ExtensionBlocks {
                         },
                         ANGLE: {
                             type: ArgumentType.ANGLE
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '100'
                         }
                     }
                 },
