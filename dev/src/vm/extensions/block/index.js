@@ -817,23 +817,28 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {number} args.ANGLE - degrees to the servo to turn
+     * @param {number} args.SPEED - speed of turning
+     * @param {BlockUtility} util - utility object provided by the runtime
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    servoTurn (args) {
-        if (!this.isConnected()) return;
+    servoTurn (args, util) {
+        if (!this.isConnected()) return Promise.resolve();
         const pin = parseInt(args.CONNECTOR, 10);
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            if (pin === 6 || pin === 9) {
-                // These pins are used for on-board buttons in the STEAM tool.
-                return;
+        const servo = this.board.getServo(pin);
+        if (!servo) return Promise.resolve();
+        if (servo.isBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
             }
+            return; // Do not return Promise.resolve() to re-try.
         }
         const angle = Cast.toNumber(args.ANGLE);
-        let servoValue = 90 - angle; // = 180 - (angle + 90)
-        servoValue = Math.min(180, Math.max(0, servoValue));
-        this.board.pinMode(pin, this.board.MODES.SERVO);
-        return this.board.servoWrite(pin, servoValue);
+        const speed = Cast.toNumber(args.SPEED);
+        servo.isBusy = true;
+        return servo.turnWithSpeed(angle, speed)
+            .finally(() => {
+                servo.isBusy = false;
+            });
     }
 
     /**
@@ -1011,7 +1016,6 @@ class ExtensionBlocks {
             }
             return; // Do not return Promise.resolve() to re-try.
         }
-        this.neoPixelBusy = true;
         const pin = parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
@@ -1023,9 +1027,23 @@ class ExtensionBlocks {
         const index = Cast.toNumber(args.POSITION) - 1;
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
-        const r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
-        const g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
-        const b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+        if (color.length === 0) {
+            // no effect for empty string
+            return;
+        }
+        let r;
+        let g;
+        let b;
+        if (color.length >= 3) {
+            r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
+            g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
+            b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+        } else {
+            r = Math.round(Math.max(0, Math.min(255, ((color[0] & 0xff0000) >> 16))) * brightness);
+            g = Math.round(Math.max(0, Math.min(255, ((color[0] & 0x00ff00) >> 8))) * brightness);
+            b = Math.round(Math.max(0, Math.min(255, (color[0] & 0x0000ff))) * brightness);
+        }
+        this.neoPixelBusy = true;
         this.board.neoPixelSetColor(pin, index, [r, g, b])
             .finally(() => {
                 this.neoPixelBusy = false;
@@ -1038,13 +1056,14 @@ class ExtensionBlocks {
      * @param {string} args.RED - value for red [0...255]
      * @param {string} args.GREEN - value for green [0...255]
      * @param {string} args.BLUE - value for blue [0...255]
-     * @returns {string} color value [r, g, b] in string
+     * @returns {string} color value 0xRRGGBB in string
      */
     neoPixelColor (args) {
-        const r = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.RED))));
-        const g = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.GREEN))));
-        const b = Math.round(Math.max(0, Math.min(255, Cast.toNumber(args.BLUE))));
-        return numericArrayToString([r, g, b]);
+        const readAsColor = value =>
+            Math.round(Math.max(0, Math.min(255, Cast.toNumber(value))))
+                .toString(16)
+                .padStart(2, '0');
+        return `0x${readAsColor(args.RED)}${readAsColor(args.GREEN)}${readAsColor(args.BLUE)}`;
     }
 
     /**
@@ -2260,7 +2279,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.servoTurn',
-                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
+                        default: 'Servo [CONNECTOR] turn [ANGLE] degrees [SPEED] % speed',
                         description: 'turn servo motor'
                     }),
                     arguments: {
@@ -2270,6 +2289,10 @@ class ExtensionBlocks {
                         },
                         ANGLE: {
                             type: ArgumentType.ANGLE
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '100'
                         }
                     }
                 },
@@ -2501,7 +2524,7 @@ class ExtensionBlocks {
                         },
                         LENGTH: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '16'
+                            defaultValue: '3'
                         }
                     }
                 },

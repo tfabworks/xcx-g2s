@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.0.1';
+var version$2 = 'v1.1.0';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1610,7 +1610,7 @@ var en = {
 	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "relay on Tool",
 	"g2s.analogLevelSet": "PWM [CONNECTOR] set duty cycle [LEVEL] %",
 	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "vibration motor on Tool",
-	"g2s.servoTurn": "Servo [CONNECTOR] turn [ANGLE] degrees",
+	"g2s.servoTurn": "Servo [CONNECTOR] turn [ANGLE] degrees [SPEED] % speed",
 	"g2s.i2cWrite": "I2C write on [ADDRESS] register [REGISTER] with [DATA]",
 	"g2s.i2cReadOnce": "I2C read [LENGTH] bytes from [ADDRESS] register [REGISTER]",
 	"g2s.oneWireReset": "OneWire [CONNECTOR] reset",
@@ -1696,7 +1696,7 @@ var ja = {
 	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールの制御スイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティー比[LEVEL]%にする",
 	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールの振動モーター",
-	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]度にする",
+	"g2s.servoTurn": "サーボ[CONNECTOR]を速度[SPEED]%で[ANGLE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
 	"g2s.oneWireReset": "[CONNECTOR]のOneWireをリセットする",
@@ -1785,7 +1785,7 @@ var translations = {
 	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールのせいぎょスイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティーひ[LEVEL]%にする",
 	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールのしんどうモーター",
-	"g2s.servoTurn": "サーボ[CONNECTOR]を[ANGLE]どにする",
+	"g2s.servoTurn": "サーボ[CONNECTOR]をそくど[SPEED]%で[ANGLE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
 	"g2s.oneWireReset": "[CONNECTOR]のOneWireをリセットする",
@@ -15971,6 +15971,123 @@ var nodePixelConstants = {
   COLOR_ORDER: COLOR_ORDER
 };
 
+/**
+ * This is a class to represent a servo motor
+ */
+var Servo = /*#__PURE__*/function () {
+  /**
+   * Constructor of Servo instance.
+   * @param {AkadakoBoard} board - connecting akadako board
+   * @param {number} pin - the pin the servo is connected to
+   */
+  function Servo(board, pin) {
+    _classCallCheck(this, Servo);
+
+    /**
+     * Connecting akadako board
+     * @type {import('./akadako-board').default}
+     */
+    this.board = board;
+    /**
+     * The pin the servo is connected
+     * @type {number}
+     */
+
+    this.pin = pin;
+    /**
+     * This servo is busy or not
+     * @type {boolean}
+     */
+
+    this.isBusy = false;
+    /**
+     * Current angle of this servo arm
+     * @type {number}
+     */
+
+    this.angle = 0;
+  }
+  /**
+   * Turn this to the angle
+   * @param {number} angle - degree to turn
+   * @returns {Promise} a Promise which resolves when the message was sent
+   */
+
+
+  _createClass(Servo, [{
+    key: "turn",
+    value: function turn(angle) {
+      var servoValue = 90 - angle; // convert from zero centered clockwise
+
+      servoValue = Math.min(180, Math.max(0, servoValue));
+      this.board.pinMode(this.pin, this.board.MODES.SERVO);
+      return this.board.servoWrite(this.pin, servoValue);
+    }
+    /**
+     * Turn this to the angle with the speed
+     * @param {number} angle - degree to turn
+     * @param {number} speed - turn speed
+     */
+
+  }, {
+    key: "turnWithSpeed",
+    value: function () {
+      var _turnWithSpeed = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(angle, speed) {
+        var startAngle, step, stepAngle, i;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!(speed <= 0)) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt("return");
+
+              case 2:
+                // Do not rotate when the speed is zero or less.
+                speed = Math.min(100, speed);
+                angle = Math.min(90, Math.max(-90, angle));
+                startAngle = this.angle;
+                step = Math.round(Math.abs(angle - startAngle) / 180) * (100 / (speed / 6));
+                stepAngle = (angle - startAngle) / step;
+                i = 0;
+
+              case 8:
+                if (!(i < step)) {
+                  _context.next = 15;
+                  break;
+                }
+
+                this.angle += stepAngle;
+                _context.next = 12;
+                return this.turn(this.angle);
+
+              case 12:
+                i++;
+                _context.next = 8;
+                break;
+
+              case 15:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function turnWithSpeed(_x, _x2) {
+        return _turnWithSpeed.apply(this, arguments);
+      }
+
+      return turnWithSpeed;
+    }()
+  }]);
+
+  return Servo;
+}();
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -16162,6 +16279,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      */
 
     _this.defaultNeoPixelLength = 3;
+    /**
+     * Servo motors on this board.
+     * @type {Array<Servo>}
+     */
+
+    _this.servo = [];
     return _this;
   }
   /**
@@ -16950,6 +17073,32 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
           return resolve();
         }, _this10.sendingInterval);
       });
+    }
+    /**
+     * Return servo object on the pin
+     * @param {number} pin - pin number of the servo
+     * @returns {Servo?} servo which is connected on the pin
+     */
+
+  }, {
+    key: "getServo",
+    value: function getServo(pin) {
+      if (this.version.type === 2) {
+        // STEAM Tool
+        if (pin === 6 || pin === 9) {
+          // These pins are used for on-board buttons in the STEAM tool.
+          return null;
+        }
+      }
+
+      var servo = this.servo[pin];
+
+      if (!servo) {
+        servo = new Servo(this, pin);
+        this.servo[pin] = servo;
+      }
+
+      return servo;
     }
     /**
      * Asks the board to move a servo
@@ -21401,29 +21550,33 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {number} args.ANGLE - degrees to the servo to turn
+     * @param {number} args.SPEED - speed of turning
+     * @param {BlockUtility} util - utility object provided by the runtime
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "servoTurn",
-    value: function servoTurn(args) {
-      if (!this.isConnected()) return;
+    value: function servoTurn(args, util) {
+      if (!this.isConnected()) return Promise.resolve();
       var pin = parseInt(args.CONNECTOR, 10);
+      var servo = this.board.getServo(pin);
+      if (!servo) return Promise.resolve();
 
-      if (this.board.version.type === 2) {
-        // STEAM Tool
-        if (pin === 6 || pin === 9) {
-          // These pins are used for on-board buttons in the STEAM tool.
-          return;
+      if (servo.isBusy) {
+        if (util) {
+          util.yield(); // re-try this call after a while.
         }
+
+        return; // Do not return Promise.resolve() to re-try.
       }
 
       var angle = cast.toNumber(args.ANGLE);
-      var servoValue = 90 - angle; // = 180 - (angle + 90)
-
-      servoValue = Math.min(180, Math.max(0, servoValue));
-      this.board.pinMode(pin, this.board.MODES.SERVO);
-      return this.board.servoWrite(pin, servoValue);
+      var speed = cast.toNumber(args.SPEED);
+      servo.isBusy = true;
+      return servo.turnWithSpeed(angle, speed).finally(function () {
+        servo.isBusy = false;
+      });
     }
     /**
      * Write data to register
@@ -21632,7 +21785,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
         return; // Do not return Promise.resolve() to re-try.
       }
 
-      this.neoPixelBusy = true;
       var pin = parseInt(args.CONNECTOR, 10);
 
       if (this.board.version.type === 2) {
@@ -21646,9 +21798,27 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var index = cast.toNumber(args.POSITION) - 1;
       var brightness = Math.max(0, Math.min(100, cast.toNumber(args.BRIGHTNESS))) / 100;
       var color = readAsNumericArray(args.COLOR);
-      var r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
-      var g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
-      var b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+
+      if (color.length === 0) {
+        // no effect for empty string
+        return;
+      }
+
+      var r;
+      var g;
+      var b;
+
+      if (color.length >= 3) {
+        r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
+        g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
+        b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
+      } else {
+        r = Math.round(Math.max(0, Math.min(255, (color[0] & 0xff0000) >> 16)) * brightness);
+        g = Math.round(Math.max(0, Math.min(255, (color[0] & 0x00ff00) >> 8)) * brightness);
+        b = Math.round(Math.max(0, Math.min(255, color[0] & 0x0000ff)) * brightness);
+      }
+
+      this.neoPixelBusy = true;
       this.board.neoPixelSetColor(pin, index, [r, g, b]).finally(function () {
         _this7.neoPixelBusy = false;
       });
@@ -21659,16 +21829,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * @param {string} args.RED - value for red [0...255]
      * @param {string} args.GREEN - value for green [0...255]
      * @param {string} args.BLUE - value for blue [0...255]
-     * @returns {string} color value [r, g, b] in string
+     * @returns {string} color value 0xRRGGBB in string
      */
 
   }, {
     key: "neoPixelColor",
     value: function neoPixelColor(args) {
-      var r = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.RED))));
-      var g = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.GREEN))));
-      var b = Math.round(Math.max(0, Math.min(255, cast.toNumber(args.BLUE))));
-      return numericArrayToString([r, g, b]);
+      var readAsColor = function readAsColor(value) {
+        return Math.round(Math.max(0, Math.min(255, cast.toNumber(value)))).toString(16).padStart(2, '0');
+      };
+
+      return "0x".concat(readAsColor(args.RED)).concat(readAsColor(args.GREEN)).concat(readAsColor(args.BLUE));
     }
     /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
@@ -23385,7 +23556,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.servoTurn',
-            default: 'Servo [CONNECTOR] turn [ANGLE] degrees',
+            default: 'Servo [CONNECTOR] turn [ANGLE] degrees [SPEED] % speed',
             description: 'turn servo motor'
           }),
           arguments: {
@@ -23395,6 +23566,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             },
             ANGLE: {
               type: argumentType.ANGLE
+            },
+            SPEED: {
+              type: argumentType.NUMBER,
+              defaultValue: '100'
             }
           }
         }, '---', {
@@ -23586,7 +23761,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             },
             LENGTH: {
               type: argumentType.NUMBER,
-              defaultValue: '16'
+              defaultValue: '3'
             }
           }
         }, {
