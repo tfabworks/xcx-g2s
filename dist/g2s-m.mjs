@@ -21284,7 +21284,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           extensionId: EXTENSION_ID
         });
 
-        return reason.toString();
+        return Promise.reject(reason);
       });
     }
     /**
