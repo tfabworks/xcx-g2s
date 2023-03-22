@@ -610,6 +610,13 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     digitalWrite (pin, value, enqueue) {
+        if (this.firmata.pins[pin].value === value) {
+            // to avoid chattering of the relay
+            return new Promise(resolve => {
+                setTimeout(() => resolve(), this.sendingInterval);
+            });
+        }
+        this.firmata.pinMode(pin, this.firmata.MODES.OUTPUT);
         return new Promise(resolve => {
             this.firmata.digitalWrite(pin, value, enqueue);
             setTimeout(() => resolve(), this.sendingInterval);
