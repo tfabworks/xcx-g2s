@@ -32,6 +32,7 @@ export default class Servo {
          * @type {number}
          */
         this.angle = 0;
+        this.mtx = false;
     }
 
     /**
@@ -53,11 +54,22 @@ export default class Servo {
      */
     async turnWithSpeed (angle, speed) {
         if (speed <= 0) return; // Do not rotate when the speed is zero or less.
-        speed = Math.min(100, speed);
+
+        const MAX_SPEED = 100;
+        speed = Math.min(MAX_SPEED, speed);
         angle = Math.min(90, Math.max(-90, angle));
+
         const startAngle = this.angle;
-        const step = Math.round(Math.abs(angle - startAngle) / 180) * (100 / (speed / 6));
+        const SPEED_ADJUSTER = 40.0;
+        const step = Math.abs( Math.round(  ((angle - startAngle) / 180.0 ) * (100.0 / (speed / SPEED_ADJUSTER) )) );
         const stepAngle = (angle - startAngle) / step;
+
+        if ( angle == startAngle || speed == MAX_SPEED ) {
+            this.angle = angle;
+            await this.turn( this.angle );
+            return;
+        }
+
         for (let i = 0; i < step; i++) {
             this.angle += stepAngle;
             await this.turn(this.angle);
