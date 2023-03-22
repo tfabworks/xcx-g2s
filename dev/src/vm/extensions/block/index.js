@@ -745,7 +745,6 @@ class ExtensionBlocks {
             }
         }
         const value = Cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
-        this.board.pinMode(pin, this.board.MODES.OUTPUT);
         return this.board.digitalWrite(pin, value);
     }
 

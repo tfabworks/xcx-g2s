@@ -16006,6 +16006,7 @@ var Servo = /*#__PURE__*/function () {
      */
 
     this.angle = 0;
+    this.mtx = false;
   }
   /**
    * Turn this to the angle
@@ -16033,7 +16034,7 @@ var Servo = /*#__PURE__*/function () {
     key: "turnWithSpeed",
     value: function () {
       var _turnWithSpeed = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(angle, speed) {
-        var startAngle, step, stepAngle, i;
+        var MAX_SPEED, startAngle, SPEED_ADJUSTER, step, stepAngle, i;
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -16047,29 +16048,45 @@ var Servo = /*#__PURE__*/function () {
 
               case 2:
                 // Do not rotate when the speed is zero or less.
-                speed = Math.min(100, speed);
+                MAX_SPEED = 100;
+                speed = Math.min(MAX_SPEED, speed);
                 angle = Math.min(90, Math.max(-90, angle));
                 startAngle = this.angle;
-                step = Math.round(Math.abs(angle - startAngle) / 180) * (100 / (speed / 6));
+                SPEED_ADJUSTER = 40.0;
+                step = Math.abs(Math.round((angle - startAngle) / 180.0 * (100.0 / (speed / SPEED_ADJUSTER))));
                 stepAngle = (angle - startAngle) / step;
+
+                if (!(angle === startAngle || speed === MAX_SPEED)) {
+                  _context.next = 14;
+                  break;
+                }
+
+                this.angle = angle;
+                _context.next = 13;
+                return this.turn(this.angle);
+
+              case 13:
+                return _context.abrupt("return");
+
+              case 14:
                 i = 0;
 
-              case 8:
+              case 15:
                 if (!(i < step)) {
-                  _context.next = 15;
+                  _context.next = 22;
                   break;
                 }
 
                 this.angle += stepAngle;
-                _context.next = 12;
+                _context.next = 19;
                 return this.turn(this.angle);
 
-              case 12:
+              case 19:
                 i++;
-                _context.next = 8;
+                _context.next = 15;
                 break;
 
-              case 15:
+              case 22:
               case "end":
                 return _context.stop();
             }
@@ -17046,6 +17063,16 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function digitalWrite(pin, value, enqueue) {
       var _this9 = this;
 
+      if (this.firmata.pins[pin].value === value) {
+        // to avoid chattering of the relay
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            return resolve();
+          }, _this9.sendingInterval);
+        });
+      }
+
+      this.firmata.pinMode(pin, this.firmata.MODES.OUTPUT);
       return new Promise(function (resolve) {
         _this9.firmata.digitalWrite(pin, value, enqueue);
 
@@ -21467,7 +21494,6 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }
 
       var value = cast.toBoolean(args.LEVEL) ? this.board.HIGH : this.board.LOW;
-      this.board.pinMode(pin, this.board.MODES.OUTPUT);
       return this.board.digitalWrite(pin, value);
     }
     /**
