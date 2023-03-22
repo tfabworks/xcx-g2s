@@ -61,12 +61,12 @@ export default class Servo {
 
         const startAngle = this.angle;
         const SPEED_ADJUSTER = 40.0;
-        const step = Math.abs( Math.round(  ((angle - startAngle) / 180.0 ) * (100.0 / (speed / SPEED_ADJUSTER) )) );
+        const step = Math.abs(Math.round(((angle - startAngle) / 180.0) * (100.0 / (speed / SPEED_ADJUSTER))));
         const stepAngle = (angle - startAngle) / step;
 
-        if ( angle == startAngle || speed == MAX_SPEED ) {
+        if (angle === startAngle || speed === MAX_SPEED) {
             this.angle = angle;
-            await this.turn( this.angle );
+            await this.turn(this.angle);
             return;
         }
 
