@@ -832,7 +832,7 @@ class ExtensionBlocks {
             return; // Do not return Promise.resolve() to re-try.
         }
         const angle = Cast.toNumber(args.ANGLE);
-        const speed = Cast.toNumber(args.SPEED);
+        const speed = ((typeof args.SPEED) === 'undefined') ? 100 : Cast.toNumber(args.SPEED);
         servo.isBusy = true;
         return servo.turnWithSpeed(angle, speed)
             .finally(() => {
