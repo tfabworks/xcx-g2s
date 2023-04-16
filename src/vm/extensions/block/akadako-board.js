@@ -310,74 +310,62 @@ class AkaDakoBoard extends EventEmitter {
      * @param {Array<{manufacturer: string, name: string}>} filters selecting rules for MIDIPort
      * @returns {Promise<MidiDakoTransport>} MIDI transport for Firmata
      */
-    async openMIDIPort(filters) {
-        const midiAccess = await navigator.requestMIDIAccess({ sysex: true })
-          .catch(error => {
-                return Promise.reject(`no available MIDI Access`);
-        });
- 
-        async function findPort(portType, filters, retries = 3, delayMs = 700) {
-          const availablePorts = [];
-      
-          for (const filter of filters) {
-            const ports = (portType === 'input') ? midiAccess.inputs : midiAccess.outputs;
-      
-            ports.forEach(port => {
-              if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
+    async openMIDIPort (filters) {
+        const midiAccess = await navigator.requestMIDIAccess({sysex: true})
+            .catch(() => Promise.reject(`no available MIDI Access`));
+        const findPort = async (portType, portFilters, retries = 3, delayMs = 700) => {
+            const availablePorts = [];
+            for (const filter of portFilters) {
+                const ports = (portType === 'input') ? midiAccess.inputs : midiAccess.outputs;
+                ports.forEach(port => {
+                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
                 (!filter.name || filter.name.test(port.name))) {
-                availablePorts.push(port);
-              }
-            });
-      
-            if (availablePorts.length > 0) {
-              return availablePorts[0];
+                        availablePorts.push(port);
+                    }
+                });
+                if (availablePorts.length > 0) {
+                    return availablePorts[0];
+                }
             }
-          }
-      
-          if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, delayMs));
-            return findPort(portType, filters, retries - 1, delayMs);
-          } else {
+            if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                return findPort(portType, portFilters, retries - 1, delayMs);
+            }
             return Promise.reject(`no available MIDIPort for the filters`);
-          }
-        }
-      
+        };
         let inputPort = null;
         let outputPort = null;
-      
         if (filters) {
-          inputPort = await findPort('input', filters);
-          if (!inputPort) {
-            midiAccess.inputs.forEach(port => {
-              console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
-            });
-            return Promise.reject(`no available MIDIInput for the filters`);
-          }
-      
-          outputPort = await findPort('output', filters);
-          if (!outputPort) {
-            midiAccess.outputs.forEach(port => {
-              console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
-            });
-            return Promise.reject(`no available MIDIOutput for the filters`);
-          }
+            inputPort = await findPort('input', filters);
+            if (!inputPort) {
+                midiAccess.inputs.forEach(port => {
+                    console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
+                });
+                return Promise.reject(`no available MIDIInput for the filters`);
+            }
+            outputPort = await findPort('output', filters);
+            if (!outputPort) {
+                midiAccess.outputs.forEach(port => {
+                    console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
+                });
+                return Promise.reject(`no available MIDIOutput for the filters`);
+            }
         } else {
-          const inputs = midiAccess.inputs.values();
-          const outputs = midiAccess.outputs.values();
-          let result = inputs.next();
-          if (result.done) return Promise.reject('no MIDIInput');
-          inputPort = result.value;
-          result = outputs.next();
-          if (result.done) return Promise.reject('no MIDIOutput');
-          outputPort = result.value;
+            const inputs = midiAccess.inputs.values();
+            const outputs = midiAccess.outputs.values();
+            let result = inputs.next();
+            if (result.done) return Promise.reject('no MIDIInput');
+            inputPort = result.value;
+            result = outputs.next();
+            if (result.done) return Promise.reject('no MIDIOutput');
+            outputPort = result.value;
         }
-      
-        this.portInfo = { manufacturer: inputPort.manufacturer, name: inputPort.name };
+        this.portInfo = {manufacturer: inputPort.manufacturer, name: inputPort.name};
         const transport = new MidiDakoTransport(inputPort, outputPort);
         await transport.close();
         await transport.open();
         return transport;
-      }
+    }
 
     /**
      * Return connected AkaDako board using WebMIDI

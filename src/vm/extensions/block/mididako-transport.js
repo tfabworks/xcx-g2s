@@ -95,7 +95,7 @@ class MidiDakoTransport extends EventEmitter {
     async close () {
         try {
             this.input.onstatechange = null;
-            this.output.onstatechange = null; 
+            this.output.onstatechange = null;
             this.input.onmidimessage = null;
             await this.input.close();
             await this.output.close();
