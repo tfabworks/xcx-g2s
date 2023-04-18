@@ -77,6 +77,22 @@ export default class KXTJ3 {
     }
 
     /**
+     * Check if the connected device is KXTJ3.
+     *
+     * @param {AkadakoBoard} board - connecting akadako board
+     * @returns {Promise<boolean>} A Promise which resolves true if the device is KXTJ3, false otherwise.
+     */
+    static async isConnected(board) {
+        try {
+            const kxtj3 = new KXTJ3(board);
+            await kxtj3.initDevice();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
      * Initialize the device.
      *
      * @param {number} range Range of gravity sensing. [ 2 | 4 | 8 | 16 ]
