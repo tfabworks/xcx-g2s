@@ -51,6 +51,22 @@ export default class ADXL345 {
     }
 
     /**
+     * Check if the connected device is ADXL345.
+     *
+     * @param {AkadakoBoard} board - connecting akadako board
+     * @returns {Promise<boolean>} A Promise which resolves true if the device is ADXL345, false otherwise.
+     */
+    static async isConnected (board) {
+        try {
+            const adxl345 = new ADXL345(board);
+            await adxl345.readID();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
      * Initialize the sensor
      * @returns {Promise} a Promise which resolves when the sensor was initialized
      */

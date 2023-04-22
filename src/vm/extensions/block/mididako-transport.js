@@ -16,15 +16,6 @@ class MidiDakoTransport extends EventEmitter {
         super();
         this.input = input;
         this.output = output;
-        this.input.onstatechange = event => {
-            this.onStateChange(event);
-        };
-        this.output.onstatechange = event => {
-            this.onStateChange(event);
-        };
-        this.input.onmidimessage = message => {
-            this.onMidiMessage(message);
-        };
         this.isOpen = this.isConnected();
     }
 
@@ -78,6 +69,15 @@ class MidiDakoTransport extends EventEmitter {
      * @returns {Promise<string?>} null or error message
      */
     async open () {
+        this.input.onstatechange = event => {
+            this.onStateChange(event);
+        };
+        this.output.onstatechange = event => {
+            this.onStateChange(event);
+        };
+        this.input.onmidimessage = message => {
+            this.onMidiMessage(message);
+        };
         try {
             await this.input.open();
             await this.output.open();
@@ -94,6 +94,9 @@ class MidiDakoTransport extends EventEmitter {
      */
     async close () {
         try {
+            this.input.onstatechange = null;
+            this.output.onstatechange = null;
+            this.input.onmidimessage = null;
             await this.input.close();
             await this.output.close();
         } catch (error) {

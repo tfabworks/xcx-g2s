@@ -20,6 +20,8 @@ const connectorBackupFilePath = path.resolve(targetDir, 'src/vm/extensions/block
 execSync(`npx xcratch-build --module=g2s --gui=../scratch-gui --block=./src/vm/extensions/block --entry=./src/gui/lib/libraries/extensions/entry --output=./build`);
 console.log(`Built a module`);
 fs.copyFileSync('./build/g2s.mjs', './dist/g2s.mjs')
+const VERSION = process.env.npm_package_version;
+fs.copyFileSync('./build/g2s.mjs', `./dist/g2s-${VERSION.replace(/\./g, '_')}.mjs`);
 
 // Build a serial disabled module
 let originalCode = fs.readFileSync(connectorFilePath, 'utf-8');
