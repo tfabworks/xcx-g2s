@@ -574,8 +574,16 @@ class ExtensionBlocks {
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
-        if (this.board && this.board.isConnected()) return; // Already connected
-        return this.boardConnector.connectedBoard(EXTENSION_ID)
+        return new Promise(resolve => {
+            if (this.board) {
+                this.disconnectBoard();
+            }
+            resolve();
+            setTimeout(() => {
+                resolve();
+            }, this.runtime.currentStepTime);
+        })
+            .then(() => this.boardConnector.connectedBoard(EXTENSION_ID))
             .then(connectedBoard => {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
                     name: connectedBoard.name,
