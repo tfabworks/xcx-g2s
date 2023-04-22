@@ -1227,11 +1227,16 @@ class ExtensionBlocks {
     async getAccelerometer () {
         if (!this.accelerometer) {
             let newSensor = null;
-            if (this.board.version.type === 2) {
-                // STEAM Tool
+            const isKXTJ3Connected = await KXTJ3.isConnected(this.board);
+            if (isKXTJ3Connected) {
                 newSensor = new KXTJ3(this.board);
             } else {
-                newSensor = new ADXL345(this.board);
+                const isADXL345Connected = await ADXL345.isConnected(this.board);
+                if (isADXL345Connected) {
+                    newSensor = new ADXL345(this.board);
+                } else {
+                    throw new Error('No supported accelerometer found');
+                }
             }
             await newSensor.init();
             this.accelerometer = newSensor;
