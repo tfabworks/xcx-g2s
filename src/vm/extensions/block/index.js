@@ -2197,7 +2197,7 @@ class ExtensionBlocks {
      * @return {boolean} - true if the data received.
      */
     whenSharedDataReceived (args) {
-        // if (!this.isConnected()) return false;
+        if (!this.isConnected()) return false;
         if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
             this.getShareServer();
             return false;
