@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.1.0';
+var version$2 = 'v1.1.1';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -15577,19 +15577,6 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
     _this = _super.call(this);
     _this.input = input;
     _this.output = output;
-
-    _this.input.onstatechange = function (event) {
-      _this.onStateChange(event);
-    };
-
-    _this.output.onstatechange = function (event) {
-      _this.onStateChange(event);
-    };
-
-    _this.input.onmidimessage = function (message) {
-      _this.onMidiMessage(message);
-    };
-
     _this.isOpen = _this.isConnected();
     return _this;
   }
@@ -15657,33 +15644,47 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
     key: "open",
     value: function () {
       var _open = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee() {
+        var _this2 = this;
+
         return regenerator.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.prev = 0;
-                _context.next = 3;
+                this.input.onstatechange = function (event) {
+                  _this2.onStateChange(event);
+                };
+
+                this.output.onstatechange = function (event) {
+                  _this2.onStateChange(event);
+                };
+
+                this.input.onmidimessage = function (message) {
+                  _this2.onMidiMessage(message);
+                };
+
+                _context.prev = 3;
+                _context.next = 6;
                 return this.input.open();
 
-              case 3:
-                _context.next = 5;
+              case 6:
+                _context.next = 8;
                 return this.output.open();
 
-              case 5:
-                _context.next = 10;
+              case 8:
+                _context.next = 13;
                 break;
 
-              case 7:
-                _context.prev = 7;
-                _context.t0 = _context["catch"](0);
+              case 10:
+                _context.prev = 10;
+                _context.t0 = _context["catch"](3);
                 return _context.abrupt("return", _context.t0);
 
-              case 10:
+              case 13:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[0, 7]]);
+        }, _callee, this, [[3, 10]]);
       }));
 
       function open() {
@@ -15707,28 +15708,31 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 _context2.prev = 0;
-                _context2.next = 3;
+                this.input.onstatechange = null;
+                this.output.onstatechange = null;
+                this.input.onmidimessage = null;
+                _context2.next = 6;
                 return this.input.close();
 
-              case 3:
-                _context2.next = 5;
+              case 6:
+                _context2.next = 8;
                 return this.output.close();
 
-              case 5:
-                _context2.next = 10;
+              case 8:
+                _context2.next = 13;
                 break;
 
-              case 7:
-                _context2.prev = 7;
+              case 10:
+                _context2.prev = 10;
                 _context2.t0 = _context2["catch"](0);
                 return _context2.abrupt("return", _context2.t0);
 
-              case 10:
+              case 13:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[0, 7]]);
+        }, _callee2, this, [[0, 10]]);
       }));
 
       function close() {
@@ -16453,7 +16457,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 port = _context3.sent;
                 request = new Promise(function (resolve) {
                   var firmata = new Firmata(port, {
-                    reportVersionTimeout: 0
+                    reportVersionTimeout: 500
                   }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
                     return regenerator.wrap(function _callee2$(_context2) {
                       while (1) {
@@ -16507,217 +16511,220 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "openMIDIPort",
     value: function () {
-      var _openMIDIPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(filters) {
-        var midiAccess, inputPort, outputPort, _iterator, _step, _loop, _ret, _iterator2, _step2, _loop2, _ret2, inputs, outputs, result, transport;
-
-        return regenerator.wrap(function _callee4$(_context4) {
+      var _openMIDIPort = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5(filters) {
+        var midiAccess, findPort, inputPort, outputPort, inputs, outputs, result, transport;
+        return regenerator.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context4.next = 2;
+                _context5.next = 2;
                 return navigator.requestMIDIAccess({
                   sysex: true
+                }).catch(function () {
+                  return Promise.reject("no available MIDI Access");
                 });
 
               case 2:
-                midiAccess = _context4.sent;
+                midiAccess = _context5.sent;
+
+                findPort = /*#__PURE__*/function () {
+                  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(portType, portFilters) {
+                    var retries,
+                        delayMs,
+                        availablePorts,
+                        _iterator,
+                        _step,
+                        _loop,
+                        _ret,
+                        _args4 = arguments;
+
+                    return regenerator.wrap(function _callee4$(_context4) {
+                      while (1) {
+                        switch (_context4.prev = _context4.next) {
+                          case 0:
+                            retries = _args4.length > 2 && _args4[2] !== undefined ? _args4[2] : 3;
+                            delayMs = _args4.length > 3 && _args4[3] !== undefined ? _args4[3] : 700;
+                            availablePorts = [];
+                            _iterator = _createForOfIteratorHelper(portFilters);
+                            _context4.prev = 4;
+
+                            _loop = function _loop() {
+                              var filter = _step.value;
+                              var ports = portType === 'input' ? midiAccess.inputs : midiAccess.outputs;
+                              ports.forEach(function (port) {
+                                if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) && (!filter.name || filter.name.test(port.name))) {
+                                  availablePorts.push(port);
+                                }
+                              });
+
+                              if (availablePorts.length > 0) {
+                                return {
+                                  v: availablePorts[0]
+                                };
+                              }
+                            };
+
+                            _iterator.s();
+
+                          case 7:
+                            if ((_step = _iterator.n()).done) {
+                              _context4.next = 13;
+                              break;
+                            }
+
+                            _ret = _loop();
+
+                            if (!(_typeof(_ret) === "object")) {
+                              _context4.next = 11;
+                              break;
+                            }
+
+                            return _context4.abrupt("return", _ret.v);
+
+                          case 11:
+                            _context4.next = 7;
+                            break;
+
+                          case 13:
+                            _context4.next = 18;
+                            break;
+
+                          case 15:
+                            _context4.prev = 15;
+                            _context4.t0 = _context4["catch"](4);
+
+                            _iterator.e(_context4.t0);
+
+                          case 18:
+                            _context4.prev = 18;
+
+                            _iterator.f();
+
+                            return _context4.finish(18);
+
+                          case 21:
+                            if (!(retries > 0)) {
+                              _context4.next = 25;
+                              break;
+                            }
+
+                            _context4.next = 24;
+                            return new Promise(function (resolve) {
+                              return setTimeout(resolve, delayMs);
+                            });
+
+                          case 24:
+                            return _context4.abrupt("return", findPort(portType, portFilters, retries - 1, delayMs));
+
+                          case 25:
+                            return _context4.abrupt("return", Promise.reject("no available MIDIPort for the filters"));
+
+                          case 26:
+                          case "end":
+                            return _context4.stop();
+                        }
+                      }
+                    }, _callee4, null, [[4, 15, 18, 21]]);
+                  }));
+
+                  return function findPort(_x4, _x5) {
+                    return _ref2.apply(this, arguments);
+                  };
+                }();
+
                 inputPort = null;
                 outputPort = null;
 
                 if (!filters) {
-                  _context4.next = 52;
+                  _context5.next = 21;
                   break;
                 }
 
-                _iterator = _createForOfIteratorHelper(filters);
-                _context4.prev = 7;
+                _context5.next = 9;
+                return findPort('input', filters);
 
-                _loop = function _loop() {
-                  var filter = _step.value;
-                  var availablePorts = [];
-                  midiAccess.inputs.forEach(function (port) {
-                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) && (!filter.name || filter.name.test(port.name))) {
-                      availablePorts.push(port);
-                    }
-                  });
+              case 9:
+                inputPort = _context5.sent;
 
-                  if (availablePorts.length > 0) {
-                    inputPort = availablePorts[0];
-                    return "break";
-                  }
-                };
-
-                _iterator.s();
-
-              case 10:
-                if ((_step = _iterator.n()).done) {
-                  _context4.next = 16;
-                  break;
-                }
-
-                _ret = _loop();
-
-                if (!(_ret === "break")) {
-                  _context4.next = 14;
-                  break;
-                }
-
-                return _context4.abrupt("break", 16);
-
-              case 14:
-                _context4.next = 10;
-                break;
-
-              case 16:
-                _context4.next = 21;
-                break;
-
-              case 18:
-                _context4.prev = 18;
-                _context4.t0 = _context4["catch"](7);
-
-                _iterator.e(_context4.t0);
-
-              case 21:
-                _context4.prev = 21;
-
-                _iterator.f();
-
-                return _context4.finish(21);
-
-              case 24:
                 if (inputPort) {
-                  _context4.next = 28;
+                  _context5.next = 13;
                   break;
                 }
 
-                console.log('MIDIInput');
                 midiAccess.inputs.forEach(function (port) {
                   console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
                 });
-                return _context4.abrupt("return", Promise.reject("no available MIDIInput for the filters"));
+                return _context5.abrupt("return", Promise.reject("no available MIDIInput for the filters"));
 
-              case 28:
-                _iterator2 = _createForOfIteratorHelper(filters);
-                _context4.prev = 29;
+              case 13:
+                _context5.next = 15;
+                return findPort('output', filters);
 
-                _loop2 = function _loop2() {
-                  var filter = _step2.value;
-                  var availablePorts = [];
-                  midiAccess.outputs.forEach(function (port) {
-                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) && (!filter.name || filter.name.test(port.name))) {
-                      availablePorts.push(port);
-                    }
-                  });
+              case 15:
+                outputPort = _context5.sent;
 
-                  if (availablePorts.length > 0) {
-                    outputPort = availablePorts[0];
-                    return "break";
-                  }
-                };
-
-                _iterator2.s();
-
-              case 32:
-                if ((_step2 = _iterator2.n()).done) {
-                  _context4.next = 38;
-                  break;
-                }
-
-                _ret2 = _loop2();
-
-                if (!(_ret2 === "break")) {
-                  _context4.next = 36;
-                  break;
-                }
-
-                return _context4.abrupt("break", 38);
-
-              case 36:
-                _context4.next = 32;
-                break;
-
-              case 38:
-                _context4.next = 43;
-                break;
-
-              case 40:
-                _context4.prev = 40;
-                _context4.t1 = _context4["catch"](29);
-
-                _iterator2.e(_context4.t1);
-
-              case 43:
-                _context4.prev = 43;
-
-                _iterator2.f();
-
-                return _context4.finish(43);
-
-              case 46:
                 if (outputPort) {
-                  _context4.next = 50;
+                  _context5.next = 19;
                   break;
                 }
 
-                console.log('MIDIOutput');
                 midiAccess.outputs.forEach(function (port) {
                   console.log("    {manufacturer:\"".concat(port.manufacturer, "\", name:\"").concat(port.name, "\"}\n"));
                 });
-                return _context4.abrupt("return", Promise.reject("no available MIDIOutput for the filters"));
+                return _context5.abrupt("return", Promise.reject("no available MIDIOutput for the filters"));
 
-              case 50:
-                _context4.next = 62;
+              case 19:
+                _context5.next = 31;
                 break;
 
-              case 52:
+              case 21:
                 inputs = midiAccess.inputs.values();
                 outputs = midiAccess.outputs.values();
                 result = inputs.next();
 
                 if (!result.done) {
-                  _context4.next = 57;
+                  _context5.next = 26;
                   break;
                 }
 
-                return _context4.abrupt("return", Promise.reject('no MIDIInput'));
+                return _context5.abrupt("return", Promise.reject('no MIDIInput'));
 
-              case 57:
+              case 26:
                 inputPort = result.value;
                 result = outputs.next();
 
                 if (!result.done) {
-                  _context4.next = 61;
+                  _context5.next = 30;
                   break;
                 }
 
-                return _context4.abrupt("return", Promise.reject('no MIDIOutput'));
+                return _context5.abrupt("return", Promise.reject('no MIDIOutput'));
 
-              case 61:
+              case 30:
                 outputPort = result.value;
 
-              case 62:
+              case 31:
                 this.portInfo = {
                   manufacturer: inputPort.manufacturer,
                   name: inputPort.name
                 };
                 transport = new MidiDakoTransport(inputPort, outputPort);
-                _context4.next = 66;
+                _context5.next = 35;
                 return transport.close();
 
-              case 66:
-                _context4.next = 68;
+              case 35:
+                _context5.next = 37;
                 return transport.open();
 
-              case 68:
-                return _context4.abrupt("return", transport);
+              case 37:
+                return _context5.abrupt("return", transport);
 
-              case 69:
+              case 38:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this, [[7, 18, 21, 24], [29, 40, 43, 46]]);
+        }, _callee5, this);
       }));
 
       function openMIDIPort(_x3) {
@@ -16735,47 +16742,47 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "connectMIDI",
     value: function () {
-      var _connectMIDI = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(filters) {
+      var _connectMIDI = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(filters) {
         var _this4 = this;
 
         var port, request;
-        return regenerator.wrap(function _callee6$(_context6) {
+        return regenerator.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 if (!this.firmata) {
-                  _context6.next = 2;
+                  _context7.next = 2;
                   break;
                 }
 
-                return _context6.abrupt("return", Promise.resolve(this));
+                return _context7.abrupt("return", Promise.resolve(this));
 
               case 2:
                 // already opened
                 this.state = 'portRequesting';
-                _context6.next = 5;
+                _context7.next = 5;
                 return this.openMIDIPort(filters);
 
               case 5:
-                port = _context6.sent;
+                port = _context7.sent;
                 request = new Promise(function (resolve) {
                   var _getSettings = getSettings(),
                       pins = _getSettings.pins,
                       analogPins = _getSettings.analogPins;
 
                   var firmata = new Firmata(port, {
-                    reportVersionTimeout: 0,
+                    reportVersionTimeout: 500,
                     skipCapabilities: true,
                     pins: pins,
                     analogPins: analogPins
-                  }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
-                    return regenerator.wrap(function _callee5$(_context5) {
+                  }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6() {
+                    return regenerator.wrap(function _callee6$(_context6) {
                       while (1) {
-                        switch (_context5.prev = _context5.next) {
+                        switch (_context6.prev = _context6.next) {
                           case 0:
                             _this4.setupFirmata(firmata);
 
-                            _context5.next = 3;
+                            _context6.next = 3;
                             return _this4.boardVersion();
 
                           case 3:
@@ -16794,10 +16801,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
                           case 5:
                           case "end":
-                            return _context5.stop();
+                            return _context6.stop();
                         }
                       }
-                    }, _callee5);
+                    }, _callee6);
                   }))); // make the firmata initialize
                   // firmata version is fixed for MidiDako
 
@@ -16807,7 +16814,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
                   firmata.emit('queryfirmware'); // skip firmware query
                 });
-                return _context6.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
+                return _context7.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
                   _this4.releaseBoard();
 
                   return Promise.reject(reason);
@@ -16815,13 +16822,13 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 8:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function connectMIDI(_x4) {
+      function connectMIDI(_x6) {
         return _connectMIDI.apply(this, arguments);
       }
 
@@ -16891,6 +16898,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
         this.firmata.removeAllListeners();
         this.firmata = null;
+      }
+
+      if (this.transport) {
+        this.transport.close();
+        this.transport = null;
       }
 
       this.oneWireDevices = null;
@@ -17363,13 +17375,13 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelSetColor",
     value: function () {
-      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(pin, index, color) {
+      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin, index, color) {
         var _this19 = this;
 
         var address, prevStrip, colorValue, message;
-        return regenerator.wrap(function _callee7$(_context7) {
+        return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 address = 0;
                 prevStrip = true;
@@ -17385,11 +17397,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 });
 
                 if (!prevStrip) {
-                  _context7.next = 6;
+                  _context8.next = 6;
                   break;
                 }
 
-                _context7.next = 6;
+                _context8.next = 6;
                 return this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
 
               case 6:
@@ -17403,7 +17415,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 message[5] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
                 message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                return _context7.abrupt("return", new Promise(function (resolve) {
+                return _context8.abrupt("return", new Promise(function (resolve) {
                   _this19.firmata.sysexCommand(message);
 
                   setTimeout(function () {
@@ -17413,13 +17425,13 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 17:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function neoPixelSetColor(_x5, _x6, _x7) {
+      function neoPixelSetColor(_x7, _x8, _x9) {
         return _neoPixelSetColor.apply(this, arguments);
       }
 
@@ -17433,11 +17445,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClear",
     value: function () {
-      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin) {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(pin) {
         var strip, length, index;
-        return regenerator.wrap(function _callee8$(_context8) {
+        return regenerator.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 strip = this.neoPixel.find(function (aStrip) {
                   return aStrip.pin === pin;
@@ -17447,30 +17459,30 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 3:
                 if (!(index < length)) {
-                  _context8.next = 9;
+                  _context9.next = 9;
                   break;
                 }
 
-                _context8.next = 6;
+                _context9.next = 6;
                 return this.neoPixelSetColor(pin, index, [0, 0, 0]);
 
               case 6:
                 index++;
-                _context8.next = 3;
+                _context9.next = 3;
                 break;
 
               case 9:
-                return _context8.abrupt("return", this.neoPixelShow());
+                return _context9.abrupt("return", this.neoPixelShow());
 
               case 10:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
-      function neoPixelClear(_x8) {
+      function neoPixelClear(_x10) {
         return _neoPixelClear.apply(this, arguments);
       }
 
@@ -19616,14 +19628,21 @@ var ADXL345 = /*#__PURE__*/function () {
     };
   }
   /**
-   * Initialize the sensor
-   * @returns {Promise} a Promise which resolves when the sensor was initialized
+   * Check if the connected device is ADXL345.
+   *
+   * @param {AkadakoBoard} board - connecting akadako board
+   * @returns {Promise<boolean>} A Promise which resolves true if the device is ADXL345, false otherwise.
    */
 
 
   _createClass(ADXL345, [{
     key: "init",
-    value: function init() {
+    value:
+    /**
+     * Initialize the sensor
+     * @returns {Promise} a Promise which resolves when the sensor was initialized
+     */
+    function init() {
       var _this = this;
 
       return this.readID().then(function (id) {
@@ -19665,6 +19684,42 @@ var ADXL345 = /*#__PURE__*/function () {
         return acceleration;
       });
     }
+  }], [{
+    key: "isConnected",
+    value: function () {
+      var _isConnected = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(board) {
+        var adxl345;
+        return regenerator.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                adxl345 = new ADXL345(board);
+                _context.next = 4;
+                return adxl345.readID();
+
+              case 4:
+                return _context.abrupt("return", true);
+
+              case 7:
+                _context.prev = 7;
+                _context.t0 = _context["catch"](0);
+                return _context.abrupt("return", false);
+
+              case 10:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, null, [[0, 7]]);
+      }));
+
+      function isConnected(_x) {
+        return _isConnected.apply(this, arguments);
+      }
+
+      return isConnected;
+    }()
   }]);
 
   return ADXL345;
@@ -20269,15 +20324,22 @@ var KXTJ3 = /*#__PURE__*/function () {
     this.regCtrl1 = 0;
   }
   /**
-   * Initialize the device.
+   * Check if the connected device is KXTJ3.
    *
-   * @param {number} range Range of gravity sensing. [ 2 | 4 | 8 | 16 ]
+   * @param {AkadakoBoard} board - connecting akadako board
+   * @returns {Promise<boolean>} A Promise which resolves true if the device is KXTJ3, false otherwise.
    */
 
 
   _createClass(KXTJ3, [{
     key: "init",
-    value: function () {
+    value:
+    /**
+     * Initialize the device.
+     *
+     * @param {number} range Range of gravity sensing. [ 2 | 4 | 8 | 16 ]
+     */
+    function () {
       var _init = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(range) {
         var ctrl1;
         return regenerator.wrap(function _callee$(_context) {
@@ -20557,6 +20619,42 @@ var KXTJ3 = /*#__PURE__*/function () {
     value: function write(register, data) {
       this.board.i2cWrite(this.address, register, data);
     }
+  }], [{
+    key: "isConnected",
+    value: function () {
+      var _isConnected = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee6(board) {
+        var kxtj3;
+        return regenerator.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.prev = 0;
+                kxtj3 = new KXTJ3(board);
+                _context6.next = 4;
+                return kxtj3.initDevice();
+
+              case 4:
+                return _context6.abrupt("return", true);
+
+              case 7:
+                _context6.prev = 7;
+                _context6.t0 = _context6["catch"](0);
+                return _context6.abrupt("return", false);
+
+              case 10:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, null, [[0, 7]]);
+      }));
+
+      function isConnected(_x3) {
+        return _isConnected.apply(this, arguments);
+      }
+
+      return isConnected;
+    }()
   }]);
 
   return KXTJ3;
@@ -21598,7 +21696,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }
 
       var angle = cast.toNumber(args.ANGLE);
-      var speed = cast.toNumber(args.SPEED);
+      var speed = typeof args.SPEED === 'undefined' ? 100 : cast.toNumber(args.SPEED);
       servo.isBusy = true;
       return servo.turnWithSpeed(angle, speed).finally(function () {
         servo.isBusy = false;
@@ -22104,35 +22202,62 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "getAccelerometer",
     value: function () {
       var _getAccelerometer = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
-        var newSensor;
+        var newSensor, isKXTJ3Connected, isADXL345Connected;
         return regenerator.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 if (this.accelerometer) {
-                  _context2.next = 6;
+                  _context2.next = 20;
                   break;
                 }
 
                 newSensor = null;
+                _context2.next = 4;
+                return KXTJ3.isConnected(this.board);
 
-                if (this.board.version.type === 2) {
-                  // STEAM Tool
-                  newSensor = new KXTJ3(this.board);
-                } else {
-                  newSensor = new ADXL345(this.board);
+              case 4:
+                isKXTJ3Connected = _context2.sent;
+
+                if (!isKXTJ3Connected) {
+                  _context2.next = 9;
+                  break;
                 }
 
-                _context2.next = 5;
+                newSensor = new KXTJ3(this.board);
+                _context2.next = 17;
+                break;
+
+              case 9:
+                _context2.next = 11;
+                return ADXL345.isConnected(this.board);
+
+              case 11:
+                isADXL345Connected = _context2.sent;
+
+                if (!isADXL345Connected) {
+                  _context2.next = 16;
+                  break;
+                }
+
+                newSensor = new ADXL345(this.board);
+                _context2.next = 17;
+                break;
+
+              case 16:
+                throw new Error('No supported accelerometer found');
+
+              case 17:
+                _context2.next = 19;
                 return newSensor.init();
 
-              case 5:
+              case 19:
                 this.accelerometer = newSensor;
 
-              case 6:
+              case 20:
                 return _context2.abrupt("return", this.accelerometer);
 
-              case 7:
+              case 21:
               case "end":
                 return _context2.stop();
             }
@@ -23500,7 +23625,8 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function whenSharedDataReceived(args) {
       var _this25 = this;
 
-      // if (!this.isConnected()) return false;
+      if (!this.isConnected()) return false;
+
       if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
         this.getShareServer();
         return false;

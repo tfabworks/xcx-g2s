@@ -289,7 +289,7 @@ class AkaDakoBoard extends EventEmitter {
         const request = new Promise(resolve => {
             const firmata = new Firmata(
                 port,
-                {reportVersionTimeout: 0},
+                {reportVersionTimeout: 500},
                 async () => {
                     this.setupFirmata(firmata);
                     await this.boardVersion();
@@ -311,45 +311,40 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Promise<MidiDakoTransport>} MIDI transport for Firmata
      */
     async openMIDIPort (filters) {
-        const midiAccess = await navigator.requestMIDIAccess({sysex: true});
-        let inputPort = null;
-        let outputPort = null;
-        if (filters) {
-            for (const filter of filters) {
-                const availablePorts = [];
-                midiAccess.inputs.forEach(port => {
+        const midiAccess = await navigator.requestMIDIAccess({sysex: true})
+            .catch(() => Promise.reject(`no available MIDI Access`));
+        const findPort = async (portType, portFilters, retries = 3, delayMs = 700) => {
+            const availablePorts = [];
+            for (const filter of portFilters) {
+                const ports = (portType === 'input') ? midiAccess.inputs : midiAccess.outputs;
+                ports.forEach(port => {
                     if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
-                    (!filter.name || filter.name.test(port.name))) {
+                (!filter.name || filter.name.test(port.name))) {
                         availablePorts.push(port);
                     }
                 });
                 if (availablePorts.length > 0) {
-                    inputPort = availablePorts[0];
-                    break;
+                    return availablePorts[0];
                 }
             }
+            if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                return findPort(portType, portFilters, retries - 1, delayMs);
+            }
+            return Promise.reject(`no available MIDIPort for the filters`);
+        };
+        let inputPort = null;
+        let outputPort = null;
+        if (filters) {
+            inputPort = await findPort('input', filters);
             if (!inputPort) {
-                console.log('MIDIInput');
                 midiAccess.inputs.forEach(port => {
                     console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
                 });
                 return Promise.reject(`no available MIDIInput for the filters`);
             }
-            for (const filter of filters) {
-                const availablePorts = [];
-                midiAccess.outputs.forEach(port => {
-                    if ((!filter.manufacturer || filter.manufacturer.test(port.manufacturer)) &&
-                    (!filter.name || filter.name.test(port.name))) {
-                        availablePorts.push(port);
-                    }
-                });
-                if (availablePorts.length > 0) {
-                    outputPort = availablePorts[0];
-                    break;
-                }
-            }
+            outputPort = await findPort('output', filters);
             if (!outputPort) {
-                console.log('MIDIOutput');
                 midiAccess.outputs.forEach(port => {
                     console.log(`    {manufacturer:"${port.manufacturer}", name:"${port.name}"}\n`);
                 });
@@ -386,7 +381,7 @@ class AkaDakoBoard extends EventEmitter {
             const firmata = new Firmata(
                 port,
                 {
-                    reportVersionTimeout: 0,
+                    reportVersionTimeout: 500,
                     skipCapabilities: true,
                     pins: pins,
                     analogPins: analogPins
@@ -472,6 +467,12 @@ class AkaDakoBoard extends EventEmitter {
             this.firmata.removeAllListeners();
             this.firmata = null;
         }
+
+        if (this.transport) {
+            this.transport.close();
+            this.transport = null;
+        }
+ 
         this.oneWireDevices = null;
         this.extensionId = null;
         this.emit('disconnect');
