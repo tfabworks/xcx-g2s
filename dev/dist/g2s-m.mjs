@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.1.1';
+var version$2 = 'v1.1.2';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1690,12 +1690,12 @@ var ja = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
-	"g2s.digitalConnectorMenu.buttonAOnTool": "ツールのAボタン",
-	"g2s.digitalConnectorMenu.buttonBOnTool": "ツールのBボタン",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "内蔵のAボタン",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "内蔵のBボタン",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールの制御スイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "内蔵の制御スイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティー比[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールの振動モーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "内蔵の振動モーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を速度[SPEED]%で[ANGLE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
@@ -1704,7 +1704,7 @@ var ja = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイト読み出す",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]を書き込んでから[LENGTH]バイト読み出す",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]を長さ[LENGTH]に設定する",
-	"g2s.neoPixelConnectorMenu.steamBox": "ツール",
+	"g2s.neoPixelConnectorMenu.steamBox": "内蔵",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]番目を[COLOR]色で明るさ[BRIGHTNESS]に設定する",
 	"g2s.neoPixelColorMenu.red": "赤",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -1779,12 +1779,12 @@ var translations = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
-	"g2s.digitalConnectorMenu.buttonAOnTool": "ツールのAボタン",
-	"g2s.digitalConnectorMenu.buttonBOnTool": "ツールのBボタン",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "ないぞうのAボタン",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "ないぞうのBボタン",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ツールのせいぎょスイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ないぞうのせいぎょスイッチ",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティーひ[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ツールのしんどうモーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ないぞうのしんどうモーター",
 	"g2s.servoTurn": "サーボ[CONNECTOR]をそくど[SPEED]%で[ANGLE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
@@ -1793,7 +1793,7 @@ var translations = {
 	"g2s.oneWireRead": "[CONNECTOR]のOneWireから[LENGTH]バイトよみだす",
 	"g2s.oneWireWriteAndRead": "[CONNECTOR]のOneWireに[DATA]をかきこんでから[LENGTH]バイトよみだす",
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]をながさ[LENGTH]にせっていする",
-	"g2s.neoPixelConnectorMenu.steamBox": "ツール",
+	"g2s.neoPixelConnectorMenu.steamBox": "ないぞう",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]ばんめを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
 	"g2s.neoPixelColorMenu.red": "あか",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
@@ -21409,7 +21409,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           extensionId: EXTENSION_ID
         });
 
-        return Promise.reject(reason);
+        return reason.toString();
       });
     }
     /**
