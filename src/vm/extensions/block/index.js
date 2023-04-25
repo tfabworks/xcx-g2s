@@ -593,7 +593,7 @@ class ExtensionBlocks {
                     message: `Scratch lost connection to`,
                     extensionId: EXTENSION_ID
                 });
-                return Promise.reject(reason);
+                return reason.toString();
             });
     }
 
