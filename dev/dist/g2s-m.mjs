@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.1.2';
+var version$2 = 'v1.1.3';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -21388,9 +21388,18 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     value: function connectBoard() {
       var _this4 = this;
 
-      if (this.board && this.board.isConnected()) return; // Already connected
+      return new Promise(function (resolve) {
+        if (_this4.board) {
+          _this4.disconnectBoard();
+        }
 
-      return this.boardConnector.connectedBoard(EXTENSION_ID).then(function (connectedBoard) {
+        resolve();
+        setTimeout(function () {
+          resolve();
+        }, _this4.runtime.currentStepTime);
+      }).then(function () {
+        return _this4.boardConnector.connectedBoard(EXTENSION_ID);
+      }).then(function (connectedBoard) {
         _this4.runtime.emit(_this4.runtime.constructor.PERIPHERAL_CONNECTED, {
           name: connectedBoard.name,
           path: connectedBoard.portInfo
