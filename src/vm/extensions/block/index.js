@@ -469,7 +469,6 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
-            this.dataSharingWasCanceled = true;
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -1909,6 +1908,7 @@ class ExtensionBlocks {
             // prevent to open multiple dialogs
             return Promise.resolve(null);
         }
+        this.dataSharingWasCanceled = false;
         this.shareGroupIDDialogOpened = true;
         const inputDialog = document.createElement('dialog');
         inputDialog.style.padding = '0px';
@@ -2087,7 +2087,7 @@ class ExtensionBlocks {
             this.shareServerGetting = false;
             return Promise.resolve(this.shareServer);
         }
-        return this.getShareGroupID()
+        return this.openShareGroupIDDialog()
             .then(groupID => {
                 if (typeof groupID === 'undefined' || groupID === null) {
                     // Prevent to connect when the groupID was invalid.
@@ -2104,6 +2104,34 @@ class ExtensionBlocks {
                 this.shareServerGetting = false;
             });
     }
+
+    /**
+     * Connect to data sharing server.
+     *
+     * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @return {?Promise<string>} a Promise that resolves when connected or undefined if this process was yield.
+     */
+    connectToShareServer (args, util) {
+        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
+        if (this.shareServerGetting) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise to re-try.
+        }
+        return this.getShareServer()
+            .then(server => {
+                if (server) {
+                    return 'Connected to the communication server.';
+                }
+                if (this.dataSharingWasCanceled) return 'Data sharing was canceled by user.';
+                return 'Could not connect to the communication server.';
+            })
+            .catch(reason => {
+                console.info(reason);
+                return reason.toString();
+            });
+    }
+
 
     /**
      * Send data to share server.
@@ -2802,6 +2830,17 @@ class ExtensionBlocks {
                     }
                 },
                 '---',
+                {
+                    opcode: 'connectToShareServer',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectToShareServer',
+                        default: 'connect to communication server',
+                        description: 'connect to a data sharing server'
+                    }),
+                    arguments: {
+                    }
+                },
                 {
                     opcode: 'isShareServerConnected',
                     blockType: BlockType.BOOLEAN,
