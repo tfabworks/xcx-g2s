@@ -2145,6 +2145,7 @@ class ExtensionBlocks {
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
+        if (!this.isShareServerConnected()) return Promise.resolve('Share server was not connected.');
         if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2193,12 +2194,8 @@ class ExtensionBlocks {
      * @return {?(string | number)} - content of the data or empty string when the data was null
      */
     getSharedDataLabeled (args) {
+        if (!this.isShareServerConnected()) return '';
         const label = Cast.toString(args.LABEL);
-        if (this.isConnected()){
-            if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
-                this.getShareServer();
-            }
-        }
         if (this.sharedData[label]) {
             return this.sharedData[label].content;
         }
@@ -2226,10 +2223,7 @@ class ExtensionBlocks {
      */
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
-        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
-            this.getShareServer();
-            return false;
-        }
+        if (!this.isShareServerConnected()) return false;
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {
                 this.updatePrevSharedData();
