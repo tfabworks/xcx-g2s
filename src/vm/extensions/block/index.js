@@ -2053,7 +2053,7 @@ class ExtensionBlocks {
      * @returns {boolean} true when it was opened
      */
     isShareServerConnected () {
-        return (this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
+        return !!(this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
     }
 
     /**
@@ -2802,6 +2802,17 @@ class ExtensionBlocks {
                     }
                 },
                 '---',
+                {
+                    opcode: 'isShareServerConnected',
+                    blockType: BlockType.BOOLEAN,
+                    text: formatMessage({
+                        id: 'g2s.isShareServerConnected',
+                        default: 'communication server is connected',
+                        description: 'whether a board is connected'
+                    }),
+                    arguments: {
+                    }
+                },
                 {
                     opcode: 'reportShareGroupID',
                     text: formatMessage({
