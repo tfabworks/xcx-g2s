@@ -2015,10 +2015,10 @@ class ExtensionBlocks {
     }
 
     /**
-     * Connect and return a data sharing server.
-     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     * Open WebSocket for data sharing and return the socket.
+     * @returns {Promise<?WebSocket>} a Promise that resolves a server socket or null when timeout occurred
      */
-    connectShareServer () {
+    openSocketForShareServer () {
         const url = this.shareServerURL + encodeURIComponent(this.shareGroupID);
         const connecting = new Promise(resolve => {
             const server = new WebSocket(url);
@@ -2079,7 +2079,7 @@ class ExtensionBlocks {
                         resolve();
                     }, ((jitter / 2) + (Math.random() * (jitter / 2))));
                 })
-                    .then(() => this.connectShareServer())
+                    .then(() => this.openSocketForShareServer())
                     .finally(() => {
                         this.shareServerGetting = false;
                     });
@@ -2098,7 +2098,7 @@ class ExtensionBlocks {
                     return null;
                 }
                 this.prevShareGroupID = groupID;
-                return this.connectShareServer();
+                return this.openSocketForShareServer();
             })
             .finally(() => {
                 this.shareServerGetting = false;
