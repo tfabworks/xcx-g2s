@@ -469,7 +469,6 @@ class ExtensionBlocks {
         this.runtime.on('PROJECT_STOP_ALL', () => {
             this.resetPinMode();
             this.neoPixelClearAll();
-            this.dataSharingWasCanceled = true;
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -574,16 +573,8 @@ class ExtensionBlocks {
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
-        return new Promise(resolve => {
-            if (this.board) {
-                this.disconnectBoard();
-            }
-            resolve();
-            setTimeout(() => {
-                resolve();
-            }, this.runtime.currentStepTime);
-        })
-            .then(() => this.boardConnector.connectedBoard(EXTENSION_ID))
+        if (this.board && this.board.isConnected()) return; // Already connected
+        return this.boardConnector.connectedBoard(EXTENSION_ID)
             .then(connectedBoard => {
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_CONNECTED, {
                     name: connectedBoard.name,
@@ -1917,6 +1908,7 @@ class ExtensionBlocks {
             // prevent to open multiple dialogs
             return Promise.resolve(null);
         }
+        this.dataSharingWasCanceled = false;
         this.shareGroupIDDialogOpened = true;
         const inputDialog = document.createElement('dialog');
         inputDialog.style.padding = '0px';
@@ -2023,10 +2015,10 @@ class ExtensionBlocks {
     }
 
     /**
-     * Connect and return a data sharing server.
-     * @returns {Promise<?WebSocket>} a Promise that resolves a server or null when timeout occurred
+     * Open WebSocket for data sharing and return the socket.
+     * @returns {Promise<?WebSocket>} a Promise that resolves a server socket or null when timeout occurred
      */
-    connectShareServer () {
+    openSocketForShareServer () {
         const url = this.shareServerURL + encodeURIComponent(this.shareGroupID);
         const connecting = new Promise(resolve => {
             const server = new WebSocket(url);
@@ -2061,7 +2053,7 @@ class ExtensionBlocks {
      * @returns {boolean} true when it was opened
      */
     isShareServerConnected () {
-        return (this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
+        return !!(this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
     }
 
     /**
@@ -2087,7 +2079,7 @@ class ExtensionBlocks {
                         resolve();
                     }, ((jitter / 2) + (Math.random() * (jitter / 2))));
                 })
-                    .then(() => this.connectShareServer())
+                    .then(() => this.openSocketForShareServer())
                     .finally(() => {
                         this.shareServerGetting = false;
                     });
@@ -2095,7 +2087,7 @@ class ExtensionBlocks {
             this.shareServerGetting = false;
             return Promise.resolve(this.shareServer);
         }
-        return this.getShareGroupID()
+        return this.openShareGroupIDDialog()
             .then(groupID => {
                 if (typeof groupID === 'undefined' || groupID === null) {
                     // Prevent to connect when the groupID was invalid.
@@ -2106,12 +2098,40 @@ class ExtensionBlocks {
                     return null;
                 }
                 this.prevShareGroupID = groupID;
-                return this.connectShareServer();
+                return this.openSocketForShareServer();
             })
             .finally(() => {
                 this.shareServerGetting = false;
             });
     }
+
+    /**
+     * Connect to data sharing server.
+     *
+     * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @return {?Promise<string>} a Promise that resolves when connected or undefined if this process was yield.
+     */
+    connectToShareServer (args, util) {
+        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
+        if (this.shareServerGetting) {
+            util.yield(); // re-try this call after a while.
+            return; // Do not return Promise to re-try.
+        }
+        return this.getShareServer()
+            .then(server => {
+                if (server) {
+                    return 'Connected to the communication server.';
+                }
+                if (this.dataSharingWasCanceled) return 'Data sharing was canceled by user.';
+                return 'Could not connect to the communication server.';
+            })
+            .catch(reason => {
+                console.info(reason);
+                return reason.toString();
+            });
+    }
+
 
     /**
      * Send data to share server.
@@ -2125,6 +2145,7 @@ class ExtensionBlocks {
     sendSharedData (args, util) {
         if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
+        if (!this.isShareServerConnected()) return Promise.resolve('Share server was not connected.');
         if (this.shareDataSending || this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2173,12 +2194,8 @@ class ExtensionBlocks {
      * @return {?(string | number)} - content of the data or empty string when the data was null
      */
     getSharedDataLabeled (args) {
+        if (!this.isShareServerConnected()) return '';
         const label = Cast.toString(args.LABEL);
-        if (this.isConnected()){
-            if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
-                this.getShareServer();
-            }
-        }
         if (this.sharedData[label]) {
             return this.sharedData[label].content;
         }
@@ -2206,10 +2223,7 @@ class ExtensionBlocks {
      */
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
-        if (!this.dataSharingWasCanceled && !this.isShareServerConnected()) {
-            this.getShareServer();
-            return false;
-        }
+        if (!this.isShareServerConnected()) return false;
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {
                 this.updatePrevSharedData();
@@ -2810,6 +2824,28 @@ class ExtensionBlocks {
                     }
                 },
                 '---',
+                {
+                    opcode: 'connectToShareServer',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectToShareServer',
+                        default: 'connect to communication server',
+                        description: 'connect to a data sharing server'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'isShareServerConnected',
+                    blockType: BlockType.BOOLEAN,
+                    text: formatMessage({
+                        id: 'g2s.isShareServerConnected',
+                        default: 'communication server is connected',
+                        description: 'whether a board is connected'
+                    }),
+                    arguments: {
+                    }
+                },
                 {
                     opcode: 'reportShareGroupID',
                     text: formatMessage({
