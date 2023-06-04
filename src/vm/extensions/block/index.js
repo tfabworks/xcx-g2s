@@ -1925,6 +1925,9 @@ class ExtensionBlocks {
         const groupIDForm = document.createElement('form');
         groupIDForm.setAttribute('method', 'dialog');
         groupIDForm.style.margin = '8px';
+        groupIDForm.addEventListener('submit', e => {
+            e.preventDefault();
+        });
         dialogFace.appendChild(groupIDForm);
         // API select
         const groupIDInput = document.createElement('input');
