@@ -1954,7 +1954,7 @@ class ExtensionBlocks {
         confirmButton.style.margin = '8px';
         dialogFace.appendChild(confirmButton);
         return new Promise(resolve => {
-            const closer = groupID => {
+            const resolveID = groupID => {
                 resolve(groupID);
             };
             // Add onClick action
@@ -1964,12 +1964,12 @@ class ExtensionBlocks {
                     console.info('Empty group ID is not acceptable.');
                     return;
                 }
-                closer(inputValue);
+                resolveID(inputValue);
             };
             confirmButton.onclick = confirmed;
             const canceled = () => {
                 this.dataSharingWasCanceled = true;
-                closer('');
+                resolveID('');
             };
             cancelButton.onclick = canceled;
             inputDialog.addEventListener('keydown', e => {
