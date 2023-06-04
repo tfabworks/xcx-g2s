@@ -23301,6 +23301,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       var groupIDForm = document.createElement('form');
       groupIDForm.setAttribute('method', 'dialog');
       groupIDForm.style.margin = '8px';
+      groupIDForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+      });
       dialogFace.appendChild(groupIDForm); // API select
 
       var groupIDInput = document.createElement('input');
@@ -23332,7 +23335,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       confirmButton.style.margin = '8px';
       dialogFace.appendChild(confirmButton);
       return new Promise(function (resolve) {
-        var closer = function closer(groupID) {
+        var resolveID = function resolveID(groupID) {
           resolve(groupID);
         }; // Add onClick action
 
@@ -23345,14 +23348,14 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             return;
           }
 
-          closer(inputValue);
+          resolveID(inputValue);
         };
 
         confirmButton.onclick = confirmed;
 
         var canceled = function canceled() {
           _this20.dataSharingWasCanceled = true;
-          closer('');
+          resolveID('');
         };
 
         cancelButton.onclick = canceled;
