@@ -2365,6 +2365,19 @@ class ExtensionBlocks {
                     arguments: {
                     }
                 },
+                {
+                    opcode: 'motionSensorValue',
+                    func: 'digitalLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.motionSensorValue',
+                        default: 'value of motion sensor on Tool',
+                        description: 'report value of motion sensor on Tool'
+                    }),
+                    arguments: {
+                    }
+                },
                 '---',
                 {
                     opcode: 'getBrightness',
