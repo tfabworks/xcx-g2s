@@ -644,6 +644,9 @@ class ExtensionBlocks {
         case 'B':
             pin = 9;
             break;
+        case 'PIR':
+            pin = 9;
+            break;
         default:
             pin = parseInt(args.CONNECTOR, 10);
             break;
@@ -702,6 +705,9 @@ class ExtensionBlocks {
             pin = 6;
             break;
         case 'B':
+            pin = 9;
+            break;
+        case 'PIR':
             pin = 9;
             break;
         default:
@@ -3332,6 +3338,14 @@ class ExtensionBlocks {
                     description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
                 }),
                 value: 'B'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.digitalConnectorMenu.motionSensorOnTool',
+                    default: 'PIR Motion sensor on Tool',
+                    description: 'label for motion sensor on board in digital connector menu for g2s'
+                }),
+                value: 'PIR'
             }
         ];
     }
