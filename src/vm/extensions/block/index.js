@@ -2398,6 +2398,19 @@ class ExtensionBlocks {
                     arguments: {
                     }
                 },
+                {
+                    opcode: 'getAnalogBrightness',
+                    func: 'analogLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAnalogBrightness',
+                        default: 'light Analog brightness',
+                        description: 'report brightness by analog sensor'
+                    }),
+                    arguments: {
+                    }
+                },
                 '---',
                 {
                     opcode: 'getTemperature',
