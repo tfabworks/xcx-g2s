@@ -3339,16 +3339,16 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.digitalConnectorMenu.buttonAOnTool',
-                    default: 'button A on STEAM Tool',
-                    description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
+                    default: 'button A on Tool',
+                    description: 'label for button A on Tool in digital level get connector menu for g2s'
                 }),
                 value: 'A'
             },
             {
                 text: formatMessage({
                     id: 'g2s.digitalConnectorMenu.buttonBOnTool',
-                    default: 'button B on STEAM Tool',
-                    description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
+                    default: 'button B on Tool',
+                    description: 'label for button B on Tool in digital level get connector menu for g2s'
                 }),
                 value: 'B'
             },
