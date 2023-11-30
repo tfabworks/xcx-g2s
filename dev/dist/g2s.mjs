@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.1.3';
+var version$2 = 'v1.2.0';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1604,8 +1604,9 @@ var en = {
 	"g2s.inputBiasMenu.pullUp": "pull up",
 	"g2s.digitalIsHigh": "[CONNECTOR] value is 1",
 	"g2s.digitalLevelChanged": "When [CONNECTOR] is [LEVEL]",
-	"g2s.digitalConnectorMenu.buttonAOnTool": "button A on STEAM Tool",
-	"g2s.digitalConnectorMenu.buttonBOnTool": "button B on STEAM Tool",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "button A on Tool",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "button B on Tool",
+	"g2s.digitalConnectorMenu.motionSensorOnTool": "PIR Motion sensor on Tool",
 	"g2s.digitalLevelSet": "[CONNECTOR] to [LEVEL]",
 	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "relay on Tool",
 	"g2s.analogLevelSet": "PWM [CONNECTOR] set duty cycle [LEVEL] %",
@@ -1636,13 +1637,15 @@ var en = {
 	"g2s.measureDistanceWithLight": "distance by laser on I2C (cm)",
 	"g2s.measureDistanceWithUltrasonicA": "distance by ultrasonic on Digital A (cm)",
 	"g2s.measureDistanceWithUltrasonicB": "distance by ultrasonic on Digital B (cm)",
+	"g2s.motionSensorValue": "value of motion sensor on Tool",
 	"g2s.getAccelerationX": "acceleration I2C X (m/s^2)",
 	"g2s.getAccelerationY": "acceleration I2C Y (m/s^2)",
 	"g2s.getAccelerationZ": "acceleration I2C Z (m/s^2)",
 	"g2s.getAccelerationAbsolute": "acceleration I2C Absolute (m/s^2)",
 	"g2s.getPitch": "acceleration I2C pitch (degree)",
 	"g2s.getRoll": "acceleration I2C roll (degree)",
-	"g2s.getBrightness": "light I2C brightness (Lux)",
+	"g2s.getBrightness": "light I2C brightness (lx)",
+	"g2s.getAnalogBrightness": "light Analog brightness",
 	"g2s.getTemperature": "environment I2C temperature (°C)",
 	"g2s.getPressure": "environment I2C pressure (hPa)",
 	"g2s.getHumidity": "environment I2C humidity (%)",
@@ -1692,12 +1695,13 @@ var ja = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
-	"g2s.digitalConnectorMenu.buttonAOnTool": "内蔵のAボタン",
-	"g2s.digitalConnectorMenu.buttonBOnTool": "内蔵のBボタン",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "Aボタン(内蔵)",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "Bボタン(内蔵)",
+	"g2s.digitalConnectorMenu.motionSensorOnTool": "人感(内蔵)",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "内蔵の制御スイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "制御スイッチ(内蔵)",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティー比[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "内蔵の振動モーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "振動モーター(内蔵)",
 	"g2s.servoTurn": "サーボ[CONNECTOR]を速度[SPEED]%で[ANGLE]度にする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]を書き込む",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイト読み出す",
@@ -1724,6 +1728,7 @@ var ja = {
 	"g2s.measureDistanceWithLight": "距離 レーザーI2Cの距離(cm)",
 	"g2s.measureDistanceWithUltrasonicA": "距離 超音波デジタルAの距離(cm)",
 	"g2s.measureDistanceWithUltrasonicB": "距離 超音波デジタルBの距離(cm)",
+	"g2s.motionSensorValue": "人感(内蔵)の値",
 	"g2s.getAccelerationX": "加速度I2CのX(m/s^2)",
 	"g2s.getAccelerationY": "加速度I2CのY(m/s^2)",
 	"g2s.getAccelerationZ": "加速度I2CのZ(m/s^2)",
@@ -1731,6 +1736,7 @@ var ja = {
 	"g2s.getPitch": "加速度I2Cのピッチ(度)",
 	"g2s.getRoll": "加速度I2Cのロール(度)",
 	"g2s.getBrightness": "光I2Cの明るさ(lx)",
+	"g2s.getAnalogBrightness": "光アナログ(内蔵)の明るさ",
 	"g2s.getTemperature": "環境I2Cの温度(°C)",
 	"g2s.getPressure": "環境I2Cの気圧(hPa)",
 	"g2s.getHumidity": "環境I2Cの湿度(%)",
@@ -1783,12 +1789,13 @@ var translations = {
 	"g2s.inputBiasMenu.pullUp": "プルアップする",
 	"g2s.digitalIsHigh": "[CONNECTOR]が1である",
 	"g2s.digitalLevelChanged": "[CONNECTOR]が[LEVEL]になったとき",
-	"g2s.digitalConnectorMenu.buttonAOnTool": "ないぞうのAボタン",
-	"g2s.digitalConnectorMenu.buttonBOnTool": "ないぞうのBボタン",
+	"g2s.digitalConnectorMenu.buttonAOnTool": "Aボタン(ないぞう)",
+	"g2s.digitalConnectorMenu.buttonBOnTool": "Bボタン(ないぞう)",
+	"g2s.digitalConnectorMenu.motionSensorOnTool": "じんかん(ないぞう)",
 	"g2s.digitalLevelSet": "[CONNECTOR]を[LEVEL]にする",
-	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "ないぞうのせいぎょスイッチ",
+	"g2s.digitalLevelSetConnectorMenu.relayOnSteamBox": "せいぎょスイッチ(ないぞう)",
 	"g2s.analogLevelSet": "PWM[CONNECTOR]をデューティーひ[LEVEL]%にする",
-	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "ないぞうのしんどうモーター",
+	"g2s.pwmConnectorMenu.vibrationMotorOnSteamBox": "しんどうモーター(ないぞう)",
 	"g2s.servoTurn": "サーボ[CONNECTOR]をそくど[SPEED]%で[ANGLE]どにする",
 	"g2s.i2cWrite": "I2C[ADDRESS]のレジスタ[REGISTER]に[DATA]をかきこむ",
 	"g2s.i2cReadOnce": "I2C[ADDRESS]のレジスタ[REGISTER]を[LENGTH]バイトよみだす",
@@ -1815,6 +1822,7 @@ var translations = {
 	"g2s.measureDistanceWithLight": "きょり レーザーI2Cのきょり(cm)",
 	"g2s.measureDistanceWithUltrasonicA": "きょり ちょうおんぱデジタルAのきょり(cm)",
 	"g2s.measureDistanceWithUltrasonicB": "きょり ちょうおんぱデジタルBのきょり(cm)",
+	"g2s.motionSensorValue": "じんかん(ないぞう)のあたい",
 	"g2s.getAccelerationX": "かそくどI2CのX(m/s^2)",
 	"g2s.getAccelerationY": "かそくどI2CのY(m/s^2)",
 	"g2s.getAccelerationZ": "かそくどI2CのZ(m/s^2)",
@@ -1822,6 +1830,7 @@ var translations = {
 	"g2s.getPitch": "かそくどI2Cのピッチ(ど)",
 	"g2s.getRoll": "かそくどI2Cのロール(ど)",
 	"g2s.getBrightness": "ひかりI2Cのあかるさ(lx)",
+	"g2s.getAnalogBrightness": "ひかりアナログ(ないぞう)のあかるさ",
 	"g2s.getTemperature": "かんきょうI2Cのおんど(°C)",
 	"g2s.getPressure": "かんきょうI2Cのきあつ(hPa)",
 	"g2s.getHumidity": "かんきょうI2Cのしつど(%)",
@@ -21017,6 +21026,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
     this.sonicDistanceBUpdateIntervalTime = 100;
     /**
+     * Buffered optical distance values.
+     */
+
+    this.opticalDistanceSamples = [];
+    /**
+     * Size of buffered optical distance values.
+     * @type {number}
+     */
+
+    this.opticalDistanceSamplesSize = 9;
+    /**
      * Default accelerometer
      */
 
@@ -21475,6 +21495,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           pin = 9;
           break;
 
+        case 'PIR':
+          pin = 9;
+          break;
+
         default:
           pin = parseInt(args.CONNECTOR, 10);
           break;
@@ -21546,6 +21570,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           break;
 
         case 'B':
+          pin = 9;
+          break;
+
+        case 'PIR':
           pin = 9;
           break;
 
@@ -22056,6 +22084,27 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return getOpticalDistanceSensor;
     }()
     /**
+     * Reduce noise of the value of the ToF distance sensor.
+     * @param {number} value - value of the ToF distance sensor
+     * @returns {number} processed value
+     */
+
+  }, {
+    key: "reduceNoiseOfOpticalDistance",
+    value: function reduceNoiseOfOpticalDistance(value) {
+      if (this.opticalDistanceSamples.length >= this.opticalDistanceSamplesSize) {
+        this.opticalDistanceSamples.shift();
+      }
+
+      this.opticalDistanceSamples.push(value);
+
+      var sorted = _toConsumableArray(this.opticalDistanceSamples).sort(function (a, b) {
+        return a - b;
+      });
+
+      return sorted[Math.floor(sorted.length / 2)];
+    }
+    /**
      * Measure distance using ToF sensor VL53L0X.
      *
      * @param {object} _args - the block's arguments.
@@ -22099,7 +22148,9 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return measureRequest.then(function (distance) {
         return distance / 10;
       }) // convert unit [mm] to [cm]
-      .catch(function (reason) {
+      .then(function (distance) {
+        return _this8.reduceNoiseOfOpticalDistance(distance);
+      }).catch(function (reason) {
         console.log("measureDistanceWithLight was rejected by ".concat(reason));
         _this8.opticalDistance = null;
         return '';
@@ -23790,6 +23841,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             description: 'report distance by light'
           }),
           arguments: {}
+        }, {
+          opcode: 'motionSensorValue',
+          func: 'digitalLevelB2',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.motionSensorValue',
+            default: 'value of motion sensor on Tool',
+            description: 'report value of motion sensor on Tool'
+          }),
+          arguments: {}
         }, '---', {
           opcode: 'getBrightness',
           func: 'getBrightness',
@@ -23799,6 +23861,17 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             id: 'g2s.getBrightness',
             default: 'light I2C brightness (lx)',
             description: 'report brightness'
+          }),
+          arguments: {}
+        }, {
+          opcode: 'getAnalogBrightness',
+          func: 'analogLevelB2',
+          blockType: blockType.REPORTER,
+          disableMonitor: false,
+          text: formatMessage({
+            id: 'g2s.getAnalogBrightness',
+            default: 'light Analog brightness',
+            description: 'report brightness by analog sensor'
           }),
           arguments: {}
         }, '---', {
@@ -24642,17 +24715,24 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }, {
         text: formatMessage({
           id: 'g2s.digitalConnectorMenu.buttonAOnTool',
-          default: 'button A on STEAM Tool',
-          description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
+          default: 'button A on Tool',
+          description: 'label for button A on Tool in digital level get connector menu for g2s'
         }),
         value: 'A'
       }, {
         text: formatMessage({
           id: 'g2s.digitalConnectorMenu.buttonBOnTool',
-          default: 'button B on STEAM Tool',
-          description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
+          default: 'button B on Tool',
+          description: 'label for button B on Tool in digital level get connector menu for g2s'
         }),
         value: 'B'
+      }, {
+        text: formatMessage({
+          id: 'g2s.digitalConnectorMenu.motionSensorOnTool',
+          default: 'PIR Motion sensor on Tool',
+          description: 'label for motion sensor on board in digital connector menu for g2s'
+        }),
+        value: 'PIR'
       }];
     }
     /**
