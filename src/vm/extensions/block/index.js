@@ -217,6 +217,17 @@ class ExtensionBlocks {
         this.sonicDistanceBUpdateIntervalTime = 100;
 
         /**
+         * Buffered optical distance values.
+         */
+        this.opticalDistanceSamples = [];
+
+        /**
+         * Size of buffered optical distance values.
+         * @type {number}
+         */
+        this.opticalDistanceSamplesSize = 9;
+
+        /**
          * Default accelerometer
          */
         this.accelerometer = null;
@@ -1110,6 +1121,20 @@ class ExtensionBlocks {
     }
 
     /**
+     * Reduce noise of the value of the ToF distance sensor.
+     * @param {number} value - value of the ToF distance sensor
+     * @returns {number} processed value
+     */
+    reduceNoiseOfOpticalDistance (value) {
+        if (this.opticalDistanceSamples.length >= this.opticalDistanceSamplesSize) {
+            this.opticalDistanceSamples.shift();
+        }
+        this.opticalDistanceSamples.push(value);
+        const sorted = [...this.opticalDistanceSamples].sort((a, b) => a - b);
+        return sorted[Math.floor(sorted.length / 2)];
+    }
+
+    /**
      * Measure distance using ToF sensor VL53L0X.
      *
      * @param {object} _args - the block's arguments.
@@ -1144,6 +1169,7 @@ class ExtensionBlocks {
         }
         return measureRequest
             .then(distance => distance / 10) // convert unit [mm] to [cm]
+            .then(distance => this.reduceNoiseOfOpticalDistance(distance))
             .catch(reason => {
                 console.log(`measureDistanceWithLight was rejected by ${reason}`);
                 this.opticalDistance = null;
