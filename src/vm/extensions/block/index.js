@@ -217,6 +217,17 @@ class ExtensionBlocks {
         this.sonicDistanceBUpdateIntervalTime = 100;
 
         /**
+         * Buffered optical distance values.
+         */
+        this.opticalDistanceSamples = [];
+
+        /**
+         * Size of buffered optical distance values.
+         * @type {number}
+         */
+        this.opticalDistanceSamplesSize = 9;
+
+        /**
          * Default accelerometer
          */
         this.accelerometer = null;
@@ -644,6 +655,9 @@ class ExtensionBlocks {
         case 'B':
             pin = 9;
             break;
+        case 'PIR':
+            pin = 9;
+            break;
         default:
             pin = parseInt(args.CONNECTOR, 10);
             break;
@@ -702,6 +716,9 @@ class ExtensionBlocks {
             pin = 6;
             break;
         case 'B':
+            pin = 9;
+            break;
+        case 'PIR':
             pin = 9;
             break;
         default:
@@ -1104,6 +1121,20 @@ class ExtensionBlocks {
     }
 
     /**
+     * Reduce noise of the value of the ToF distance sensor.
+     * @param {number} value - value of the ToF distance sensor
+     * @returns {number} processed value
+     */
+    reduceNoiseOfOpticalDistance (value) {
+        if (this.opticalDistanceSamples.length >= this.opticalDistanceSamplesSize) {
+            this.opticalDistanceSamples.shift();
+        }
+        this.opticalDistanceSamples.push(value);
+        const sorted = [...this.opticalDistanceSamples].sort((a, b) => a - b);
+        return sorted[Math.floor(sorted.length / 2)];
+    }
+
+    /**
      * Measure distance using ToF sensor VL53L0X.
      *
      * @param {object} _args - the block's arguments.
@@ -1138,6 +1169,7 @@ class ExtensionBlocks {
         }
         return measureRequest
             .then(distance => distance / 10) // convert unit [mm] to [cm]
+            .then(distance => this.reduceNoiseOfOpticalDistance(distance))
             .catch(reason => {
                 console.log(`measureDistanceWithLight was rejected by ${reason}`);
                 this.opticalDistance = null;
@@ -2365,6 +2397,19 @@ class ExtensionBlocks {
                     arguments: {
                     }
                 },
+                {
+                    opcode: 'motionSensorValue',
+                    func: 'digitalLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.motionSensorValue',
+                        default: 'value of motion sensor on Tool',
+                        description: 'report value of motion sensor on Tool'
+                    }),
+                    arguments: {
+                    }
+                },
                 '---',
                 {
                     opcode: 'getBrightness',
@@ -2375,6 +2420,19 @@ class ExtensionBlocks {
                         id: 'g2s.getBrightness',
                         default: 'light I2C brightness (lx)',
                         description: 'report brightness'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'getAnalogBrightness',
+                    func: 'analogLevelB2',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.getAnalogBrightness',
+                        default: 'light Analog brightness',
+                        description: 'report brightness by analog sensor'
                     }),
                     arguments: {
                     }
@@ -3307,18 +3365,26 @@ class ExtensionBlocks {
             {
                 text: formatMessage({
                     id: 'g2s.digitalConnectorMenu.buttonAOnTool',
-                    default: 'button A on STEAM Tool',
-                    description: 'label for button A on STEAM Tool in digital level get connector menu for g2s'
+                    default: 'button A on Tool',
+                    description: 'label for button A on Tool in digital level get connector menu for g2s'
                 }),
                 value: 'A'
             },
             {
                 text: formatMessage({
                     id: 'g2s.digitalConnectorMenu.buttonBOnTool',
-                    default: 'button B on STEAM Tool',
-                    description: 'label for button B on STEAM Tool in digital level get connector menu for g2s'
+                    default: 'button B on Tool',
+                    description: 'label for button B on Tool in digital level get connector menu for g2s'
                 }),
                 value: 'B'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.digitalConnectorMenu.motionSensorOnTool',
+                    default: 'PIR Motion sensor on Tool',
+                    description: 'label for motion sensor on board in digital connector menu for g2s'
+                }),
+                value: 'PIR'
             }
         ];
     }
