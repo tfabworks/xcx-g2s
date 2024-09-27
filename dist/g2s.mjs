@@ -24300,7 +24300,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             }
           }
         }, {
@@ -24314,7 +24314,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             }
           }
         }, {
@@ -24328,7 +24328,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             },
             DATA: {
               type: argumentType.STRING,

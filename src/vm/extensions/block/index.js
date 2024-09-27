@@ -2930,7 +2930,7 @@ class ExtensionBlocks {
                     arguments: {
                         LABEL: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
+                            defaultValue: 'x'
                         }
                     }
                 },
@@ -2945,7 +2945,7 @@ class ExtensionBlocks {
                     arguments: {
                         LABEL: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
+                            defaultValue: 'x'
                         }
                     }
                 },
@@ -2960,7 +2960,7 @@ class ExtensionBlocks {
                     arguments: {
                         LABEL: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'label-01'
+                            defaultValue: 'x'
                         },
                         DATA: {
                             type: ArgumentType.STRING,
