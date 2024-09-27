@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.2.0';
+var version$2 = 'v1.2.1';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1658,9 +1658,9 @@ var en = {
 	"g2s.connectToShareServer": "connect to communication server",
 	"g2s.isShareServerConnected": "communication server is connected",
 	"g2s.reportShareGroupID": "communication group ID",
-	"g2s.whenSharedDataReceived": "when data with label [LABEL] received from server",
-	"g2s.getSharedDataLabeled": "data of label [LABEL]",
-	"g2s.sendSharedData": "send data [DATA] with label [LABEL] to server",
+	"g2s.whenSharedDataReceived": "when communication [LABEL] received",
+	"g2s.getSharedDataLabeled": "value of communication [LABEL]",
+	"g2s.sendSharedData": "send communication [LABEL]=[DATA]",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
 	"g2s.spliceNumbers": "[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]",
 	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
@@ -1751,7 +1751,7 @@ var ja = {
 	"g2s.reportShareGroupID": "通信グループID",
 	"g2s.whenSharedDataReceived": "通信[LABEL]を受け取ったとき",
 	"g2s.getSharedDataLabeled": "通信[LABEL]の値",
-	"g2s.sendSharedData": "通信[DATA]を[LABEL]として送る",
+	"g2s.sendSharedData": "通信[LABEL]=[DATA]を送る",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
 	"g2s.spliceNumbers": "数列[ARRAY]の[INDEX]番目から[DELETE]個削除して[INSERT]を入れる",
 	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
@@ -1845,7 +1845,7 @@ var translations = {
 	"g2s.reportShareGroupID": "つうしんグループID",
 	"g2s.whenSharedDataReceived": "つうしん[LABEL]をうけとったとき",
 	"g2s.getSharedDataLabeled": "つうしん[LABEL]のあたい",
-	"g2s.sendSharedData": "つうしん[DATA]を[LABEL]として送る",
+	"g2s.sendSharedData": "つうしん[LABEL]=[DATA]をおくる",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
 	"g2s.spliceNumbers": "すうれつ[ARRAY]の[INDEX]ばんめから[DELETE]こさくじょして[INSERT]をいれる",
 	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
@@ -24300,7 +24300,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             }
           }
         }, {
@@ -24314,7 +24314,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             }
           }
         }, {
@@ -24328,7 +24328,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           arguments: {
             LABEL: {
               type: argumentType.STRING,
-              defaultValue: 'label-01'
+              defaultValue: 'x'
             },
             DATA: {
               type: argumentType.STRING,
