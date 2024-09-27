@@ -3,4 +3,7 @@ node_modules/
 src/vm/*
 !src/vm/extensions/
 
-build/
+/build/
+
+/.envrc
+/scratch-gui.strech3
