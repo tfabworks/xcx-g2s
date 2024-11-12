@@ -3,7 +3,8 @@
   "version": "1.2.2",
   "scripts": {
     "register": "npx xcratch-register --id=g2s --gui=../scratch-gui --block=./src/vm/extensions/block --entry=./src/gui/lib/libraries/extensions/entry --core --link --use=extension-support util",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "postbuild": "sh scripts/check-versions.sh"
   },
   "devDependencies": {
     "xcratch-build": "^0.5.0",
@@ -12,7 +13,7 @@
   "dependencies": {
     "@serialport/stream": "^9.2.4",
     "firmata-io": "https://gitpkg.now.sh/yokobond/firmata.js/packages/firmata-io?xcx-g2s",
-    "long": "^5.2.0",
+    "long": "^5.2.3",
     "web-serial-binding": "github:jaz303/web-serial-binding"
   }
 }

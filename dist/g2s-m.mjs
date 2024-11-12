@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.2.1';
+var version$2 = 'v1.2.2';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
