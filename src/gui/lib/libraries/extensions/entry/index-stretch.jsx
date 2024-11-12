@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
-const version = 'v1.2.1';
+const version = 'v1.2.2';
 const translations =
 {
     'en': {

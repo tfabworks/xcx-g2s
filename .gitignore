@@ -1,8 +1,10 @@
 node_modules/
 
-src/vm/*
-!src/vm/extensions/
+/src/vm/*
+!/src/vm/extensions/
+/src/lib
 
+/dist/*-[0-9]_[0-9]_[0-9].*
 /build/
 
 /.envrc
