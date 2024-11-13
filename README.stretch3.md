@@ -1,6 +1,6 @@
 # [Stretch3](https://stretch3.github.io/) への公開手順
 
-## コードをGithubリポジトリに push して main ブランチにマージする
+## 1/3．コードをGithubリポジトリに push して main ブランチにマージする
 
 まずは通常通りローカルでビルドを行う。
 
@@ -24,7 +24,7 @@ npm run start-stretch3
 動作確認に問題がなければ stretch3 サイトへの取り込み依頼に進みます。
 
 
-## Github上の xcx-g2s の最新コミット（stretch3に取り込んで欲しいコミット）に `stretch3` タグを付けます。
+## 2/3．Github上の xcx-g2s の最新コミット（stretch3に取り込んで欲しいコミット）に `stretch3` タグを付けます。
 まずは修正したコードが[Githubリポジトリ](https://github.com/tfabworks/xcx-g2s)に正しく反映されている事を確認します。
 
 まだなら以下手順で push & main ブランチへの merge を行います。
@@ -50,7 +50,7 @@ git tag "v$(npm pkg get version | perl -pe's/[^0-9\.]//g')"
 git push -f origin stretch3
 ```
 
-## [stretch3/stretch3.github.io] にPRを出す
+## 3/3．[stretch3/stretch3.github.io](https://github.com/stretch3/stretch3.github.io) にPRを出す
 
 大まかな流れは以下の通り
 - [tfabworks/stretch3.github.io](https://github.com/tfabworks/stretch3.github.io)でREADME.mdを修正してcommit&pushする
@@ -91,6 +91,6 @@ https://github.com/tfabworks/stretch3.github.io/compare
 
 PRがマージされると https://stretch3.github.io/ に反映されます。
 
-相手側の都合もあるので直ぐにマージされないかもしれません。
+相手側の都合もあるのですぐにマージされないかもしれません。
 
 また取り込み後に動作不良などがある場合は修正依頼のメッセージが来ることもあるので適宜対応します。
