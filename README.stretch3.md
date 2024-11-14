@@ -1,6 +1,6 @@
 # [Stretch3](https://stretch3.github.io/) への公開手順
 
-## 1/3．コードをGithubリポジトリに push して main ブランチにマージする
+## 1/3) コードをGithubリポジトリに push して main ブランチにマージする
 
 まずは通常通りローカルでビルドを行う。
 
@@ -24,7 +24,7 @@ npm run start-stretch3
 動作確認に問題がなければ stretch3 サイトへの取り込み依頼に進みます。
 
 
-## 2/3．Github上の xcx-g2s の最新コミット（stretch3に取り込んで欲しいコミット）に `stretch3` タグを付けます。
+## 2/3) Github上の xcx-g2s の最新コミットに `stretch3` タグを付ける
 まずは修正したコードが[Githubリポジトリ](https://github.com/tfabworks/xcx-g2s)に正しく反映されている事を確認します。
 
 まだなら以下手順で push & main ブランチへの merge を行います。
@@ -50,34 +50,34 @@ git tag "v$(npm pkg get version | perl -pe's/[^0-9\.]//g')"
 git push -f origin stretch3
 ```
 
-## 3/3．[stretch3/stretch3.github.io](https://github.com/stretch3/stretch3.github.io) にPRを出す
+## 3/3) [stretch3/stretch3.github.io](https://github.com/stretch3/stretch3.github.io) にPRを出す
 
 大まかな流れは以下の通り
-- [tfabworks/stretch3.github.io](https://github.com/tfabworks/stretch3.github.io)でREADME.mdを修正してcommit&pushする
+- フォークしたリポジトリでREADME.mdを修正してGithubにcommit&pushする
 - [stretch3/stretch3.github.io](https://github.com/stretch3/stretch3.github.io)に[PRを出す](https://github.com/stretch3/stretch3.github.io/compare/source...tfabworks:stretch3.github.io:source)
 - PRが取り込まれると Github Actions の[デプロイフロー](https://github.com/stretch3/stretch3.github.io/blob/source/.github/workflows/deploy.yml)が実行されて https://stretch3.github.io/ に反映される
 
 
-まずはフォークしたリポジトリをチェックアウトします。
+まずフォークしたリポジトリをチェックアウトします。
 ```sh
 git clone git@github.com:tfabworks/stretch3.github.io.git
 cd stretch3.github.io
 ```
 
-Fork元のコミットが進んでる場合はFork元と同期する
+Fork元のコミットが進んでる場合はFork元と同期します。
 - Githubのサイト上で同期を行う場合
   - https://github.com/tfabworks/stretch3.github.io を開くと `Synk fork` というボタンがあるので差分がある場合はこれを押して同期する
   - 「Fork元リポジトリ](https://github.com/stretch3/stretch3.github.io) と `xxx commits` の数字が揃っていればOK
   - ローカルにチェックアウトしたディレクトリで `git rebase upstream/source` を実行する
 - git コマンドで行う場合
 ```sh
-# Fork元リポジトリを upstream という名前で remote に追加する
+# Fork元リポジトリを upstream という名前で remote に追加する（1度だけでOK）
 git remote add upstream https://github.com/stretch3/stretch3.github.io.git
 
-# Fork元リポジトリの source ブランチを fetch する（sourceブランチに限定しないでfetchすると他のデカいブランチも取得してしまうので注意）
+# Fork元リポジトリの source ブランチを fetch する（sourceブランチに限定しないままfetchすると他のデカくて不要なブランチまで取得してしまうので注意）
 git fetch upstream source
 
-# ローカルの source ブランチをFork元の最新にrebaseする
+# ローカルの source ブランチをFork元の最新にrebaseする（修正後にFork元のコミットが進んでいる場合があるため）
 git rebase upstream/source
 ```
 
@@ -86,7 +86,7 @@ git rebase upstream/source
 同じような修正（日付、バージョン情報、修正内容）を追記するなど。
 修正したら commit して https://github.com/tfabworks/stretch3.github.io に push します。
 
-以下URLからFork元に対してPRを作成します。
+以下のURLからFork元に対してPRを作成します。
 https://github.com/tfabworks/stretch3.github.io/compare
 
 PRがマージされると https://stretch3.github.io/ に反映されます。
