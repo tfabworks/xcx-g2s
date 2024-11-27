@@ -191,7 +191,7 @@ class ExtensionBlocks {
           * @type {number} [milliseconds]
           */
         this.sonicDistanceAUpdatedTime = 0;
- 
+
         /**
           * Interval time for sonic distance updating A.
           * @type {number} [milliseconds]
@@ -209,7 +209,7 @@ class ExtensionBlocks {
           * @type {number} [milliseconds]
           */
         this.sonicDistanceBUpdatedTime = 0;
- 
+
         /**
           * Interval time for sonic distance updating B.
           * @type {number} [milliseconds]
@@ -261,31 +261,31 @@ class ExtensionBlocks {
           * @type {?number}
           */
         this.brightness = null;
- 
+
         /**
           * Last updated time of brightness.
           * @type {number} [milliseconds]
           */
         this.brightnessUpdatedTime = 0;
- 
+
         /**
           * Interval time for brightness updating.
           * @type {number} [milliseconds]
           */
         this.brightnessUpdateIntervalTime = 100;
- 
+
         /**
           * Cached water temperature A.
           * @type {?number}
           */
         this.waterTempA = null;
- 
+
         /**
            * Last updated time of water temperature A.
            * @type {number} [milliseconds]
            */
         this.waterTempAUpdatedTime = 0;
-  
+
         /**
            * Interval time for water temperature A updating.
            * @type {number} [milliseconds]
@@ -297,19 +297,19 @@ class ExtensionBlocks {
           * @type {?number}
           */
         this.waterTempB = null;
- 
+
         /**
             * Last updated time of water temperature B.
             * @type {number} [milliseconds]
             */
         this.waterTempBUpdatedTime = 0;
-   
+
         /**
             * Interval time for water temperature B updating.
             * @type {number} [milliseconds]
             */
         this.waterTempBUpdateIntervalTime = 100;
- 
+
         /**
          * Environment sensor BME280
          * @type {BME280}
@@ -327,7 +327,7 @@ class ExtensionBlocks {
           * @type {number} [milliseconds]
           */
         this.envTemperatureUpdatedTime = 0;
- 
+
         /**
            * Interval time for environment temperature updating.
            * @type {number} [milliseconds]
@@ -345,13 +345,13 @@ class ExtensionBlocks {
            * @type {number} [milliseconds]
            */
         this.envPressureUpdatedTime = 0;
-  
+
         /**
             * Interval time for environment pressure updating.
             * @type {number} [milliseconds]
             */
         this.envPressureUpdateIntervalTime = 100;
-   
+
         /**
          * Cached environment humidity.
          * @type {?number}
@@ -363,7 +363,7 @@ class ExtensionBlocks {
             * @type {number} [milliseconds]
             */
         this.envHumidityUpdatedTime = 0;
-   
+
         /**
              * Interval time for environment humidity updating.
              * @type {number} [milliseconds]
@@ -2281,13 +2281,17 @@ class ExtensionBlocks {
      * @returns {Promise<void>}
      */
     async sendIrRemote (args, ...argsRest) {
+        const CONNECTOR = Cast.toNumber(args.CONNECTOR);
         const n = Cast.toNumber(args.N);
         if (n < 1 || 9 < n) {
             throw new Error(`Invalid button number: ${n}. Valid numbers are 1-9`);
         };
+        // 「内蔵」を選択した場合は現在は何もしない
+        if (CONNECTOR === 999) {
+            return
+        }
         // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。続いてのデューティー比の変化でコマンドが決定される仕様です。
         // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
-        const CONNECTOR = 10; // 10=アナログA1
         await this.analogLevelSet({CONNECTOR, LEVEL: 1}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
         await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待つ
         await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n}); // ボタン1=10%, ボタン2=20%, ...
@@ -2998,6 +3002,10 @@ class ExtensionBlocks {
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'irRemoteMenuConnector'
+                        },
                         N: {
                             type: ArgumentType.NUMBER,
                             menu: 'irRemoteMenuN',
@@ -3346,6 +3354,10 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: ['<<', '>>', '&', '|', '^']
                 },
+                irRemoteMenuConnector: {
+                    acceptReporters: false,
+                    items: this.getIrRemoteMenuConnector()
+                },
                 irRemoteMenuN: {
                     acceptReporters: true,
                     items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -3500,6 +3512,27 @@ class ExtensionBlocks {
                     description: 'label for vibration motor on STEAM Tool in PWM connector menu for g2s'
                 }),
                 value: '3'
+            }
+        ];
+    }
+
+    getIrRemoteMenuConnector () {
+        const digitalPrefix = formatMessage({
+            id: 'g2s.digitalConnector.prefix',
+            default: 'Digital'
+        });
+        const onboard = formatMessage({
+            id: 'g2s.sendIrRemote.CONNECTOR.onboard',
+            default: 'on board'
+        });
+        return [
+            {
+                text: `${digitalPrefix}A (A1)`,
+                value: '10'
+            },
+            {
+                text: onboard,
+                value: 999
             }
         ];
     }

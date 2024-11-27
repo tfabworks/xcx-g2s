@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.2.3';
+var version$2 = "v1.2.4";
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1668,7 +1668,8 @@ var en = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "Send built-in button [N]"
+	"g2s.sendIrRemote": "Send built-in button [N] on [CONNECTOR]",
+	"g2s.sendIrRemote.CONNECTOR.onboard": "board"
 };
 var ja = {
 	"g2s.name": "AkaDako",
@@ -1760,7 +1761,8 @@ var ja = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "赤外線リモコンの内蔵ボタン[N]を実行する"
+	"g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]のボタン[N]を実行する",
+	"g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
 };
 var translations = {
 	en: en,
@@ -1855,7 +1857,8 @@ var translations = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "せきがいせんりもこんのぼたん[N]をじっこうする"
+	"g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]のぼたん[N]をじっこうする",
+	"g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
 }
 };
 
@@ -23746,45 +23749,51 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "sendIrRemote",
     value: function () {
       var _sendIrRemote = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(args) {
-        var n, CONNECTOR;
+        var CONNECTOR, n;
         return regenerator.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
               case 0:
+                CONNECTOR = cast.toNumber(args.CONNECTOR);
                 n = cast.toNumber(args.N);
 
                 if (!(n < 1 || 9 < n)) {
-                  _context10.next = 3;
+                  _context10.next = 4;
                   break;
                 }
 
                 throw new Error("Invalid button number: ".concat(n, ". Valid numbers are 1-9"));
 
-              case 3:
-                // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
+              case 4:
 
-                CONNECTOR = 10; // 10=アナログA1
+                if (!(CONNECTOR === 999)) {
+                  _context10.next = 7;
+                  break;
+                }
 
-                _context10.next = 7;
+                return _context10.abrupt("return");
+
+              case 7:
+                _context10.next = 9;
                 return this.analogLevelSet({
                   CONNECTOR: CONNECTOR,
                   LEVEL: 1
                 });
 
-              case 7:
-                _context10.next = 9;
+              case 9:
+                _context10.next = 11;
                 return new Promise(function (resolve) {
                   return setTimeout(resolve, 100);
                 });
 
-              case 9:
-                _context10.next = 11;
+              case 11:
+                _context10.next = 13;
                 return this.analogLevelSet({
                   CONNECTOR: CONNECTOR,
                   LEVEL: 10 * n
                 });
 
-              case 11:
+              case 13:
               case "end":
                 return _context10.stop();
             }
@@ -24411,6 +24420,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           }),
           blockType: blockType.COMMAND,
           arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'irRemoteMenuConnector'
+            },
             N: {
               type: argumentType.NUMBER,
               menu: 'irRemoteMenuN',
@@ -24745,6 +24758,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             acceptReporters: false,
             items: ['<<', '>>', '&', '|', '^']
           },
+          irRemoteMenuConnector: {
+            acceptReporters: false,
+            items: this.getIrRemoteMenuConnector()
+          },
           irRemoteMenuN: {
             acceptReporters: true,
             items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -24885,6 +24902,25 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           description: 'label for vibration motor on STEAM Tool in PWM connector menu for g2s'
         }),
         value: '3'
+      }];
+    }
+  }, {
+    key: "getIrRemoteMenuConnector",
+    value: function getIrRemoteMenuConnector() {
+      var digitalPrefix = formatMessage({
+        id: 'g2s.digitalConnector.prefix',
+        default: 'Digital'
+      });
+      var onboard = formatMessage({
+        id: 'g2s.sendIrRemote.CONNECTOR.onboard',
+        default: 'on board'
+      });
+      return [{
+        text: "".concat(digitalPrefix, "A (A1)"),
+        value: '10'
+      }, {
+        text: onboard,
+        value: 999
       }];
     }
     /**
