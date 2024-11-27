@@ -2274,6 +2274,26 @@ class ExtensionBlocks {
     }
 
     /**
+     * 赤外線リモコンのコマンドを送信します。
+     * 内部的にはアナログA1にデューティー比を送信しています。
+     * @param {object} args - ブロックの引数。
+     * @param {number} args.N - コマンド番号。1から9の整数。
+     * @returns {Promise<void>}
+     */
+    async sendIrRemote (args, ...argsRest) {
+        const n = Cast.toNumber(args.N);
+        if (n < 1 || 9 < n) {
+            throw new Error(`Invalid button number: ${n}. Valid numbers are 1-9`);
+        };
+        // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。続いてのデューティー比の変化でコマンドが決定される仕様です。
+        // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
+        const CONNECTOR = 10; // 10=アナログA1
+        await this.analogLevelSet({CONNECTOR, LEVEL: 1}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待つ
+        await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n}); // ボタン1=10%, ボタン2=20%, ...
+    }
+
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
@@ -2970,6 +2990,23 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'sendIrRemote',
+                    text: formatMessage({
+                        id: 'g2s.sendIrRemote',
+                        default: 'Send built-in button [N]',
+                        description: 'Execute the built-in button of IR remote control'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        N: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'irRemoteMenuN',
+                            defaultValue: 1
+                        }
+                    }
+                },
+                '---',
+                {
                     opcode: 'i2cWrite',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -3308,6 +3345,10 @@ class ExtensionBlocks {
                 bitOperationMenu: {
                     acceptReporters: false,
                     items: ['<<', '>>', '&', '|', '^']
+                },
+                irRemoteMenuN: {
+                    acceptReporters: true,
+                    items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
                 }
             }
         };

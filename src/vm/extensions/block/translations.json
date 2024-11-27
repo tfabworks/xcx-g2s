@@ -88,7 +88,8 @@
     "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "Send built-in button [N]"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -179,7 +180,8 @@
     "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "赤外線リモコンの内蔵ボタン[N]を実行する"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -270,6 +272,7 @@
     "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "せきがいせんりもこんのぼたん[N]をじっこうする"
   }
 }
