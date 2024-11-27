@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = 'v1.2.2';
+var version$2 = 'v1.2.3';
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1667,7 +1667,8 @@ var en = {
 	"g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-	"g2s.bitNot": "bit NOT [VALUE]"
+	"g2s.bitNot": "bit NOT [VALUE]",
+	"g2s.sendIrRemote": "Send built-in button [N]"
 };
 var ja = {
 	"g2s.name": "AkaDako",
@@ -1758,7 +1759,8 @@ var ja = {
 	"g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-	"g2s.bitNot": "bit NOT [VALUE]"
+	"g2s.bitNot": "bit NOT [VALUE]",
+	"g2s.sendIrRemote": "赤外線リモコンの内蔵ボタン[N]を実行する"
 };
 var translations = {
 	en: en,
@@ -1852,7 +1854,8 @@ var translations = {
 	"g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-	"g2s.bitNot": "bit NOT [VALUE]"
+	"g2s.bitNot": "bit NOT [VALUE]",
+	"g2s.sendIrRemote": "せきがいせんりもこんのぼたん[N]をじっこうする"
 }
 };
 
@@ -23732,6 +23735,70 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       return lastTimestamp !== prevTimestamp;
     }
     /**
+     * 赤外線リモコンのコマンドを送信します。
+     * 内部的にはアナログA1にデューティー比を送信しています。
+     * @param {object} args - ブロックの引数。
+     * @param {number} args.N - コマンド番号。1から9の整数。
+     * @returns {Promise<void>}
+     */
+
+  }, {
+    key: "sendIrRemote",
+    value: function () {
+      var _sendIrRemote = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(args) {
+        var n, CONNECTOR;
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                n = cast.toNumber(args.N);
+
+                if (!(n < 1 || 9 < n)) {
+                  _context10.next = 3;
+                  break;
+                }
+
+                throw new Error("Invalid button number: ".concat(n, ". Valid numbers are 1-9"));
+
+              case 3:
+                // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
+
+                CONNECTOR = 10; // 10=アナログA1
+
+                _context10.next = 7;
+                return this.analogLevelSet({
+                  CONNECTOR: CONNECTOR,
+                  LEVEL: 1
+                });
+
+              case 7:
+                _context10.next = 9;
+                return new Promise(function (resolve) {
+                  return setTimeout(resolve, 100);
+                });
+
+              case 9:
+                _context10.next = 11;
+                return this.analogLevelSet({
+                  CONNECTOR: CONNECTOR,
+                  LEVEL: 10 * n
+                });
+
+              case 11:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function sendIrRemote(_x9) {
+        return _sendIrRemote.apply(this, arguments);
+      }
+
+      return sendIrRemote;
+    }()
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
 
@@ -24336,6 +24403,21 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             }
           }
         }, '---', {
+          opcode: 'sendIrRemote',
+          text: formatMessage({
+            id: 'g2s.sendIrRemote',
+            default: 'Send built-in button [N]',
+            description: 'Execute the built-in button of IR remote control'
+          }),
+          blockType: blockType.COMMAND,
+          arguments: {
+            N: {
+              type: argumentType.NUMBER,
+              menu: 'irRemoteMenuN',
+              defaultValue: 1
+            }
+          }
+        }, '---', {
           opcode: 'i2cWrite',
           blockType: blockType.COMMAND,
           text: formatMessage({
@@ -24662,6 +24744,10 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           bitOperationMenu: {
             acceptReporters: false,
             items: ['<<', '>>', '&', '|', '^']
+          },
+          irRemoteMenuN: {
+            acceptReporters: true,
+            items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
           }
         }
       };
