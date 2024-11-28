@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = "v1.2.4";
+var version$2 = "v1.2.5";
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1668,8 +1668,8 @@ var en = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "Send built-in button [N] on [CONNECTOR]",
-	"g2s.sendIrRemote.CONNECTOR.onboard": "board"
+	"g2s.sendIrRemote": "transmit Infrared-Ray-Remote [CONNECTOR] button [N]",
+	"g2s.sendIrRemote.CONNECTOR.onboard": "Tool"
 };
 var ja = {
 	"g2s.name": "AkaDako",
@@ -1761,7 +1761,7 @@ var ja = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]のボタン[N]を実行する",
+	"g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]ボタン[N]を送信する",
 	"g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
 };
 var translations = {
@@ -1857,7 +1857,7 @@ var translations = {
 	"g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
 	"g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
 	"g2s.bitNot": "bit NOT [VALUE]",
-	"g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]のぼたん[N]をじっこうする",
+	"g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]ぼたん[N]をそうしんする",
 	"g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
 }
 };
@@ -23741,6 +23741,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
      * 赤外線リモコンのコマンドを送信します。
      * 内部的にはアナログA1にデューティー比を送信しています。
      * @param {object} args - ブロックの引数。
+     * @param {number} args.CONNECTOR - 赤外線リモコンの接続ポートを示す値。10=アナログA1、999=内蔵。
      * @param {number} args.N - コマンド番号。1から9の整数。
      * @returns {Promise<void>}
      */
@@ -23749,12 +23750,12 @@ var ExtensionBlocks = /*#__PURE__*/function () {
     key: "sendIrRemote",
     value: function () {
       var _sendIrRemote = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(args) {
-        var CONNECTOR, n;
+        var connectorInput, n, connectorValues, CONNECTOR;
         return regenerator.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
               case 0:
-                CONNECTOR = cast.toNumber(args.CONNECTOR);
+                connectorInput = cast.toNumber(args.CONNECTOR);
                 n = cast.toNumber(args.N);
 
                 if (!(n < 1 || 9 < n)) {
@@ -23766,34 +23767,39 @@ var ExtensionBlocks = /*#__PURE__*/function () {
 
               case 4:
 
+                connectorValues = this.getIrRemoteMenuConnector().map(function (item) {
+                  return item.value;
+                });
+                CONNECTOR = connectorValues.includes(connectorInput) ? connectorInput : connectorValues[0]; // 「内蔵」を選択した場合は現在は何もしない
+
                 if (!(CONNECTOR === 999)) {
-                  _context10.next = 7;
+                  _context10.next = 9;
                   break;
                 }
 
                 return _context10.abrupt("return");
 
-              case 7:
-                _context10.next = 9;
+              case 9:
+                _context10.next = 11;
                 return this.analogLevelSet({
                   CONNECTOR: CONNECTOR,
                   LEVEL: 1
                 });
 
-              case 9:
-                _context10.next = 11;
+              case 11:
+                _context10.next = 13;
                 return new Promise(function (resolve) {
                   return setTimeout(resolve, 100);
                 });
 
-              case 11:
-                _context10.next = 13;
+              case 13:
+                _context10.next = 15;
                 return this.analogLevelSet({
                   CONNECTOR: CONNECTOR,
                   LEVEL: 10 * n
                 });
 
-              case 13:
+              case 15:
               case "end":
                 return _context10.stop();
             }
@@ -24421,7 +24427,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           arguments: {
             CONNECTOR: {
-              type: argumentType.STRING,
+              type: argumentType.NUMBER,
               menu: 'irRemoteMenuConnector'
             },
             N: {

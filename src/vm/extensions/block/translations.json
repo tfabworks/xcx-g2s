@@ -89,8 +89,8 @@
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
-    "g2s.sendIrRemote": "Send built-in button [N] on [CONNECTOR]",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "board"
+    "g2s.sendIrRemote": "transmit Infrared-Ray-Remote [CONNECTOR] button [N]",
+    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -182,7 +182,7 @@
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
-    "g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]のボタン[N]を実行する",
+    "g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]ボタン[N]を送信する",
     "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
   },
   "ja-Hira": {
@@ -275,7 +275,7 @@
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
-    "g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]のぼたん[N]をじっこうする",
+    "g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]ぼたん[N]をそうしんする",
     "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
   }
 }
