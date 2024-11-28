@@ -2277,15 +2277,19 @@ class ExtensionBlocks {
      * 赤外線リモコンのコマンドを送信します。
      * 内部的にはアナログA1にデューティー比を送信しています。
      * @param {object} args - ブロックの引数。
+     * @param {number} args.CONNECTOR - 赤外線リモコンの接続ポートを示す値。10=アナログA1、999=内蔵。
      * @param {number} args.N - コマンド番号。1から9の整数。
      * @returns {Promise<void>}
      */
     async sendIrRemote (args, ...argsRest) {
-        const CONNECTOR = Cast.toNumber(args.CONNECTOR);
+        const connectorInput = Cast.toNumber(args.CONNECTOR);
         const n = Cast.toNumber(args.N);
         if (n < 1 || 9 < n) {
             throw new Error(`Invalid button number: ${n}. Valid numbers are 1-9`);
         };
+        // CONNECTORの値がメニューに存在しない場合はデフォルト(セレクターの最初の選択肢)の値を使用する
+        const connectorValues = this.getIrRemoteMenuConnector().map(item => item.value);
+        const CONNECTOR = connectorValues.includes(connectorInput) ? connectorInput : connectorValues[0];
         // 「内蔵」を選択した場合は現在は何もしない
         if (CONNECTOR === 999) {
             return
@@ -3003,8 +3007,8 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                         CONNECTOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'irRemoteMenuConnector'
+                            type: ArgumentType.NUMBER,
+                            menu: 'irRemoteMenuConnector',
                         },
                         N: {
                             type: ArgumentType.NUMBER,
