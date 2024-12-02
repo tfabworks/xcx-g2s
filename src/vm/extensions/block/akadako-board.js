@@ -472,7 +472,7 @@ class AkaDakoBoard extends EventEmitter {
             this.transport.close();
             this.transport = null;
         }
- 
+
         this.oneWireDevices = null;
         this.extensionId = null;
         this.emit('disconnect');
@@ -835,11 +835,14 @@ class AkaDakoBoard extends EventEmitter {
      * LED does not change the actual color until neoPixelShow() was sent.
      * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
-     * @param {number} index - index of LED to be set
      * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @param {number} index - index of LED to be set, -1 for all LEDs
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    async neoPixelSetColor (pin, index, color) {
+    async neoPixelSetColor (pin, color, index=0) {
+        if (index === -1) {
+            return this.neoPixelFillColor(pin, color);
+        }
         let address = 0;
         let prevStrip = true;
         this.neoPixel.forEach(aStrip => {
@@ -872,15 +875,27 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
+     * Set color to all LED on the current NeoPixel module.
+     * LED does not change the actual color until neoPixelShow() was sent.
+     * This method will configure a new module with default length if it hasn't done yet.
+     * @param {number} pin - pin number of the module
+     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+    async neoPixelFillColor(pin, color) {
+        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        const length = strip ? strip.length : this.defaultNeoPixelLength;
+        for (let index = 0; index < length; index++) {
+            await this.neoPixelSetColor(pin, color, index);
+        }
+    }
+
+    /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {number} pin - pin number of the module
      */
     async neoPixelClear (pin) {
-        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        const length = strip ? strip.length : this.defaultNeoPixelLength;
-        for (let index = 0; index < length; index++) {
-            await this.neoPixelSetColor(pin, index, [0, 0, 0]);
-        }
+        await this.neoPixelFillColor(pin, [0, 0, 0]);
         return this.neoPixelShow();
     }
 

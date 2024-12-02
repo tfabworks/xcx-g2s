@@ -1039,7 +1039,11 @@ class ExtensionBlocks {
                 return;
             }
         }
-        const index = Cast.toNumber(args.POSITION) - 1;
+        // 1始まりの位置を0始まりのインデックスにする
+        // POSITION=-1 の場合は全てのインデックスを意味する -1 をインデックスとして指定する
+        const position = Cast.toNumber(args.POSITION);
+        const index = position == -1 ? -1 : position - 1;
+        // 色を計算する
         const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
         const color = readAsNumericArray(args.COLOR);
         if (color.length === 0) {
@@ -1059,10 +1063,23 @@ class ExtensionBlocks {
             b = Math.round(Math.max(0, Math.min(255, (color[0] & 0x0000ff))) * brightness);
         }
         this.neoPixelBusy = true;
-        this.board.neoPixelSetColor(pin, index, [r, g, b])
+        this.board.neoPixelSetColor(pin, [r, g, b], index)
             .finally(() => {
                 this.neoPixelBusy = false;
             });
+    }
+
+    /**
+     * Fill color of the LED
+     * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {string} args.COLOR - color values [r, g, b]
+     * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
+     */
+    neoPixelFillColor (args, util) {
+        Object.assign(args, {POSITION: -1});
+        return this.neoPixelSetColor(args, util);
     }
 
     /**
@@ -2659,6 +2676,29 @@ class ExtensionBlocks {
                         POSITION: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '1'
+                        },
+                        COLOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelColorMenu'
+                        },
+                        BRIGHTNESS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '50'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelFillColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelFillColor',
+                        default: 'color LED [CONNECTOR] set all color [COLOR] brightness [BRIGHTNESS]',
+                        description: 'set color LED color'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelConnectorMenu'
                         },
                         COLOR: {
                             type: ArgumentType.STRING,
