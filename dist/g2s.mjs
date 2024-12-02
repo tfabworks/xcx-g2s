@@ -22,7 +22,7 @@ var translations$1 = {
 /**
  * This is an extension for Xcratch.
  */
-var version$2 = "v1.2.5";
+var version$2 = "v1.2.6";
 /**
  * Formatter to translate the messages in this extension.
  * This will be replaced which is used in the React component.
@@ -1621,6 +1621,7 @@ var en = {
 	"g2s.neoPixelConfigStrip": "set color LED [CONNECTOR] length [LENGTH]",
 	"g2s.neoPixelConnectorMenu.steamBox": "Tool",
 	"g2s.neoPixelSetColor": "color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]",
+	"g2s.neoPixelFillColor": "color LED [CONNECTOR] set all color [COLOR] brightness [BRIGHTNESS]",
 	"g2s.neoPixelColorMenu.red": "red",
 	"g2s.neoPixelColorMenu.orange": "orange",
 	"g2s.neoPixelColorMenu.yellow": "yellow",
@@ -1714,6 +1715,7 @@ var ja = {
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]を長さ[LENGTH]に設定する",
 	"g2s.neoPixelConnectorMenu.steamBox": "内蔵",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]番目を[COLOR]色で明るさ[BRIGHTNESS]に設定する",
+	"g2s.neoPixelFillColor": "カラーLED[CONNECTOR]の全てのLEDを[COLOR]色で明るさ[BRIGHTNESS]に設定する",
 	"g2s.neoPixelColorMenu.red": "赤",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
 	"g2s.neoPixelColorMenu.yellow": "黄",
@@ -1810,6 +1812,7 @@ var translations = {
 	"g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]をながさ[LENGTH]にせっていする",
 	"g2s.neoPixelConnectorMenu.steamBox": "ないぞう",
 	"g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]ばんめを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
+	"g2s.neoPixelFillColor": "カラーLED[CONNECTOR]のすべてのLEDを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
 	"g2s.neoPixelColorMenu.red": "あか",
 	"g2s.neoPixelColorMenu.orange": "だいだい",
 	"g2s.neoPixelColorMenu.yellow": "き",
@@ -17388,22 +17391,37 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * LED does not change the actual color until neoPixelShow() was sent.
      * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
-     * @param {number} index - index of LED to be set
      * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @param {number} index - index of LED to be set, -1 for all LEDs
      * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
     key: "neoPixelSetColor",
     value: function () {
-      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin, index, color) {
+      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin, color) {
         var _this19 = this;
 
-        var address, prevStrip, colorValue, message;
+        var index,
+            address,
+            prevStrip,
+            colorValue,
+            message,
+            _args8 = arguments;
         return regenerator.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
+                index = _args8.length > 2 && _args8[2] !== undefined ? _args8[2] : 0;
+
+                if (!(index === -1)) {
+                  _context8.next = 3;
+                  break;
+                }
+
+                return _context8.abrupt("return", this.neoPixelFillColor(pin, color));
+
+              case 3:
                 address = 0;
                 prevStrip = true;
                 this.neoPixel.forEach(function (aStrip) {
@@ -17418,14 +17436,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 });
 
                 if (!prevStrip) {
-                  _context8.next = 6;
+                  _context8.next = 9;
                   break;
                 }
 
-                _context8.next = 6;
+                _context8.next = 9;
                 return this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
 
-              case 6:
+              case 9:
                 colorValue = neoPixelColorValue(color, neoPixelGammaTable);
                 message = new Array(8);
                 message[0] = nodePixelConstants.PIXEL_COMMAND;
@@ -17444,7 +17462,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   }, _this19.sendingInterval);
                 }));
 
-              case 17:
+              case 20:
               case "end":
                 return _context8.stop();
             }
@@ -17452,21 +17470,25 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         }, _callee8, this);
       }));
 
-      function neoPixelSetColor(_x7, _x8, _x9) {
+      function neoPixelSetColor(_x7, _x8) {
         return _neoPixelSetColor.apply(this, arguments);
       }
 
       return neoPixelSetColor;
     }()
     /**
-     * Turn off the all LEDs on the NeoPixel module on the pin.
+     * Set color to all LED on the current NeoPixel module.
+     * LED does not change the actual color until neoPixelShow() was sent.
+     * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
+     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @returns {Promise} a Promise which resolves when the message was sent
      */
 
   }, {
-    key: "neoPixelClear",
+    key: "neoPixelFillColor",
     value: function () {
-      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(pin) {
+      var _neoPixelFillColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(pin, color) {
         var strip, length, index;
         return regenerator.wrap(function _callee9$(_context9) {
           while (1) {
@@ -17485,7 +17507,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 }
 
                 _context9.next = 6;
-                return this.neoPixelSetColor(pin, index, [0, 0, 0]);
+                return this.neoPixelSetColor(pin, color, index);
 
               case 6:
                 index++;
@@ -17493,9 +17515,6 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 break;
 
               case 9:
-                return _context9.abrupt("return", this.neoPixelShow());
-
-              case 10:
               case "end":
                 return _context9.stop();
             }
@@ -17503,7 +17522,40 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         }, _callee9, this);
       }));
 
-      function neoPixelClear(_x10) {
+      function neoPixelFillColor(_x9, _x10) {
+        return _neoPixelFillColor.apply(this, arguments);
+      }
+
+      return neoPixelFillColor;
+    }()
+    /**
+     * Turn off the all LEDs on the NeoPixel module on the pin.
+     * @param {number} pin - pin number of the module
+     */
+
+  }, {
+    key: "neoPixelClear",
+    value: function () {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(pin) {
+        return regenerator.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this.neoPixelFillColor(pin, [0, 0, 0]);
+
+              case 2:
+                return _context10.abrupt("return", this.neoPixelShow());
+
+              case 3:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function neoPixelClear(_x11) {
         return _neoPixelClear.apply(this, arguments);
       }
 
@@ -21955,9 +22007,13 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           // These pins are used for on-board buttons in the STEAM tool.
           return;
         }
-      }
+      } // 1始まりの位置を0始まりのインデックスにする
+      // POSITION=-1 の場合は全てのインデックスを意味する -1 をインデックスとして指定する
 
-      var index = cast.toNumber(args.POSITION) - 1;
+
+      var position = cast.toNumber(args.POSITION);
+      var index = position == -1 ? -1 : position - 1; // 色を計算する
+
       var brightness = Math.max(0, Math.min(100, cast.toNumber(args.BRIGHTNESS))) / 100;
       var color = readAsNumericArray(args.COLOR);
 
@@ -21981,9 +22037,26 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       }
 
       this.neoPixelBusy = true;
-      this.board.neoPixelSetColor(pin, index, [r, g, b]).finally(function () {
+      this.board.neoPixelSetColor(pin, [r, g, b], index).finally(function () {
         _this7.neoPixelBusy = false;
       });
+    }
+    /**
+     * Fill color of the LED
+     * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @param {number} args.CONNECTOR - pin number of the connector
+     * @param {string} args.COLOR - color values [r, g, b]
+     * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
+     */
+
+  }, {
+    key: "neoPixelFillColor",
+    value: function neoPixelFillColor(args, util) {
+      Object.assign(args, {
+        POSITION: -1
+      });
+      return this.neoPixelSetColor(args, util);
     }
     /**
      * Return color values for NeoPixel.
@@ -24120,6 +24193,28 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             POSITION: {
               type: argumentType.NUMBER,
               defaultValue: '1'
+            },
+            COLOR: {
+              type: argumentType.STRING,
+              menu: 'neoPixelColorMenu'
+            },
+            BRIGHTNESS: {
+              type: argumentType.NUMBER,
+              defaultValue: '50'
+            }
+          }
+        }, {
+          opcode: 'neoPixelFillColor',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.neoPixelFillColor',
+            default: 'color LED [CONNECTOR] set all color [COLOR] brightness [BRIGHTNESS]',
+            description: 'set color LED color'
+          }),
+          arguments: {
+            CONNECTOR: {
+              type: argumentType.STRING,
+              menu: 'neoPixelConnectorMenu'
             },
             COLOR: {
               type: argumentType.STRING,
