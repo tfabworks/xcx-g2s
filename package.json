@@ -1,6 +1,6 @@
 {
   "name": "xcx-g2s",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "scripts": {
     "build": "node scripts/build.js",
     "start": "npm run start-xcratch",
@@ -10,7 +10,6 @@
     "prestart-xcratch": "npm run register",
     "prestart-stretch3": "npm run register",
     "preregister": "npm run setup-prerequisites",
-    "postbuild": "sh scripts/check-versions.sh",
     "register": "find src/vm -maxdepth 1 -type l -delete; npx -y xcratch-register --id=g2s --gui=${XCRATCH_PATH:-../scratch-gui} --block=./src/vm/extensions/block --entry=./src/gui/lib/libraries/extensions/entry --core --link --use=extension-support util",
     "setup-prerequisites": "set -x; test -d ${XCRATCH_PATH:-../scratch-gui} || (git clone --depth 1 https://github.com/xcratch/scratch-gui.git ${XCRATCH_PATH:-../scratch-gui}; cd ${XCRATCH_PATH:-../scratch-gui} && npm install); test -d ${XCRATCH_PATH:-../scratch-gui}/node_modules/scratch-vm || (cd ${XCRATCH_PATH:-../scratch-gui} && npm install scratch-vm)"
   },
