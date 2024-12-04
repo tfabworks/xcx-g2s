@@ -996,7 +996,7 @@ class ExtensionBlocks {
             const index = Cast.toNumber(args.POSITION) - 1;
             const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
             // -1 は虹色として解釈する
-            if(Cast.toNumber(args.COLOR) === -1) {
+            if(args.COLOR === 'rainbow') {
                 const colorFn = (_, i, colors) => {
                     if(i === index) {
                         return getRainbowColor(i, colors.length, brightness);
@@ -1023,13 +1023,12 @@ class ExtensionBlocks {
         return this.neoPixelOperationWithLock(args, util, pin => {
             if(pin == null) return;
             const brightness = Cast.toNumber(args.BRIGHTNESS) / 100;
-            const colorAsNumber = Cast.toNumber(args.COLOR);
             let colorFn = null;
-            // -1 は虹色として解釈する
-            if(colorAsNumber === -1) {
+            console.log('neoPixelFillColor', args);
+            if(args.COLOR === 'rainbow') {
                 colorFn = (_, i, colors) => getRainbowColor(i, colors.length, brightness);
             }
-            // 特別な指定がない場合は全て同じ色にする
+            // 特別な色モードでない場合は全て指定の色にする
             if(colorFn == null) {
                 const color = parseColor(args.COLOR, brightness);
                 colorFn = () => color;
@@ -1116,12 +1115,10 @@ class ExtensionBlocks {
     }
 
     /**
-     * Get special number of rainbow
-     * @returns {number} special number of rainbow
+     * Get color mode
      */
-    neoPixelColorRainbow() {
-        const SPECIAL_NUMBER_OF_RAINBOW = -1;
-        return SPECIAL_NUMBER_OF_RAINBOW;
+    neoPixelColorMode(args) {
+        return args.MODE;
     }
 
     /**
@@ -2778,14 +2775,19 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'neoPixelColorRainbow',
+                    opcode: 'neoPixelColorMode',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
-                        id: 'g2s.neoPixelColorRainbow',
-                        default: 'color LED color rainbow',
-                        description: 'color LED color rainbow'
+                        id: 'g2s.neoPixelColorMode',
+                        default: 'color LED [MODE]',
+                        description: 'color LED color mode'
                     }),
-                    arguments: {}
+                    arguments: {
+                        MODE: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelColorModeMenu'
+                        }
+                    }
                 },
                 {
                     opcode: 'neoPixelShow',
@@ -3440,6 +3442,10 @@ class ExtensionBlocks {
                     acceptReporters: true,
                     items: this.getNeoPixelColorMenu()
                 },
+                neoPixelColorModeMenu: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelColorModeMenu()
+                },
                 bytesTypeMenu: {
                     acceptReporters: false,
                     items: ['Int16', 'Uint16']
@@ -3874,7 +3880,20 @@ class ExtensionBlocks {
             }
         ];
     }
+
+    getNeoPixelColorModeMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMode.rainbow',
+                    default: 'rainbow'
+                }),
+                value: 'rainbow'
+            }
+        ];
+    }
 }
+
 
 /**
  * Calculate rainbow color.
