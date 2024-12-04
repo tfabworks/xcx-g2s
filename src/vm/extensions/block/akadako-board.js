@@ -814,16 +814,22 @@ class AkaDakoBoard extends EventEmitter {
      */
     neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
-        this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-        this.neoPixel.push({pin: pin, length: length});
+        const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        if(oldStrip != null) {
+            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
+            this.neoPixel.push(Object.assign(oldStrip, {length: length}));
+        } else {
+            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
+            this.neoPixel.push({pin: pin, length: length});
+        }
         const message = [];
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_CONFIG;
-        this.neoPixel.forEach(aStrip => {
+        for (const aStrip of this.neoPixel) {
             message.push((COLOR_ORDER.GRB << 5) | aStrip.pin);
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
-        });
+        }
         return new Promise(resolve => {
             this.firmata.sysexCommand(message);
             setTimeout(() => resolve(), this.sendingInterval);
@@ -840,12 +846,9 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     async neoPixelSetColor (pin, color, index=0) {
-        if (index === -1) {
-            return this.neoPixelFillColor(pin, color);
-        }
         let address = 0;
         let prevStrip = true;
-        this.neoPixel.forEach(aStrip => {
+        for (const aStrip of this.neoPixel) {
             if (aStrip.pin === pin) {
                 address += Math.max(0, index % aStrip.length);
                 prevStrip = false;
@@ -853,11 +856,14 @@ class AkaDakoBoard extends EventEmitter {
             if (prevStrip) {
                 address += aStrip.length;
             }
-        });
+        }
         if (prevStrip) {
             // A module at the pin has not configured yet.
             await this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
         }
+        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        strip.colors = strip.colors || Array(strip.length);
+        strip.colors[index] = color;
         const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
         const message = new Array(8);
         message[0] = (PIXEL_COMMAND);
@@ -879,14 +885,25 @@ class AkaDakoBoard extends EventEmitter {
      * LED does not change the actual color until neoPixelShow() was sent.
      * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
-     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @param {(color: [number, number, number] | null, index: number, oldColors: [number, number, number][]) => [number, number, number] | null} colorMapFn - color calculation function, if null then skip setting color
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    async neoPixelFillColor(pin, color) {
+    async neoPixelFillColor(pin, colorMapFn) {
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         const length = strip ? strip.length : this.defaultNeoPixelLength;
+        const oldColors = (strip && strip.colors) || Array(length);
+        if(oldColors.length < length) {
+            oldColors[length - 1] = null;
+        }
+        if(length < oldColors.length) {
+            oldColors.splice(length);
+        }
+        const newColors = [...oldColors].map(colorMapFn);
         for (let index = 0; index < length; index++) {
-            await this.neoPixelSetColor(pin, color, index);
+            const color = newColors[index];
+            if(color != null) {
+                await this.neoPixelSetColor(pin, color, index);
+            }
         }
     }
 
@@ -895,7 +912,7 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} pin - pin number of the module
      */
     async neoPixelClear (pin) {
-        await this.neoPixelFillColor(pin, [0, 0, 0]);
+        await this.neoPixelFillColor(pin, () => [0, 0, 0]);
         return this.neoPixelShow();
     }
 
@@ -924,6 +941,22 @@ class AkaDakoBoard extends EventEmitter {
             setTimeout(() => resolve(), this.sendingInterval);
         });
 
+    }
+
+    neoPixelGetColors(pin) {
+        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        if(strip == null) return;
+        if(strip.colors == null) {
+            strip.colors = Array(strip.length);
+        };
+        if(strip.length < strip.colors.length) {
+            strip.colors = strip.colors.slice(0, strip.length);
+        }
+
+        if(typeof this.neoPixelColorsBuffer === 'undefined') {
+            this.neoPixelColorsBuffer = new Array(len);
+        }
+        return this.neoPixelColorsBuffer;
     }
 
     /**

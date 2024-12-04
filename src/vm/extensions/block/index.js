@@ -12,6 +12,7 @@ import ADXL345 from './adxl345';
 import BME280 from './bme280';
 import KXTJ3 from './kxtj3';
 import LTR303 from './ltr303';
+import chroma from 'chroma-js';
 
 /**
  * Returns a Long Integer converted from the value.
@@ -469,10 +470,9 @@ class ExtensionBlocks {
          * state holder of the all pins
          */
         this.pins = [];
-        [6, 9, 10, 11, 14, 15, 16, 17]
-            .forEach(pin => {
-                this.pins[pin] = {};
-            });
+        for (const pin of [6, 9, 10, 11, 14, 15, 16, 17]) {
+            this.pins[pin] = {};
+        }
 
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
@@ -511,22 +511,16 @@ class ExtensionBlocks {
      */
     resetPinMode () {
         if (!this.isConnected()) return;
-        [6, 9, 10, 11]
-            .forEach(pin => {
-                this.board.pinMode(pin, this.board.MODES.INPUT);
-            });
+        for (const pin of [6, 9, 10, 11]) {
+            this.board.pinMode(pin, this.board.MODES.INPUT);
+        }
     }
 
     /**
      * Turn off the all NeoPixel strips.
      */
     neoPixelClearAll () {
-        if (!this.isConnected()) return;
-        this.neoPixelBusy = true;
-        this.board.neoPixelClearAll()
-            .finally(() => {
-                this.neoPixelBusy = false;
-            });
+        return this.neoPixelOperationWithLock({}, {}, () => this.board.neoPixelClearAll())
     }
 
     /**
@@ -597,10 +591,10 @@ class ExtensionBlocks {
                 if (reason) {
                     console.log(reason);
                 } else {
-                    console.log(`fail to connect AkaDako Board`);
+                    console.log("fail to connect AkaDako Board");
                 }
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_REQUEST_ERROR, {
-                    message: `Scratch lost connection to`,
+                    message: "Scratch lost connection to",
                     extensionId: EXTENSION_ID
                 });
                 return reason.toString();
@@ -722,7 +716,7 @@ class ExtensionBlocks {
             pin = 9;
             break;
         default:
-            pin = parseInt(args.CONNECTOR, 10);
+            pin = Number.parseInt(args.CONNECTOR, 10);
             break;
         }
         const rise = Cast.toBoolean(args.LEVEL);
@@ -738,7 +732,7 @@ class ExtensionBlocks {
      */
     inputBiasSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.PIN, 10);
+        const pin = Number.parseInt(args.PIN, 10);
         const pullUp = args.BIAS === 'pullUp';
         return this.board.setInputBias(pin, pullUp);
     }
@@ -752,7 +746,7 @@ class ExtensionBlocks {
      */
     digitalLevelSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
             if (pin === 6 || pin === 9) {
@@ -813,7 +807,7 @@ class ExtensionBlocks {
      */
     analogLevelSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
             if (pin === 6 || pin === 9) {
@@ -838,7 +832,7 @@ class ExtensionBlocks {
      */
     servoTurn (args, util) {
         if (!this.isConnected()) return Promise.resolve();
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const servo = this.board.getServo(pin);
         if (!servo) return Promise.resolve();
         if (servo.isBusy) {
@@ -883,7 +877,7 @@ class ExtensionBlocks {
         if (!this.isConnected()) return '';
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
-        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const length = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.i2cReadOnce(address, register, length)
             .then(data => numericArrayToString(data))
             .catch(reason => {
@@ -900,7 +894,7 @@ class ExtensionBlocks {
      */
     oneWireReset (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         return this.board.sendOneWireReset(pin);
     }
 
@@ -913,7 +907,7 @@ class ExtensionBlocks {
      */
     oneWireWrite (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
         return this.board.oneWireWrite(pin, data)
             .catch(error => {
@@ -930,8 +924,8 @@ class ExtensionBlocks {
      */
     oneWireRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
-        const pin = parseInt(args.CONNECTOR, 10);
-        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
+        const length = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireRead(pin, length)
             .then(readData => numericArrayToString(readData))
             .catch(reason => {
@@ -949,9 +943,9 @@ class ExtensionBlocks {
      */
     oneWireWriteAndRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
-        const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const readLength = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireWriteAndRead(pin, data, readLength)
             .then(readData => numericArrayToString(readData))
             .catch(reason => {
@@ -970,48 +964,21 @@ class ExtensionBlocks {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelConfigStrip (args, util) {
-        if (!this.isConnected()) return;
-        if (this.neoPixelBusy) {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-            }
-            return; // Do not return Promise.resolve() to re-try.
-        }
-        this.neoPixelBusy = true;
-        const pin = parseInt(args.CONNECTOR, 10);
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            if (pin === 6 || pin === 9) {
-                // These pins are used for on-board buttons in the STEAM tool.
-                return;
-            }
-        }
-        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
-        return this.board.neoPixelConfigStrip(pin, length)
-            .finally(() => {
-                this.neoPixelBusy = false;
-            });
+        return this.neoPixelOperationWithLock(args, util, pin => {
+            if(pin == null) return;
+            const length = Cast.toNumber(Number.parseInt(args.LENGTH, 10));
+            return this.board.neoPixelConfigStrip(pin, length);
+        });
     }
 
     /**
      * Update color of LEDs on the all of NeoPixel modules.
-     * @param {object} _args - the block's arguments.
+     * @param {object} args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelShow (_args, util) {
-        if (!this.isConnected()) return;
-        if (this.neoPixelBusy) {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-            }
-            return; // Do not return Promise.resolve() to re-try.
-        }
-        this.neoPixelBusy = true;
-        return this.board.neoPixelShow()
-            .finally(() => {
-                this.neoPixelBusy = false;
-            });
+    neoPixelShow (args, util) {
+        return this.neoPixelOperationWithLock(args, util, () => this.board.neoPixelShow());
     }
 
     /**
@@ -1024,49 +991,24 @@ class ExtensionBlocks {
      * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
      */
     neoPixelSetColor (args, util) {
-        if (!this.isConnected()) return;
-        if (this.neoPixelBusy) {
-            if (util) {
-                util.yield(); // re-try this call after a while.
+        return this.neoPixelOperationWithLock(args, util, pin => {
+            if(pin == null) return;
+            const index = Cast.toNumber(args.POSITION) - 1;
+            const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
+            // -1 は虹色として解釈する
+            if(args.COLOR === 'rainbow') {
+                const colorFn = (_, i, colors) => {
+                    if(i === index) {
+                        return getRainbowColor(i, colors.length, brightness);
+                    }
+                    return null;
+                }
+                return this.board.neoPixelFillColor(pin, colorFn);
             }
-            return; // Do not return Promise.resolve() to re-try.
-        }
-        const pin = parseInt(args.CONNECTOR, 10);
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            if (pin === 6 || pin === 9) {
-                // These pins are used for on-board buttons in the STEAM tool.
-                return;
-            }
-        }
-        // 1始まりの位置を0始まりのインデックスにする
-        // POSITION=-1 の場合は全てのインデックスを意味する -1 をインデックスとして指定する
-        const position = Cast.toNumber(args.POSITION);
-        const index = position == -1 ? -1 : position - 1;
-        // 色を計算する
-        const brightness = Math.max(0, Math.min(100, Cast.toNumber(args.BRIGHTNESS))) / 100;
-        const color = readAsNumericArray(args.COLOR);
-        if (color.length === 0) {
-            // no effect for empty string
-            return;
-        }
-        let r;
-        let g;
-        let b;
-        if (color.length >= 3) {
-            r = Math.round(Math.max(0, Math.min(255, color[0])) * brightness);
-            g = Math.round(Math.max(0, Math.min(255, color[1])) * brightness);
-            b = Math.round(Math.max(0, Math.min(255, color[2])) * brightness);
-        } else {
-            r = Math.round(Math.max(0, Math.min(255, ((color[0] & 0xff0000) >> 16))) * brightness);
-            g = Math.round(Math.max(0, Math.min(255, ((color[0] & 0x00ff00) >> 8))) * brightness);
-            b = Math.round(Math.max(0, Math.min(255, (color[0] & 0x0000ff))) * brightness);
-        }
-        this.neoPixelBusy = true;
-        this.board.neoPixelSetColor(pin, [r, g, b], index)
-            .finally(() => {
-                this.neoPixelBusy = false;
-            });
+            // 指定された色をセットする
+            const color = parseColor(args.COLOR, brightness);
+            return this.board.neoPixelSetColor(pin, color, index);
+        });
     }
 
     /**
@@ -1078,8 +1020,82 @@ class ExtensionBlocks {
      * @param {string} args.BRIGHTNESS - brightness fo the LED [%]
      */
     neoPixelFillColor (args, util) {
-        Object.assign(args, {POSITION: -1});
-        return this.neoPixelSetColor(args, util);
+        return this.neoPixelOperationWithLock(args, util, pin => {
+            if(pin == null) return;
+            const brightness = Cast.toNumber(args.BRIGHTNESS) / 100;
+            let colorFn = null;
+            console.log('neoPixelFillColor', args);
+            if(args.COLOR === 'rainbow') {
+                colorFn = (_, i, colors) => getRainbowColor(i, colors.length, brightness);
+            }
+            // 特別な色モードでない場合は全て指定の色にする
+            if(colorFn == null) {
+                const color = parseColor(args.COLOR, brightness);
+                colorFn = () => color;
+            }
+            return this.board.neoPixelFillColor(pin, colorFn);
+        });
+    }
+
+    neoPixelShiftColor(args, util) {
+        return this.neoPixelOperationWithLock(args, util, pin => {
+            console.log(args)
+            if(pin == null) return;
+            const n = Cast.toNumber(args.N);
+            const loopMode = Cast.toBoolean(args.LOOP_MODE);
+            // 色をシフトする関数で塗りつぶす
+            const colorMapFn = (curColor, i, colors) => {
+                const length = colors.length;
+                const fromIndex = i - n;
+                const fromIndexInLoop = ((fromIndex % length) + length) % length;
+                const newColor = loopMode ? colors[fromIndexInLoop] : colors[fromIndex];
+                // 色が変化していなければスキップ
+                if(newColor == null && curColor == null) return null;
+                if(newColor != null && curColor != null) {
+                    if(newColor[0] === curColor[0] && newColor[1] === curColor[1] && newColor[2] === curColor[2]) {
+                        return null;
+                    }
+                }
+                // 新しい色が null なら [0, 0, 0] をセットする
+                return newColor || [0, 0, 0];
+            }
+            return this.board.neoPixelFillColor(pin, colorMapFn);
+        });
+    }
+
+    /**
+     * Execute NeoPixel operation with lock
+     * @param {object} args - the block's arguments.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @param {string} args.CONNECTOR - pin number of the connector
+     * @param {(pin: number | null) => Promise} operation
+     * @returns {Promise} result of operation
+     */
+    neoPixelOperationWithLock(args, util, operation) {
+        if (!this.isConnected()) return;
+        if (this.neoPixelBusy) {
+            if (util) {
+                util.yield(); // re-try this call after a while.
+            }
+            return; // Do not return Promise.resolve() to re-try.
+        }
+        let pin = Number.parseInt(args.CONNECTOR, 10);
+        if (this.board.version.type === 2) {
+            // STEAM Tool
+            if (pin === 6 || pin === 9) {
+                // These pins are used for on-board buttons in the STEAM tool.
+                pin = null
+            }
+        }
+        this.neoPixelBusy = true;
+        const result = operation(pin);
+        if(result instanceof Promise) {
+            return result.finally(() => {
+                this.neoPixelBusy = false;
+            });
+        }
+        this.neoPixelBusy = false;
+        return Promise.resolve(result);
     }
 
     /**
@@ -1099,22 +1115,23 @@ class ExtensionBlocks {
     }
 
     /**
+     * Get color mode
+     */
+    neoPixelColorMode(args) {
+        return args.MODE;
+    }
+
+    /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {object} args - the block's arguments.
      * @param {string} args.CONNECTOR - pin number of the connector
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelClear (args) {
-        if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
-        if (this.board.version.type === 2) {
-            // STEAM Tool
-            if (pin === 6 || pin === 9) {
-                // These pins are used for on-board buttons in the STEAM tool.
-                return;
-            }
-        }
-        return this.board.neoPixelClear(pin);
+    neoPixelClear (args, util) {
+        return this.neoPixelOperationWithLock(args, util, pin => {
+            if(pin == null) return;
+            return this.board.neoPixelClear(pin);
+        });
     }
 
     async getOpticalDistanceSensor () {
@@ -2711,6 +2728,30 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'neoPixelShiftColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelShiftColor',
+                        default: 'color LED [CONNECTOR] shift color settings by [N] ([LOOP_MODE])',
+                        description: 'shift color LED settings'
+                    }),
+                    arguments: {
+                        CONNECTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelConnectorMenu'
+                        },
+                        N: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '1'
+                        },
+                        LOOP_MODE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'true',
+                            menu: 'neoPixelShiftColorLoopModeMenu'
+                        }
+                    }
+                },
+                {
                     opcode: 'neoPixelColor',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
@@ -2730,6 +2771,21 @@ class ExtensionBlocks {
                         BLUE: {
                             type: ArgumentType.STRING,
                             defaultValue: '255'
+                        }
+                    }
+                },
+                {
+                    opcode: 'neoPixelColorMode',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.neoPixelColorMode',
+                        default: 'color LED [MODE]',
+                        description: 'color LED color mode'
+                    }),
+                    arguments: {
+                        MODE: {
+                            type: ArgumentType.STRING,
+                            menu: 'neoPixelColorModeMenu'
                         }
                     }
                 },
@@ -3378,9 +3434,17 @@ class ExtensionBlocks {
                     acceptReporters: false,
                     items: this.getNeoPixelConnectorMenu()
                 },
+                neoPixelShiftColorLoopModeMenu: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelShiftColorLoopModeMenu()
+                },
                 neoPixelColorMenu: {
                     acceptReporters: true,
                     items: this.getNeoPixelColorMenu()
+                },
+                neoPixelColorModeMenu: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelColorModeMenu()
                 },
                 bytesTypeMenu: {
                     acceptReporters: false,
@@ -3722,6 +3786,26 @@ class ExtensionBlocks {
         ];
     }
 
+
+    getNeoPixelShiftColorLoopModeMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelShiftColor.LOOP_MODE.ENABLE_LOOP',
+                    default: 'loop',
+                }),
+                value: 'true',
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelShiftColor.LOOP_MODE.DISABLE_LOOP',
+                    default: 'no loop',
+                }),
+                value: 'false',
+            }
+        ];
+    }
+
     getNeoPixelColorMenu () {
         return [
             {
@@ -3796,6 +3880,61 @@ class ExtensionBlocks {
             }
         ];
     }
+
+    getNeoPixelColorModeMenu () {
+        return [
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMode.rainbow',
+                    default: 'rainbow'
+                }),
+                value: 'rainbow'
+            }
+        ];
+    }
+}
+
+
+/**
+ * Calculate rainbow color.
+ * @param {number} idx - index
+ * @param {number} length - length
+ * @param {number} brightness - brightness
+ * @returns {object} color
+ */
+const getRainbowColor = (idx, length, brightness) => {
+    const lightness = brightness;
+    const chromacity = 0.15;
+    const hue = idx * 360 / length;
+    return chroma.oklch(lightness, chromacity, hue).rgb();
+}
+
+/**
+ * Parse color string or number to RGB array.
+ * @param {string | number} color - color string or number
+ * @param {number} brightness - brightness
+ * @returns {Array<number>} RGB array
+ */
+const parseColor = (color, brightness) => {
+    const rgb = [0, 0, 0];
+    if (typeof color === 'string') {
+        const nums = color.split(',').map(Cast.toNumber);
+        rgb[0] = nums[0] || 0;
+        rgb[1] = nums[1] || 0;
+        rgb[2] = nums[2] || 0;
+    } else if (typeof color === 'number') {
+        const colorNumber = Math.round(Cast.toNumber(color));
+        if(0 <= colorNumber && colorNumber <= 0xffffff) {
+            rgb[0] = (colorNumber & 0xff0000) >> 16;
+            rgb[1] = (colorNumber & 0x00ff00) >> 8;
+            rgb[2] = (colorNumber & 0x0000ff) >> 0;
+        }
+    }
+    // 明度を適用する
+    for(let i = 0; i < 3; i++) {
+        rgb[i] = Math.round(Math.max(0, Math.min(255, rgb[i])) * brightness);
+    }
+    return rgb;
 }
 
 export {
