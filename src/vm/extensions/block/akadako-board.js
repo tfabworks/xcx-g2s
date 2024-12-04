@@ -819,11 +819,11 @@ class AkaDakoBoard extends EventEmitter {
         const message = [];
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_CONFIG;
-        this.neoPixel.forEach(aStrip => {
+        for (const aStrip of this.neoPixel) {
             message.push((COLOR_ORDER.GRB << 5) | aStrip.pin);
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
-        });
+        }
         return new Promise(resolve => {
             this.firmata.sysexCommand(message);
             setTimeout(() => resolve(), this.sendingInterval);
@@ -845,7 +845,7 @@ class AkaDakoBoard extends EventEmitter {
         }
         let address = 0;
         let prevStrip = true;
-        this.neoPixel.forEach(aStrip => {
+        for (const aStrip of this.neoPixel) {
             if (aStrip.pin === pin) {
                 address += Math.max(0, index % aStrip.length);
                 prevStrip = false;
@@ -853,7 +853,7 @@ class AkaDakoBoard extends EventEmitter {
             if (prevStrip) {
                 address += aStrip.length;
             }
-        });
+        }
         if (prevStrip) {
             // A module at the pin has not configured yet.
             await this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);

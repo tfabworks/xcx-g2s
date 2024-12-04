@@ -469,10 +469,9 @@ class ExtensionBlocks {
          * state holder of the all pins
          */
         this.pins = [];
-        [6, 9, 10, 11, 14, 15, 16, 17]
-            .forEach(pin => {
-                this.pins[pin] = {};
-            });
+        for (const pin of [6, 9, 10, 11, 14, 15, 16, 17]) {
+            this.pins[pin] = {};
+        }
 
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
@@ -511,10 +510,9 @@ class ExtensionBlocks {
      */
     resetPinMode () {
         if (!this.isConnected()) return;
-        [6, 9, 10, 11]
-            .forEach(pin => {
-                this.board.pinMode(pin, this.board.MODES.INPUT);
-            });
+        for (const pin of [6, 9, 10, 11]) {
+            this.board.pinMode(pin, this.board.MODES.INPUT);
+        }
     }
 
     /**
@@ -597,10 +595,10 @@ class ExtensionBlocks {
                 if (reason) {
                     console.log(reason);
                 } else {
-                    console.log(`fail to connect AkaDako Board`);
+                    console.log("fail to connect AkaDako Board");
                 }
                 this.runtime.emit(this.runtime.constructor.PERIPHERAL_REQUEST_ERROR, {
-                    message: `Scratch lost connection to`,
+                    message: "Scratch lost connection to",
                     extensionId: EXTENSION_ID
                 });
                 return reason.toString();
@@ -722,7 +720,7 @@ class ExtensionBlocks {
             pin = 9;
             break;
         default:
-            pin = parseInt(args.CONNECTOR, 10);
+            pin = Number.parseInt(args.CONNECTOR, 10);
             break;
         }
         const rise = Cast.toBoolean(args.LEVEL);
@@ -738,7 +736,7 @@ class ExtensionBlocks {
      */
     inputBiasSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.PIN, 10);
+        const pin = Number.parseInt(args.PIN, 10);
         const pullUp = args.BIAS === 'pullUp';
         return this.board.setInputBias(pin, pullUp);
     }
@@ -752,7 +750,7 @@ class ExtensionBlocks {
      */
     digitalLevelSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
             if (pin === 6 || pin === 9) {
@@ -813,7 +811,7 @@ class ExtensionBlocks {
      */
     analogLevelSet (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
             if (pin === 6 || pin === 9) {
@@ -838,7 +836,7 @@ class ExtensionBlocks {
      */
     servoTurn (args, util) {
         if (!this.isConnected()) return Promise.resolve();
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const servo = this.board.getServo(pin);
         if (!servo) return Promise.resolve();
         if (servo.isBusy) {
@@ -883,7 +881,7 @@ class ExtensionBlocks {
         if (!this.isConnected()) return '';
         const address = Number(args.ADDRESS);
         const register = Number(args.REGISTER);
-        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const length = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.i2cReadOnce(address, register, length)
             .then(data => numericArrayToString(data))
             .catch(reason => {
@@ -900,7 +898,7 @@ class ExtensionBlocks {
      */
     oneWireReset (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         return this.board.sendOneWireReset(pin);
     }
 
@@ -913,7 +911,7 @@ class ExtensionBlocks {
      */
     oneWireWrite (args) {
         if (!this.isConnected()) return;
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
         return this.board.oneWireWrite(pin, data)
             .catch(error => {
@@ -930,8 +928,8 @@ class ExtensionBlocks {
      */
     oneWireRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
-        const pin = parseInt(args.CONNECTOR, 10);
-        const length = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
+        const length = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireRead(pin, length)
             .then(readData => numericArrayToString(readData))
             .catch(reason => {
@@ -949,9 +947,9 @@ class ExtensionBlocks {
      */
     oneWireWriteAndRead (args) {
         if (!this.isConnected()) return Promise.resolve('');
-        const pin = parseInt(args.CONNECTOR, 10);
+        const pin = Number.parseInt(args.CONNECTOR, 10);
         const data = readAsNumericArray(args.DATA);
-        const readLength = parseInt(Cast.toNumber(args.LENGTH), 10);
+        const readLength = Number.parseInt(Cast.toNumber(args.LENGTH), 10);
         return this.board.oneWireWriteAndRead(pin, data, readLength)
             .then(readData => numericArrayToString(readData))
             .catch(reason => {
@@ -995,7 +993,7 @@ class ExtensionBlocks {
 
     /**
      * Update color of LEDs on the all of NeoPixel modules.
-     * @param {object} _args - the block's arguments.
+     * @param {object} args - the block's arguments.
      * @param {BlockUtility} util - utility object provided by the runtime.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
@@ -1031,7 +1029,7 @@ class ExtensionBlocks {
             }
             return; // Do not return Promise.resolve() to re-try.
         }
-        const pin = parseInt(args.CONNECTOR, 10);
+        let pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
             if (pin === 6 || pin === 9) {
