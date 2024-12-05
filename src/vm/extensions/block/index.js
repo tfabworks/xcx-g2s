@@ -20,8 +20,9 @@ import chroma from 'chroma-js';
  * @param {boolean} unsigned - true for unsigned long
  * @returns {Long} converted Long value
  */
-const integer64From = (value, unsigned) => {
-    if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
+const integer64From = (valueInput, unsigned) => {
+    if (!valueInput) return (unsigned ? Long.UZERO : Long.ZERO);
+    let value = valueInput
     let radix = 10;
     if (typeof value === 'string'){
         value = value.trim();
@@ -63,19 +64,16 @@ const readAsNumericArray = stringExp => {
     stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
     const array = [];
     if (stringExp.includes(',')) {
-        stringExp.split(',')
-            .forEach(numberString => {
-                numberString = numberString.trim();
-                // remove blank items
-                if (numberString.length !== 0){
-                    array.push(Number(numberString));
-                }
-            });
+        for (const numberString of stringExp.split(',')) {
+            const trimmedNumberString = numberString.trim();
+            if (trimmedNumberString.length !== 0) {
+                array.push(Number(trimmedNumberString));
+            }
+        }
     } else {
-        stringExp.split(/\s+/)
-            .forEach(item => {
-                array.push(Number(item));
-            });
+        for (const item of stringExp.split(/\s+/)) {
+            array.push(Number(item));
+        }
     }
     return array;
 };
@@ -93,6 +91,7 @@ let formatMessage = messageData => messageData.defaultMessage;
  */
 const setupTranslations = () => {
     const localeSetup = formatMessage.setup();
+    // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
     if (localeSetup && localeSetup.translations[localeSetup.locale]) {
         Object.assign(
             localeSetup.translations[localeSetup.locale],
@@ -527,6 +526,7 @@ class ExtensionBlocks {
      * Update connected board
      */
     updateBoard () {
+        // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
         if (this.board && this.board.isConnected()) return;
         const prev = this.board;
         this.board = this.boardConnector.findBoard();
@@ -578,6 +578,7 @@ class ExtensionBlocks {
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
+        // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
         if (this.board && this.board.isConnected()) return; // Already connected
         return this.boardConnector.connectedBoard(EXTENSION_ID)
             .then(connectedBoard => {
@@ -1795,10 +1796,8 @@ class ExtensionBlocks {
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
         if (!array.length) return '';
-        let index = Number(args.INDEX);
-        if (isNaN(index)) {
-            index = 0;
-        }
+        let index = Cast.toNumber(args.INDEX);
+        index = Math.min(array.length, Math.max(1, index));
         index = Math.min(array.length, Math.max(1, index));
         index = Math.floor(index);
         return array[index - 1];
@@ -1815,15 +1814,9 @@ class ExtensionBlocks {
      */
     spliceNumbers (args) {
         const array = readAsNumericArray(args.ARRAY);
-        let index = Number(args.INDEX);
-        if (isNaN(index)) {
-            index = 0;
-        }
+        let index = Cast.toNumber(args.INDEX);
         index = Math.floor(index);
-        let deleteCount = Number(args.DELETE);
-        if (isNaN(deleteCount)) {
-            deleteCount = 0;
-        }
+        let deleteCount = Cast.toNumber(args.DELETE);
         deleteCount = Math.min(array.length, Math.max(0, deleteCount));
         deleteCount = Math.floor(deleteCount);
         const newNumbers = readAsNumericArray(args.INSERT);
@@ -2222,7 +2215,7 @@ class ExtensionBlocks {
         return this.getShareServer()
             .then(server => {
                 if (!server) {
-                    throw new Error(`Share server was not set.`);
+                    throw new Error('Share server was not set.');
                 }
                 this.shareDataSending = true;
                 return fetch(this.shareServerSendingURL + encodeURIComponent(this.shareGroupID), {
@@ -2276,12 +2269,12 @@ class ExtensionBlocks {
      */
     updatePrevSharedData () {
         this.prevSharedData = {};
-        Object.entries(this.sharedData).forEach(([label, contentObject]) => {
+        for (const [label, contentObject] of Object.entries(this.sharedData)) {
             this.prevSharedData[label] = {};
-            Object.entries(contentObject).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(contentObject)) {
                 this.prevSharedData[label][key] = value;
-            });
-        });
+            }
+        }
     }
 
     /**
