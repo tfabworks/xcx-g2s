@@ -20,8 +20,9 @@ import chroma from 'chroma-js';
  * @param {boolean} unsigned - true for unsigned long
  * @returns {Long} converted Long value
  */
-const integer64From = (value, unsigned) => {
-    if (!value) return (unsigned ? Long.UZERO : Long.ZERO);
+const integer64From = (valueInput, unsigned) => {
+    if (!valueInput) return (unsigned ? Long.UZERO : Long.ZERO);
+    let value = valueInput
     let radix = 10;
     if (typeof value === 'string'){
         value = value.trim();
@@ -63,19 +64,16 @@ const readAsNumericArray = stringExp => {
     stringExp = stringExp.replaceAll(/[[|\]|"]/g, '');
     const array = [];
     if (stringExp.includes(',')) {
-        stringExp.split(',')
-            .forEach(numberString => {
-                numberString = numberString.trim();
-                // remove blank items
-                if (numberString.length !== 0){
-                    array.push(Number(numberString));
-                }
-            });
+        for (const numberString of stringExp.split(',')) {
+            const trimmedNumberString = numberString.trim();
+            if (trimmedNumberString.length !== 0) {
+                array.push(Number(trimmedNumberString));
+            }
+        }
     } else {
-        stringExp.split(/\s+/)
-            .forEach(item => {
-                array.push(Number(item));
-            });
+        for (const item of stringExp.split(/\s+/)) {
+            array.push(Number(item));
+        }
     }
     return array;
 };
@@ -93,6 +91,7 @@ let formatMessage = messageData => messageData.defaultMessage;
  */
 const setupTranslations = () => {
     const localeSetup = formatMessage.setup();
+    // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
     if (localeSetup && localeSetup.translations[localeSetup.locale]) {
         Object.assign(
             localeSetup.translations[localeSetup.locale],
@@ -527,6 +526,7 @@ class ExtensionBlocks {
      * Update connected board
      */
     updateBoard () {
+        // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
         if (this.board && this.board.isConnected()) return;
         const prev = this.board;
         this.board = this.boardConnector.findBoard();
@@ -578,6 +578,7 @@ class ExtensionBlocks {
      * @returns {Promise<string>} a promise which resolves the result of this command
      */
     connectBoard () {
+        // biome-ignore lint/complexity/useOptionalChain: scratchのbuildはOptionalChainが使えない
         if (this.board && this.board.isConnected()) return; // Already connected
         return this.boardConnector.connectedBoard(EXTENSION_ID)
             .then(connectedBoard => {
@@ -803,9 +804,10 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
+     * @param {number?} args.MIN_INTERVAL - minimum interval between calls [ms] for the same pin, default is 0
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    analogLevelSet (args) {
+    async analogLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
@@ -817,6 +819,24 @@ class ExtensionBlocks {
         }
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
         const value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
+        const minInterval = Cast.toNumber(args.MIN_INTERVAL);
+        // 前回の同一PINに対する書き込み時刻保存用マップがなければ初期化
+        if(typeof this.analogLevelSetLastTimestampMap === 'undefined') {
+            this.analogLevelSetLastTimestampMap = new Map()
+        }
+        // 実行からの最小インターバルが指定されており、かつ同一PINに対する前回の書き込み時刻からの時間がそれ以下であればsleepを入れる
+        if(0 < minInterval) {
+            const lastTimestamp = this.analogLevelSetLastTimestampMap.get(pin)
+            if(typeof lastTimestamp !== 'undefined') {
+                const interval = Date.now() - lastTimestamp;
+                if(interval < minInterval) {
+                    await new Promise(resolve=>setTimeout(resolve, minInterval - interval))
+                }
+            }
+        }
+        // 書き込み時刻を保存
+        this.analogLevelSetLastTimestampMap.set(pin, Date.now());
+        // 書き込み実行
         this.board.pinMode(pin, this.board.MODES.PWM);
         return this.board.pwmWrite(pin, value);
     }
@@ -1795,10 +1815,8 @@ class ExtensionBlocks {
     numberAtIndex (args) {
         const array = readAsNumericArray(args.ARRAY);
         if (!array.length) return '';
-        let index = Number(args.INDEX);
-        if (isNaN(index)) {
-            index = 0;
-        }
+        let index = Cast.toNumber(args.INDEX);
+        index = Math.min(array.length, Math.max(1, index));
         index = Math.min(array.length, Math.max(1, index));
         index = Math.floor(index);
         return array[index - 1];
@@ -1815,15 +1833,9 @@ class ExtensionBlocks {
      */
     spliceNumbers (args) {
         const array = readAsNumericArray(args.ARRAY);
-        let index = Number(args.INDEX);
-        if (isNaN(index)) {
-            index = 0;
-        }
+        let index = Cast.toNumber(args.INDEX);
         index = Math.floor(index);
-        let deleteCount = Number(args.DELETE);
-        if (isNaN(deleteCount)) {
-            deleteCount = 0;
-        }
+        let deleteCount = Cast.toNumber(args.DELETE);
         deleteCount = Math.min(array.length, Math.max(0, deleteCount));
         deleteCount = Math.floor(deleteCount);
         const newNumbers = readAsNumericArray(args.INSERT);
@@ -2222,7 +2234,7 @@ class ExtensionBlocks {
         return this.getShareServer()
             .then(server => {
                 if (!server) {
-                    throw new Error(`Share server was not set.`);
+                    throw new Error('Share server was not set.');
                 }
                 this.shareDataSending = true;
                 return fetch(this.shareServerSendingURL + encodeURIComponent(this.shareGroupID), {
@@ -2276,12 +2288,12 @@ class ExtensionBlocks {
      */
     updatePrevSharedData () {
         this.prevSharedData = {};
-        Object.entries(this.sharedData).forEach(([label, contentObject]) => {
+        for (const [label, contentObject] of Object.entries(this.sharedData)) {
             this.prevSharedData[label] = {};
-            Object.entries(contentObject).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(contentObject)) {
                 this.prevSharedData[label][key] = value;
-            });
-        });
+            }
+        }
     }
 
     /**
@@ -2330,9 +2342,10 @@ class ExtensionBlocks {
         }
         // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。続いてのデューティー比の変化でコマンドが決定される仕様です。
         // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
-        await this.analogLevelSet({CONNECTOR, LEVEL: 1}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
-        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待つ
-        await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n}); // ボタン1=10%, ボタン2=20%, ...
+        // 同一コネクタに対する analogLevelSet の呼び出し間隔は100ms以上にする必要がある。
+        const MIN_INTERVAL = 100;
+        await this.analogLevelSet({CONNECTOR, LEVEL: 1, MIN_INTERVAL}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
+        await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n, MIN_INTERVAL}); // ボタン1=10%, ボタン2=20%, ...
     }
 
     /**
