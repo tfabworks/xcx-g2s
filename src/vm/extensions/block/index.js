@@ -804,9 +804,10 @@ class ExtensionBlocks {
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
      * @param {string | number} args.LEVEL - power (%) of PWM
+     * @param {number?} args.MIN_INTERVAL - minimum interval between calls [ms] for the same pin, default is 0
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    analogLevelSet (args) {
+    async analogLevelSet (args) {
         if (!this.isConnected()) return;
         const pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
@@ -818,6 +819,24 @@ class ExtensionBlocks {
         }
         const percent = Math.min(Math.max(Cast.toNumber(args.LEVEL), 0), 100);
         const value = Math.round(this.board.RESOLUTION.PWM * (percent / 100));
+        const minInterval = Cast.toNumber(args.MIN_INTERVAL);
+        // 前回の同一PINに対する書き込み時刻保存用マップがなければ初期化
+        if(typeof this.analogLevelSetLastTimestampMap === 'undefined') {
+            this.analogLevelSetLastTimestampMap = new Map()
+        }
+        // 実行からの最小インターバルが指定されており、かつ同一PINに対する前回の書き込み時刻からの時間がそれ以下であればsleepを入れる
+        if(0 < minInterval) {
+            const lastTimestamp = this.analogLevelSetLastTimestampMap.get(pin)
+            if(typeof lastTimestamp !== 'undefined') {
+                const interval = Date.now() - lastTimestamp;
+                if(interval < minInterval) {
+                    await new Promise(resolve=>setTimeout(resolve, minInterval - interval))
+                }
+            }
+        }
+        // 書き込み時刻を保存
+        this.analogLevelSetLastTimestampMap.set(pin, Date.now());
+        // 書き込み実行
         this.board.pinMode(pin, this.board.MODES.PWM);
         return this.board.pwmWrite(pin, value);
     }
@@ -2323,9 +2342,10 @@ class ExtensionBlocks {
         }
         // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。続いてのデューティー比の変化でコマンドが決定される仕様です。
         // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
-        await this.analogLevelSet({CONNECTOR, LEVEL: 1}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
-        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待つ
-        await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n}); // ボタン1=10%, ボタン2=20%, ...
+        // 同一コネクタに対する analogLevelSet の呼び出し間隔は100ms以上にする必要がある。
+        const MIN_INTERVAL = 100;
+        await this.analogLevelSet({CONNECTOR, LEVEL: 1, MIN_INTERVAL}); // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。
+        await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n, MIN_INTERVAL}); // ボタン1=10%, ボタン2=20%, ...
     }
 
     /**
