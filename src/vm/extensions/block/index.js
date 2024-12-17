@@ -2709,7 +2709,7 @@ class ExtensionBlocks {
                         },
                         COLOR: {
                             type: ArgumentType.STRING,
-                            menu: 'neoPixelColorMenu'
+                            menu: 'neoPixelColorMenuSimple'
                         },
                         BRIGHTNESS: {
                             type: ArgumentType.NUMBER,
@@ -2790,6 +2790,7 @@ class ExtensionBlocks {
                 {
                     opcode: 'neoPixelColorMode',
                     blockType: BlockType.REPORTER,
+                    hideFromPalette: true, //拡張のブロック一覧に表示しない
                     text: formatMessage({
                         id: 'g2s.neoPixelColorMode',
                         default: 'color LED [MODE]',
@@ -3451,6 +3452,10 @@ class ExtensionBlocks {
                     acceptReporters: true,
                     items: this.getNeoPixelShiftColorLoopModeMenu()
                 },
+                neoPixelColorMenuSimple: {
+                    acceptReporters: true,
+                    items: this.getNeoPixelColorMenu().filter(item => item.value !== 'rainbow')
+                },
                 neoPixelColorMenu: {
                     acceptReporters: true,
                     items: this.getNeoPixelColorMenu()
@@ -3890,6 +3895,13 @@ class ExtensionBlocks {
                     default: 'black'
                 }),
                 value: '0, 0, 0'
+            },
+            {
+                text: formatMessage({
+                    id: 'g2s.neoPixelColorMenu.rainbow',
+                    default: 'rainbow'
+                }),
+                value: 'rainbow'
             }
         ];
     }
