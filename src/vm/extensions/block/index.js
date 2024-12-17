@@ -986,7 +986,7 @@ class ExtensionBlocks {
     neoPixelConfigStrip (args, util) {
         return this.neoPixelOperationWithLock(args, util, pin => {
             if(pin == null) return;
-            const length = Cast.toNumber(Number.parseInt(args.LENGTH, 10));
+            const length = Math.max(0, Math.min(60, Cast.toNumber(Number.parseInt(args.LENGTH, 10))));
             return this.board.neoPixelConfigStrip(pin, length);
         });
     }
