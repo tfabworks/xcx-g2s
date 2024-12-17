@@ -43,7 +43,7 @@
     "g2s.neoPixelConnectorMenu.steamBox": "Tool",
     "g2s.neoPixelSetColor": "color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]",
     "g2s.neoPixelFillColor": "color LED [CONNECTOR] set all color [COLOR] brightness [BRIGHTNESS]",
-    "g2s.neoPixelShiftColor": "color LEF [CONNECTOR] shift color settings by [N] ([LOOP_MODE])",
+    "g2s.neoPixelShiftColor": "color LED [CONNECTOR] shift color settings by [N] ([LOOP_MODE])",
     "g2s.neoPixelShiftColor.LOOP_MODE.ENABLE_LOOP": "loop",
     "g2s.neoPixelShiftColor.LOOP_MODE.DISABLE_LOOP": "no loop",
     "g2s.neoPixelColorMenu.red": "red",
