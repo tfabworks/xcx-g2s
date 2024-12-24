@@ -3943,10 +3943,19 @@ const getRainbowColor = (idx, length, brightness) => {
 const parseColor = (color, brightness) => {
     const rgb = [0, 0, 0];
     if (typeof color === 'string') {
-        const nums = color.split(',').map(Cast.toNumber);
-        rgb[0] = nums[0] || 0;
-        rgb[1] = nums[1] || 0;
-        rgb[2] = nums[2] || 0;
+        if(color.includes(',')) {
+            const nums = color.split(/\s*,\s*/).map(Cast.toNumber);
+            rgb[0] = nums[0] || 0;
+            rgb[1] = nums[1] || 0;
+            rgb[2] = nums[2] || 0;
+        } else if(/^0x[0-9a-fA-F]+$/.test(color)) {
+            const colorNumber = Math.round(Cast.toNumber(color));
+            if(0 <= colorNumber && colorNumber <= 0xffffff) {
+                rgb[0] = (colorNumber & 0xff0000) >> 16;
+                rgb[1] = (colorNumber & 0x00ff00) >> 8;
+                rgb[2] = (colorNumber & 0x0000ff) >> 0;
+            }
+        }
     } else if (typeof color === 'number') {
         const colorNumber = Math.round(Cast.toNumber(color));
         if(0 <= colorNumber && colorNumber <= 0xffffff) {
@@ -3954,6 +3963,10 @@ const parseColor = (color, brightness) => {
             rgb[1] = (colorNumber & 0x00ff00) >> 8;
             rgb[2] = (colorNumber & 0x0000ff) >> 0;
         }
+    } else if(Array.isArray(color)) {
+        rgb[0] = Math.round(Cast.toNumber(color[0])) & 0xff;
+        rgb[1] = Math.round(Cast.toNumber(color[1])) & 0xff;
+        rgb[2] = Math.round(Cast.toNumber(color[2])) & 0xff;
     }
     // 明度を適用する
     for(let i = 0; i < 3; i++) {
