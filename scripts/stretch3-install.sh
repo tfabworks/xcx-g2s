@@ -25,6 +25,7 @@ mkdir -p src/lib/libraries/extensions/${EXTENSION_ID}
 cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/entry-icon.* src/lib/libraries/extensions/${EXTENSION_ID}/
 cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/inset-icon.* src/lib/libraries/extensions/${EXTENSION_ID}/
 cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/translations.json src/lib/libraries/extensions/${EXTENSION_ID}/
+cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/version.* src/lib/libraries/extensions/${EXTENSION_ID}/
 #cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/index-base.jsx src/lib/libraries/extensions/${EXTENSION_ID}/
 #cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/index-stretch3.jsx src/lib/libraries/extensions/${EXTENSION_ID}/index.jsx
 cp ${EXTENSION_REPO}/src/gui/lib/libraries/extensions/entry/index-stretch.jsx src/lib/libraries/extensions/${EXTENSION_ID}/index.jsx
