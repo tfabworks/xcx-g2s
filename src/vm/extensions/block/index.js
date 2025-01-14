@@ -1053,7 +1053,8 @@ class ExtensionBlocks {
                 const color = parseColor(args.COLOR, brightness);
                 colorFn = () => color;
             }
-            return this.board.neoPixelFillColor(pin, colorFn);
+            return this.board.neoPixelFillColor(pin, colorFn)
+                .then(r => new Promise(resolve => setTimeout(() => resolve(r), 100)));
         });
     }
 
