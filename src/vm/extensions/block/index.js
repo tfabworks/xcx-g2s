@@ -1097,12 +1097,6 @@ class ExtensionBlocks {
      */
     neoPixelOperationWithLock(args, util, operation) {
         if (!this.isConnected()) return;
-        if (this.neoPixelBusy) {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-            }
-            return; // Do not return Promise.resolve() to re-try.
-        }
         let pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
@@ -1111,15 +1105,7 @@ class ExtensionBlocks {
                 pin = null
             }
         }
-        this.neoPixelBusy = true;
-        const result = operation(pin);
-        if(result instanceof Promise) {
-            return result.finally(() => {
-                this.neoPixelBusy = false;
-            });
-        }
-        this.neoPixelBusy = false;
-        return Promise.resolve(result);
+        return operation(pin)
     }
 
     /**
