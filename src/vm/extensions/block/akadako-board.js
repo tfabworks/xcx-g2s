@@ -13,6 +13,7 @@ import {
     PIXEL_SHOW
 } from './node-pixel-constants';
 import Servo from './servo';
+import throttledQueue from 'throttled-queue';
 
 const Firmata = bindTransport.Firmata;
 
@@ -192,6 +193,12 @@ class AkaDakoBoard extends EventEmitter {
          * @type {Array<object>}
          */
         this.neoPixel = [];
+
+        /**
+         * Throttled queue for NeoPixel.
+         * @type {ThrottledQueue}
+         */
+        this.neoPixelThrottledQueue = throttledQueue(1, 10);
 
         /**
          * Default length for NeoPixel module.
@@ -830,10 +837,7 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         }
-        return new Promise(resolve => {
-            this.firmata.sysexCommand(message);
-            setTimeout(() => resolve(), this.sendingInterval);
-        });
+        return this.neoPixelThrottledQueue(()=>this.firmata.sysexCommand(message));
     }
 
     /**
@@ -874,9 +878,13 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        return new Promise(resolve => {
-            this.firmata.sysexCommand(message);
-            setTimeout(() => resolve(), this.sendingInterval);
+        return new Promise((resolve, reject) => {
+            try {
+                this.firmata.sysexCommand(message);
+                setTimeout(() => resolve(), this.sendingInterval || 10);
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
@@ -913,7 +921,7 @@ class AkaDakoBoard extends EventEmitter {
      */
     async neoPixelClear (pin) {
         await this.neoPixelFillColor(pin, () => [0, 0, 0]);
-        return this.neoPixelShow();
+        await this.neoPixelShow();
     }
 
     /**
@@ -936,13 +944,15 @@ class AkaDakoBoard extends EventEmitter {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        return new Promise(resolve => {
-            this.firmata.sysexCommand(message);
-            setTimeout(() => resolve(), this.sendingInterval);
-        });
-
+        return this.neoPixelThrottledQueue(()=>this.firmata.sysexCommand(message));
     }
 
+
+    /**
+     * Get colors of the js memory for NeoPixel.
+     * @param {number} pin - pin number of the module
+     * @returns {Array<number>} colors of the NeoPixel
+     */
     neoPixelGetColors(pin) {
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         if(strip == null) return;
