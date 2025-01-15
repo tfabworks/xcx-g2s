@@ -22,6 +22,7 @@
     "chroma-js": "^3.1.2",
     "firmata-io": "https://gitpkg.now.sh/yokobond/firmata.js/packages/firmata-io?xcx-g2s",
     "long": "^5.2.4",
+    "throttled-queue": "^2.1.4",
     "web-serial-binding": "github:jaz303/web-serial-binding"
   }
 }
