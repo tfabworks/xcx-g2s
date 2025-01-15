@@ -2194,7 +2194,6 @@ class ExtensionBlocks {
      * @return {?Promise<string>} a Promise that resolves when connected or undefined if this process was yield.
      */
     connectToShareServer (args, util) {
-        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2224,7 +2223,6 @@ class ExtensionBlocks {
      * @return {?Promise} a Promise that resolves when sending done or undefined if this process was yield.
      */
     sendSharedData (args, util) {
-        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
         if (!this.isShareServerConnected()) return Promise.resolve('Share server was not connected.');
         if (this.shareDataSending || this.shareServerGetting) {
@@ -2303,7 +2301,6 @@ class ExtensionBlocks {
      * @return {boolean} - true if the data received.
      */
     whenSharedDataReceived (args) {
-        if (!this.isConnected()) return false;
         if (!this.isShareServerConnected()) return false;
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {
