@@ -998,7 +998,10 @@ class ExtensionBlocks {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelShow (args, util) {
-        return this.neoPixelOperationWithLock(args, util, () => this.board.neoPixelShow());
+        return this.neoPixelOperationWithLock(args, util, () => {
+            return this.board.neoPixelShow()
+                .then(r => new Promise(resolve => setTimeout(() => resolve(r), 100)));
+        });
     }
 
     /**
