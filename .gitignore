@@ -5,7 +5,10 @@ node_modules/
 /src/lib
 
 /dist/*-[0-9]_[0-9]_[0-9].*
+/dist/*-[0-9]_[0-9]_[0-9][0-9].*
+/dist/*-[0-9]_[0-9][0-9]_[0-9][0-9].*
 /build/
 
 /.envrc
 /scratch-gui.strech3
+/scratch-gui.xcratch

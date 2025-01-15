@@ -42,6 +42,10 @@
     "g2s.neoPixelConfigStrip": "set color LED [CONNECTOR] length [LENGTH]",
     "g2s.neoPixelConnectorMenu.steamBox": "Tool",
     "g2s.neoPixelSetColor": "color LED [CONNECTOR] set [POSITION] color [COLOR] brightness [BRIGHTNESS]",
+    "g2s.neoPixelFillColor": "color LED [CONNECTOR] set all color [COLOR] brightness [BRIGHTNESS]",
+    "g2s.neoPixelShiftColor": "color LED [CONNECTOR] shift color settings by [N] ([LOOP_MODE])",
+    "g2s.neoPixelShiftColor.LOOP_MODE.ENABLE_LOOP": "loop",
+    "g2s.neoPixelShiftColor.LOOP_MODE.DISABLE_LOOP": "no loop",
     "g2s.neoPixelColorMenu.red": "red",
     "g2s.neoPixelColorMenu.orange": "orange",
     "g2s.neoPixelColorMenu.yellow": "yellow",
@@ -52,7 +56,10 @@
     "g2s.neoPixelColorMenu.purple": "purple",
     "g2s.neoPixelColorMenu.white": "white",
     "g2s.neoPixelColorMenu.black": "black",
+    "g2s.neoPixelColorMenu.rainbow": "rainbow",
     "g2s.neoPixelColor": "color LED color R [RED] G [GREEN] B [BLUE]",
+    "g2s.neoPixelColorMode": "color LED [MODE]",
+    "g2s.neoPixelColorMode.rainbow": "rainbow",
     "g2s.neoPixelShow": "color LED show",
     "g2s.neoPixelClear": "color LED [CONNECTOR] clear",
     "g2s.measureDistanceWithLight": "distance by laser on I2C (cm)",
@@ -88,7 +95,9 @@
     "g2s.readBytesAs": "read bytes [ARRAY] as [TYPE] [ENDIAN]",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "transmit Infrared-Ray-Remote [CONNECTOR] button [N]",
+    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -133,6 +142,10 @@
     "g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]を長さ[LENGTH]に設定する",
     "g2s.neoPixelConnectorMenu.steamBox": "内蔵",
     "g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]番目を[COLOR]色で明るさ[BRIGHTNESS]に設定する",
+    "g2s.neoPixelFillColor": "カラーLED[CONNECTOR]の全てを[COLOR]色で明るさ[BRIGHTNESS]に設定する",
+    "g2s.neoPixelShiftColor": "カラーLED[CONNECTOR]を[N]個分設定をずらす([LOOP_MODE])",
+    "g2s.neoPixelShiftColor.LOOP_MODE.ENABLE_LOOP": "回転する",
+    "g2s.neoPixelShiftColor.LOOP_MODE.DISABLE_LOOP": "回転しない",
     "g2s.neoPixelColorMenu.red": "赤",
     "g2s.neoPixelColorMenu.orange": "だいだい",
     "g2s.neoPixelColorMenu.yellow": "黄",
@@ -143,7 +156,10 @@
     "g2s.neoPixelColorMenu.purple": "紫",
     "g2s.neoPixelColorMenu.white": "白",
     "g2s.neoPixelColorMenu.black": "黒",
+    "g2s.neoPixelColorMenu.rainbow": "レインボー",
     "g2s.neoPixelColor": "カラーLED RGB 赤[RED] 緑[GREEN] 青[BLUE]",
+    "g2s.neoPixelColorMode": "カラーLED [MODE]",
+    "g2s.neoPixelColorMode.rainbow": "虹色",
     "g2s.neoPixelShow": "カラーLEDを光らせる",
     "g2s.neoPixelClear": "カラーLED[CONNECTOR]を消す",
     "g2s.measureDistanceWithLight": "距離 レーザーI2Cの距離(cm)",
@@ -179,7 +195,9 @@
     "g2s.readBytesAs": "バイト列[ARRAY]を[TYPE][ENDIAN]として読む",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]ボタン[N]を送信する",
+    "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -224,6 +242,10 @@
     "g2s.neoPixelConfigStrip": "カラーLED[CONNECTOR]をながさ[LENGTH]にせっていする",
     "g2s.neoPixelConnectorMenu.steamBox": "ないぞう",
     "g2s.neoPixelSetColor": "カラーLED[CONNECTOR]の[POSITION]ばんめを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
+    "g2s.neoPixelFillColor": "カラーLED[CONNECTOR]のすべてを[COLOR]いろであかるさ[BRIGHTNESS]にせっていする",
+    "g2s.neoPixelShiftColor": "カラーLED[CONNECTOR]を[N]こぶんずらす([LOOP_MODE])",
+    "g2s.neoPixelShiftColor.LOOP_MODE.ENABLE_LOOP": "かいてんする",
+    "g2s.neoPixelShiftColor.LOOP_MODE.DISABLE_LOOP": "かいてんしない",
     "g2s.neoPixelColorMenu.red": "あか",
     "g2s.neoPixelColorMenu.orange": "だいだい",
     "g2s.neoPixelColorMenu.yellow": "き",
@@ -234,7 +256,10 @@
     "g2s.neoPixelColorMenu.purple": "むらさき",
     "g2s.neoPixelColorMenu.white": "しろ",
     "g2s.neoPixelColorMenu.black": "くろ",
+    "g2s.neoPixelColorMenu.rainbow": "れいんぼー",
     "g2s.neoPixelColor": "カラーLED RGB あか[RED] みどり[GREEN] あお[BLUE]",
+    "g2s.neoPixelColorMode": "カラーLED [MODE]",
+    "g2s.neoPixelColorMode.rainbow": "にじいろ",
     "g2s.neoPixelShow": "カラーLEDをひからせる",
     "g2s.neoPixelClear": "カラーLED[CONNECTOR]をけす",
     "g2s.measureDistanceWithLight": "きょり レーザーI2Cのきょり(cm)",
@@ -270,6 +295,8 @@
     "g2s.readBytesAs": "バイトれつ[ARRAY]を[TYPE][ENDIAN]としてよむ",
     "g2s.int64Operation": "int64 [LEFT] [OP] [RIGHT]",
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
-    "g2s.bitNot": "bit NOT [VALUE]"
+    "g2s.bitNot": "bit NOT [VALUE]",
+    "g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]ぼたん[N]をそうしんする",
+    "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
   }
 }
