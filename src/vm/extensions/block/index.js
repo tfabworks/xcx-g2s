@@ -999,8 +999,7 @@ class ExtensionBlocks {
      */
     neoPixelShow (args, util) {
         return this.neoPixelOperationWithLock(args, util, () => {
-            return this.board.neoPixelShow()
-                .then(r => new Promise(resolve => setTimeout(resolve, 100)));
+            return this.board.neoPixelShow().then(()=>{});
         });
     }
 
@@ -1055,8 +1054,7 @@ class ExtensionBlocks {
                 const color = parseColor(args.COLOR, brightness);
                 colorFn = () => color;
             }
-            return this.board.neoPixelFillColor(pin, colorFn)
-                .then(r => new Promise(resolve => setTimeout(() => resolve(r), 100)));
+            return this.board.neoPixelFillColor(pin, colorFn).then(()=>{});
         });
     }
 
