@@ -928,14 +928,12 @@ class AkaDakoBoard extends EventEmitter {
      * Clear all strips.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelClearAll () {
-        return Promise.all(
-            this.neoPixel.map(
-                aStrip => this.neoPixelClear(aStrip.pin)
-            )
-        );
+    async neoPixelClearAll () {
+        for(const aStrip of this.neoPixel) {
+            await this.neoPixelFillColor(aStrip.pin, () => [0, 0, 0]);
+        }
+        await this.neoPixelShow();
     }
-
     /**
      * Update color of LEDs on the all of NeoPixel modules.
      * @returns {Promise} a Promise which resolves when the message was sent
