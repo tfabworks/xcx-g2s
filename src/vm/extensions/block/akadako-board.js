@@ -837,7 +837,7 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         }
-        return this.neoPixelThrottledQueue(()=>this.firmata.sysexCommand(message));
+        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
     }
 
     /**
@@ -878,14 +878,7 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        return new Promise((resolve, reject) => {
-            try {
-                this.firmata.sysexCommand(message);
-                setTimeout(() => resolve(), this.sendingInterval || 10);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
     }
 
     /**
@@ -928,14 +921,12 @@ class AkaDakoBoard extends EventEmitter {
      * Clear all strips.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelClearAll () {
-        return Promise.all(
-            this.neoPixel.map(
-                aStrip => this.neoPixelClear(aStrip.pin)
-            )
-        );
+    async neoPixelClearAll () {
+        for(const aStrip of this.neoPixel) {
+            await this.neoPixelFillColor(aStrip.pin, () => [0, 0, 0]);
+        }
+        await this.neoPixelShow();
     }
-
     /**
      * Update color of LEDs on the all of NeoPixel modules.
      * @returns {Promise} a Promise which resolves when the message was sent
@@ -944,7 +935,7 @@ class AkaDakoBoard extends EventEmitter {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        return this.neoPixelThrottledQueue(()=>this.firmata.sysexCommand(message));
+        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
     }
 
 
