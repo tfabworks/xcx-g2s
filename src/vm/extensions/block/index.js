@@ -987,7 +987,7 @@ class ExtensionBlocks {
         return this.neoPixelOperationWithLock(args, util, pin => {
             if(pin == null) return;
             const length = Math.max(0, Math.min(60, Cast.toNumber(Number.parseInt(args.LENGTH, 10))));
-            return this.board.neoPixelConfigStrip(pin, length);
+            return this.board.neoPixelConfigStrip(pin, length).then(()=>{});
         });
     }
 
@@ -998,7 +998,9 @@ class ExtensionBlocks {
      * @returns {Promise} a Promise which resolves when the message was sent
      */
     neoPixelShow (args, util) {
-        return this.neoPixelOperationWithLock(args, util, () => this.board.neoPixelShow());
+        return this.neoPixelOperationWithLock(args, util, () => {
+            return this.board.neoPixelShow().then(()=>{});
+        });
     }
 
     /**
@@ -1027,7 +1029,7 @@ class ExtensionBlocks {
             }
             // 指定された色をセットする
             const color = parseColor(args.COLOR, brightness);
-            return this.board.neoPixelSetColor(pin, color, index);
+            return this.board.neoPixelSetColor(pin, color, index).then(()=>{});
         });
     }
 
@@ -1044,7 +1046,6 @@ class ExtensionBlocks {
             if(pin == null) return;
             const brightness = Cast.toNumber(args.BRIGHTNESS) / 100;
             let colorFn = null;
-            console.log('neoPixelFillColor', args);
             if(args.COLOR === 'rainbow') {
                 colorFn = (_, i, colors) => getRainbowColor(i, colors.length, brightness);
             }
@@ -1053,13 +1054,12 @@ class ExtensionBlocks {
                 const color = parseColor(args.COLOR, brightness);
                 colorFn = () => color;
             }
-            return this.board.neoPixelFillColor(pin, colorFn);
+            return this.board.neoPixelFillColor(pin, colorFn).then(()=>{});
         });
     }
 
     neoPixelShiftColor(args, util) {
         return this.neoPixelOperationWithLock(args, util, pin => {
-            console.log(args)
             if(pin == null) return;
             const n = Cast.toNumber(args.N);
             const loopMode = Cast.toBoolean(args.LOOP_MODE);
@@ -1079,7 +1079,7 @@ class ExtensionBlocks {
                 // 新しい色が null なら [0, 0, 0] をセットする
                 return newColor || [0, 0, 0];
             }
-            return this.board.neoPixelFillColor(pin, colorMapFn);
+            return this.board.neoPixelFillColor(pin, colorMapFn).then(()=>{});
         });
     }
 
@@ -1093,12 +1093,6 @@ class ExtensionBlocks {
      */
     neoPixelOperationWithLock(args, util, operation) {
         if (!this.isConnected()) return;
-        if (this.neoPixelBusy) {
-            if (util) {
-                util.yield(); // re-try this call after a while.
-            }
-            return; // Do not return Promise.resolve() to re-try.
-        }
         let pin = Number.parseInt(args.CONNECTOR, 10);
         if (this.board.version.type === 2) {
             // STEAM Tool
@@ -1107,15 +1101,7 @@ class ExtensionBlocks {
                 pin = null
             }
         }
-        this.neoPixelBusy = true;
-        const result = operation(pin);
-        if(result instanceof Promise) {
-            return result.finally(() => {
-                this.neoPixelBusy = false;
-            });
-        }
-        this.neoPixelBusy = false;
-        return Promise.resolve(result);
+        return operation(pin)
     }
 
     /**
