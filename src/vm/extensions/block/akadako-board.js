@@ -829,12 +829,12 @@ class AkaDakoBoard extends EventEmitter {
                 this.neoPixel.push(Object.assign(oldStrip, {length: length, colorsBackup: null}));
             } else {
                 // 新しい設定が既存の設定と異なる場合は既存の colors をクリアする
-                this.neoPixel.push({pin: pin, length: length, colors: Array(length).fill(0), colorsBackup: null});
+                this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
             }
         } else {
             // 新規
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push({pin: pin, length: length, colors: Array(length).fill(0), colorsBackup: null});
+            this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
         }
         const message = [];
         message[0] = PIXEL_COMMAND;
@@ -933,22 +933,31 @@ class AkaDakoBoard extends EventEmitter {
      */
     async neoPixelClearAll (pin) {
         let strips = this.neoPixel;
-        if(pin == null) {
+        if(pin != null) {
             strips = strips.filter(aStrip => aStrip.pin === pin);
         }
         const colorsBackups = [];
         for(const strip of strips) {
             // LEDに全て黒を設定する前に、現在の色の状態一覧をcolorsBackupに退避する
             if(typeof strip.colors !== 'undefined') {
-                colorsBackups.push([strip.pin, strip.colors.slice()]);
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if(strip.colors.every(rgb => Array.isArray(rgb) && rgb.every(c => c === 0))) {
+                    // 元が全て黒なら元もcolorsBackupを引き継いで退避する
+                    colorsBackups.push([strip.pin, strip.colorsBackup.slice()]);
+                } else {
+                    // 元が全て黒でない場合はcolorsBackupに退避する
+                    colorsBackups.push([strip.pin, strip.colors.slice()]);
+                }
             }
+            // colorsBackupを退避した上でnullにする
+            strip.colorsBackup = null;
             await this.neoPixelFillColor(strip.pin, () => [0, 0, 0]);
         }
         await this.neoPixelShow();
-        // neoPixelShow の実行後に colorsBackup を復元する
-        for(const [pin, colors] of colorsBackups) {
+        // 退避していた colorsBackup を復元する
+        for(const [pin, colorsBackup] of colorsBackups) {
             const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-            strip.colorsBackup = colors.slice();
+            strip.colorsBackup = colorsBackup;
         }
     }
     /**
