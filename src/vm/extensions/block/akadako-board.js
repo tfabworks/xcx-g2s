@@ -823,11 +823,18 @@ class AkaDakoBoard extends EventEmitter {
         this.pins[pin].mode = PIXEL_COMMAND;
         const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         if(oldStrip != null) {
+            // 更新
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push(Object.assign(oldStrip, {length: length}));
+            if(oldStrip.length === length) {
+                this.neoPixel.push(Object.assign(oldStrip, {length: length, colorsBackup: null}));
+            } else {
+                // 新しい設定が既存の設定と異なる場合は既存の colors をクリアする
+                this.neoPixel.push({pin: pin, length: length, colors: Array(length).fill(0), colorsBackup: null});
+            }
         } else {
+            // 新規
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push({pin: pin, length: length});
+            this.neoPixel.push({pin: pin, length: length, colors: Array(length).fill(0), colorsBackup: null});
         }
         const message = [];
         message[0] = PIXEL_COMMAND;
@@ -865,7 +872,11 @@ class AkaDakoBoard extends EventEmitter {
             // A module at the pin has not configured yet.
             await this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
         }
+
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        // LED操作をする際は常にcolorsBackupを削除する
+        strip.colorsBackup = null;
+        // 色を設定するメッセージを作成
         strip.colors = strip.colors || Array(strip.length);
         strip.colors[index] = color;
         const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
@@ -913,51 +924,52 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} pin - pin number of the module
      */
     async neoPixelClear (pin) {
-        await this.neoPixelFillColor(pin, () => [0, 0, 0]);
-        await this.neoPixelShow();
+        await this.neoPixelClearAll(pin);
     }
 
     /**
      * Clear all strips.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    async neoPixelClearAll () {
-        for(const aStrip of this.neoPixel) {
-            await this.neoPixelFillColor(aStrip.pin, () => [0, 0, 0]);
+    async neoPixelClearAll (pin) {
+        let strips = this.neoPixel;
+        if(pin == null) {
+            strips = strips.filter(aStrip => aStrip.pin === pin);
+        }
+        const colorsBackups = [];
+        for(const strip of strips) {
+            // LEDに全て黒を設定する前に、現在の色の状態一覧をcolorsBackupに退避する
+            if(typeof strip.colors !== 'undefined') {
+                colorsBackups.push([strip.pin, strip.colors.slice()]);
+            }
+            await this.neoPixelFillColor(strip.pin, () => [0, 0, 0]);
         }
         await this.neoPixelShow();
+        // neoPixelShow の実行後に colorsBackup を復元する
+        for(const [pin, colors] of colorsBackups) {
+            const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+            strip.colorsBackup = colors.slice();
+        }
     }
     /**
      * Update color of LEDs on the all of NeoPixel modules.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelShow () {
+    async neoPixelShow () {
+        // 直前に行ったLED操作が neoPixelClearAll だった場合のみ colorsBackup を復元する。
+        // これは「【LEDを消す】の直後に【LEDを光らせる】を実行した時は元の色をを再現したい」という要件に応えるための特別な実装である。
+        // LEDを消したあとにそれ以外のLED操作を行った場合は復元されない必要があるので、neoPixelClearAll 以外のLED操作メソッドでは常に colorsBackup をクリアする必要があることに注意。
+        for(const strip of this.neoPixel) {
+            if(strip.colorsBackup != null) {
+                const backupColors = strip.colorsBackup.slice();
+                await this.neoPixelFillColor(strip.pin, (_, idx) => backupColors[idx]);
+            }
+        }
+        // 色設定を反映するメッセージを作成
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
         return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
-    }
-
-
-    /**
-     * Get colors of the js memory for NeoPixel.
-     * @param {number} pin - pin number of the module
-     * @returns {Array<number>} colors of the NeoPixel
-     */
-    neoPixelGetColors(pin) {
-        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        if(strip == null) return;
-        if(strip.colors == null) {
-            strip.colors = Array(strip.length);
-        };
-        if(strip.length < strip.colors.length) {
-            strip.colors = strip.colors.slice(0, strip.length);
-        }
-
-        if(typeof this.neoPixelColorsBuffer === 'undefined') {
-            this.neoPixelColorsBuffer = new Array(len);
-        }
-        return this.neoPixelColorsBuffer;
     }
 
     /**
