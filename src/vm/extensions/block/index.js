@@ -511,6 +511,9 @@ class ExtensionBlocks {
     resetPinMode () {
         if (!this.isConnected()) return;
         for (const pin of [6, 9, 10, 11]) {
+            if(this.board.pins[pin].mode === this.board.MODES.PWM) {
+                this.board.digitalWrite(pin, this.board.LOW);
+            }
             this.board.pinMode(pin, this.board.MODES.INPUT);
         }
     }
