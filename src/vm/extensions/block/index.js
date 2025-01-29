@@ -476,9 +476,9 @@ class ExtensionBlocks {
         // register to call scan()/connect()
         this.runtime.registerPeripheralExtension(EXTENSION_ID, this);
 
-        this.runtime.on('PROJECT_STOP_ALL', () => {
-            this.resetPinMode();
-            this.neoPixelClearAll();
+        this.runtime.on('PROJECT_STOP_ALL', async() => {
+            await this.resetPinMode();
+            await this.neoPixelClearAll();
         });
 
         this.runtime.on('PROJECT_START', () => {
@@ -508,10 +508,18 @@ class ExtensionBlocks {
      * Reset pin mode
      * @returns {undefined}
      */
-    resetPinMode () {
+    async resetPinMode () {
         if (!this.isConnected()) return;
+        // デジタルピンのモードをINPUTにリセット
         for (const pin of [6, 9, 10, 11]) {
-            this.board.pinMode(pin, this.board.MODES.INPUT);
+            if(this.board.pins[pin].mode === this.board.MODES.PWM) {
+                await this.board.pwmWrite(pin, 0);
+            }
+            await this.board.pinMode(pin, this.board.MODES.INPUT);
+        }
+        // 3ピンが振動モーターとして利用されていた場合はデューティー比を0にリセット
+        if(this.board.pins[3].mode === this.board.MODES.PWM) {
+            await this.board.pwmWrite(3, 0);
         }
     }
 
