@@ -190,7 +190,7 @@ class AkaDakoBoard extends EventEmitter {
 
         /**
          * Parameters of the NeoPixel strips.
-         * @type {Array<object>}
+         * @type {Array<{pin: number, length: number, colors: Array, colorsBackup: Array|null, pendingShow: boolean}>}
          */
         this.neoPixel = [];
 
@@ -819,7 +819,7 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} length - amount of LEDs
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    neoPixelConfigStrip (pin, length) {
+    async neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
         const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         if(oldStrip != null) {
@@ -834,7 +834,13 @@ class AkaDakoBoard extends EventEmitter {
         } else {
             // 新規
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
+            this.neoPixel.push({
+                pin: pin,
+                length: length,
+                colors: Array(length),
+                colorsBackup: null,
+                pendingShow: true
+            });
         }
         const message = [];
         message[0] = PIXEL_COMMAND;
@@ -844,7 +850,9 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         }
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        return this.neoPixelThrottledOperation(() => {
+            return this.firmata.sysexCommand(message);
+        });
     }
 
     /**
@@ -874,7 +882,7 @@ class AkaDakoBoard extends EventEmitter {
         }
 
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        // LED操作をする際は常にcolorsBackupを削除する
+        strip.pendingShow = true;
         strip.colorsBackup = null;
         // 色を設定するメッセージを作成
         strip.colors = strip.colors || Array(strip.length);
@@ -889,7 +897,9 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        return this.neoPixelThrottledOperation(() => {
+            return this.firmata.sysexCommand(message);
+        });
     }
 
     /**
@@ -978,7 +988,9 @@ class AkaDakoBoard extends EventEmitter {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        return this.neoPixelThrottledOperation(() => {
+            return this.firmata.sysexCommand(message);
+        });
     }
 
     /**
@@ -1071,6 +1083,17 @@ class AkaDakoBoard extends EventEmitter {
      */
     get RESOLUTION () {
         return this.firmata.RESOLUTION;
+    }
+
+    async neoPixelThrottledOperation(operation) {
+        const result = await this.neoPixelThrottledQueue(operation);
+        // PIXEL_SHOWコマンドの場合はpendingShowフラグをクリア
+        if (operation().length >= 2 && operation()[1] === PIXEL_SHOW) {
+            this.neoPixel.forEach(strip => {
+                strip.pendingShow = false;
+            });
+        }
+        return result;
     }
 }
 
