@@ -953,7 +953,7 @@ class AkaDakoBoard extends EventEmitter {
                 // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if(strip.colors.every(rgb => Array.isArray(rgb) && rgb.every(c => c === 0))) {
                     // 元が全て黒なら元もcolorsBackupを引き継いで退避する
-                    colorsBackups.push([strip.pin, strip.colorsBackup.slice()]);
+                    colorsBackups.push([strip.pin, (strip.colorsBackup || []).slice()]);
                 } else {
                     // 元が全て黒でない場合はcolorsBackupに退避する
                     colorsBackups.push([strip.pin, strip.colors.slice()]);
