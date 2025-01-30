@@ -943,7 +943,7 @@ class AkaDakoBoard extends EventEmitter {
      */
     async neoPixelClearAll (pin) {
         let strips = this.neoPixel;
-        if(pin != null) {
+        if(pin == null) {
             strips = strips.filter(aStrip => aStrip.pin === pin);
         }
         const colorsBackups = [];
