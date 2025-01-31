@@ -941,7 +941,7 @@ class AkaDakoBoard extends EventEmitter {
      * Clear all strips.
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    async neoPixelClearAll (pin) {
+    async neoPixelClearAll (pin=null) {
         let strips = this.neoPixel;
         if(pin != null) {
             strips = strips.filter(aStrip => aStrip.pin === pin);
@@ -963,7 +963,7 @@ class AkaDakoBoard extends EventEmitter {
             strip.colorsBackup = null;
             await this.neoPixelFillColor(strip.pin, () => [0, 0, 0]);
         }
-        await this.neoPixelShow();
+        await this.neoPixelShow(pin);
         // 退避していた colorsBackup を復元する
         for(const [pin, colorsBackup] of colorsBackups) {
             const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
@@ -972,14 +972,22 @@ class AkaDakoBoard extends EventEmitter {
     }
     /**
      * Update color of LEDs on the all of NeoPixel modules.
+     *
+     * @param {?number} pin - pin number of the module
      * @returns {Promise} a Promise which resolves when the message was sent
      */
-    async neoPixelShow () {
+    async neoPixelShow (pin=null) {
         // 直前に行ったLED操作が neoPixelClearAll だった場合のみ colorsBackup を復元する。
         // これは「【LEDを消す】の直後に【LEDを光らせる】を実行した時は元の色をを再現したい」という要件に応えるための特別な実装である。
         // LEDを消したあとにそれ以外のLED操作を行った場合は復元されない必要があるので、neoPixelClearAll 以外のLED操作メソッドでは常に colorsBackup をクリアする必要があることに注意。
         for(const strip of this.neoPixel) {
-            if(strip.colorsBackup != null) {
+            // PIXEL_SHOWコマンドには特定PIN指定という仕組みはないが、
+            // 「カラーLED[PIN]を消す」ブロック経由で内部的に neoPixelShow が呼び出された際に指定外のPINのLEDが意図せず復元されるのを避ける為、
+            // pin指定があった場合はそのpin以外では色の復元処理をスキップする。
+            if(pin != null && strip.pin !== pin) {
+                continue;
+            }
+            if(strip.colorsBackup != null ) {
                 const backupColors = strip.colorsBackup.slice();
                 await this.neoPixelFillColor(strip.pin, (_, idx) => backupColors[idx]);
             }
