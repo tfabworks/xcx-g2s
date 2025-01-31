@@ -29,7 +29,8 @@ execSync(`npx xcratch-build --module=g2s --gui=${guiPath} --block=./src/vm/exten
 console.log("Built a module");
 fs.copyFileSync('./build/g2s.mjs', './dist/g2s.mjs')
 const VERSION = process.env.npm_package_version;
-fs.copyFileSync('./build/g2s.mjs', `./dist/g2s-${VERSION.replace(/\./g, '_')}.mjs`);
+//fs.copyFileSync('./build/g2s.mjs', `./dist/g2s-${VERSION.replace(/\./g, '_')}.mjs`);
+fs.copyFileSync('./build/g2s.mjs', `./dist/g2s-v${VERSION}.mjs`);
 
 // Build a serial disabled module
 let originalCode = fs.readFileSync(connectorFilePath, 'utf-8');
