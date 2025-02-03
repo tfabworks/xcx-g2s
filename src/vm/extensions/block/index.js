@@ -527,7 +527,8 @@ class ExtensionBlocks {
      * Turn off the all NeoPixel strips.
      */
     neoPixelClearAll () {
-        return this.neoPixelOperationWithLock({}, {}, () => this.board.neoPixelClearAll())
+        const messages = this.board.neoPixelClearAll();
+        return this.board.neoPixelThrottledOperation(messages);
     }
 
     /**
@@ -995,7 +996,8 @@ class ExtensionBlocks {
         return this.neoPixelOperationWithLock(args, util, pin => {
             if(pin == null) return;
             const length = Math.max(0, Math.min(60, Cast.toNumber(Number.parseInt(args.LENGTH, 10))));
-            return this.board.neoPixelConfigStrip(pin, length).then(()=>{});
+            const messages = this.board.neoPixelConfigStrip(pin, length);
+            return this.board.neoPixelThrottledOperation(messages);
         });
     }
 
@@ -1007,7 +1009,8 @@ class ExtensionBlocks {
      */
     neoPixelShow (args, util) {
         return this.neoPixelOperationWithLock(args, util, () => {
-            return this.board.neoPixelShow().then(()=>{});
+            const messages = this.board.neoPixelShow();
+            return this.board.neoPixelThrottledOperation(messages);
         });
     }
 
@@ -1033,11 +1036,13 @@ class ExtensionBlocks {
                     }
                     return null;
                 }
-                return this.board.neoPixelFillColor(pin, colorFn);
+                const messages = this.board.neoPixelFillColor(pin, colorFn);
+                return this.board.neoPixelThrottledOperation(messages);
             }
             // 指定された色をセットする
             const color = parseColor(args.COLOR, brightness);
-            return this.board.neoPixelSetColor(pin, color, index).then(()=>{});
+            const messages = this.board.neoPixelSetColor(pin, color, index);
+            return this.board.neoPixelThrottledOperation(messages);
         });
     }
 
@@ -1062,7 +1067,8 @@ class ExtensionBlocks {
                 const color = parseColor(args.COLOR, brightness);
                 colorFn = () => color;
             }
-            return this.board.neoPixelFillColor(pin, colorFn).then(()=>{});
+            const messages = this.board.neoPixelFillColor(pin, colorFn);
+            return this.board.neoPixelThrottledOperation(messages);
         });
     }
 
@@ -1087,7 +1093,8 @@ class ExtensionBlocks {
                 // 新しい色が null なら [0, 0, 0] をセットする
                 return newColor || [0, 0, 0];
             }
-            return this.board.neoPixelFillColor(pin, colorMapFn).then(()=>{});
+            const messages = this.board.neoPixelFillColor(pin, colorMapFn);
+            return this.board.neoPixelThrottledOperation(messages);
         });
     }
 
@@ -1109,6 +1116,8 @@ class ExtensionBlocks {
                 pin = null
             }
         }
+
+        console.log(getCurrentBlockText(this, args, util))
         return operation(pin)
     }
 
@@ -1144,8 +1153,9 @@ class ExtensionBlocks {
     neoPixelClear (args, util) {
         return this.neoPixelOperationWithLock(args, util, pin => {
             if(pin == null) return;
-            return this.board.neoPixelClear(pin);
-        });
+            const messages = this.board.neoPixelClear(pin);
+            return this.board.neoPixelThrottledOperation(messages);
+        })
     }
 
     async getOpticalDistanceSensor () {
