@@ -1,0 +1,29 @@
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+
+pre-commit:
+  commands:
+    check-version-files:
+      run: |
+        if git diff --name-only --cached | grep -qE 'src/gui/lib/libraries/extensions/entry/version.js'; then
+          pkg_version=$(npm pkg get version | grep -o '[0-9\.]*')
+          if git diff --name-only --cached | grep -qE 'dist/g2s.mjs|dist/g2s-m.mjs|dist/g2s-v${pkg_version}.mjs'; then
+            exit 0
+          fi
+          echo "src/**/version.js を更新する際は mjs も一緒にコミットしてください。"
+          echo "Execute: git add dist/g2s.mjs dist/g2s-m.mjs dist/g2s-v${pkg_version}.mjs"
+          exit 1
+        fi
+
+# pre-push:
+#   commands:
+#     lint:
+#       run: bun run lint
+#     build:
+#       run: bun run build
+#     test:
+#       run: bun run test
+#    test:playwright:
+#      run: bun run test:playwright
+#    coverage:
+#      run: bun run coverage
