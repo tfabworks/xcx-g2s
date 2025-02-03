@@ -1116,6 +1116,8 @@ class ExtensionBlocks {
                 pin = null
             }
         }
+
+        console.log(getCurrentBlockText(this, args, util))
         return operation(pin)
     }
 
