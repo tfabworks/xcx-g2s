@@ -864,20 +864,17 @@ class AkaDakoBoard extends EventEmitter {
      */
     neoPixelSetColor (pin, color, index=0) {
         const messages = [];
-        let address = 0;
-        let prevStrip = true;
-        for (const aStrip of this.neoPixel) {
-            if (aStrip.pin === pin) {
-                address += Math.max(0, index % aStrip.length);
-                prevStrip = false;
-            }
-            if (prevStrip) {
-                address += aStrip.length;
-            }
-        }
-        if (prevStrip) {
-            // A module at the pin has not configured yet.
+        // pinが未初期化の場合はデフォルトのLED数で初期化する
+        if (this.neoPixel.find(strip => strip.pin === pin) == null) {
             messages.push(...this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength));
+        }
+        let address = 0;
+        for (const strip of this.neoPixel) {
+            if (strip.pin === pin) {
+                address += Math.max(0, index % strip.length);
+                break;
+            }
+            address += strip.length;
         }
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         strip.pendingShow = true;
