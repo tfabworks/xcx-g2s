@@ -67,7 +67,7 @@ const neoPixelGammaTable = ((steps, gamma) => {
  * @param {Array<number>} gammaTable - gamma values
  * @returns {number} value for NeoPixel
  */
-const neoPixelColorValue = (colors, gammaTable) => {
+const neoPixelColorValue = (colors, gammaTable=neoPixelGammaTable) => {
     // colors are assumed to be an array of [r, g, b] bytes
     // colorValue returns a packed value able to be pushed to firmata rather than
     // text values.
@@ -813,6 +813,40 @@ class AkaDakoBoard extends EventEmitter {
         return Promise.race([request, timeoutReject(timeout)]);
     }
 
+    neoPixelGetStrip(pin) {
+        let strip = this.neoPixel.find(strip => strip.pin === pin);
+        if(strip == null) {
+            strip = {
+                pin: pin,
+                length: this.defaultNeoPixelLength,
+                /** @type {boolean} configured */
+                configured: false,
+                /**
+                 * @type {Array<Array<number>>}
+                 * neoPixelShowで反映予定の色リスト。
+                 * neoPixelSetColor等で更新される。
+                 */
+                pendingColors: Array(length).fill([0,0,0]),
+                /**
+                 * @type {Array<Array<number>>}
+                 * neoPixelShowで実際にLEDに表示されている色リスト。
+                 * neoPixelShowが実行されたpendingColorsからコピーされる。
+                 */
+                appliedColors: Array(length).fill([0,0,0]),
+                /**
+                 * @type {Array<Array<number>> | null}
+                 * 全て消す実行時にappliedColorsをcolorsBackupに退避する。
+                 * これは全て消す以外のneoPixel操作があった際にクリアされる。
+                 * neoPixelShow実行時にcolorsBackupが存在する場合は元の色を復元する。
+                 */
+                colorsBackup: null,
+            };
+            this.neoPixel.push(strip);
+        }
+        this.pins[pin].mode = PIXEL_COMMAND;
+        return strip;
+    }
+
     /**
      * Configure a NeoPixel module which have several LEDs.
      * @param {number} pin - pin number of the module
@@ -820,37 +854,20 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
     neoPixelConfigStrip (pin, length) {
-        this.pins[pin].mode = PIXEL_COMMAND;
-        const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        if(oldStrip != null) {
-            // 更新
-            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            if(oldStrip.length === length) {
-                this.neoPixel.push(Object.assign(oldStrip, {length: length, colorsBackup: null}));
-            } else {
-                // 新しい設定が既存の設定と異なる場合は既存の colors をクリアする
-                this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
-            }
-        } else {
-            // 新規
-            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push({
-                pin: pin,
-                length: length,
-                colors: Array(length),
-                colorsBackup: null,
-                pendingShow: true
-            });
+        const strip = this.neoPixelGetStrip(pin);
+        // 長さが変わる場合はpendingColorsとappliedColorsも更新する
+        if(length !== strip.length) {
+            strip.length = length;
+            strip.pendingColors.push(...new Array(length).fill([0,0,0]).splice(length));
+            strip.appliedColors.push(...new Array(length).fill([0,0,0]).splice(length));
+            // 未初期化フラグを立てる
+            strip.configured = false;
         }
-        const message = [];
-        message[0] = PIXEL_COMMAND;
-        message[1] = PIXEL_CONFIG;
-        for (const aStrip of this.neoPixel) {
-            message.push((COLOR_ORDER.GRB << 5) | aStrip.pin);
-            message.push(aStrip.length & FIRMATA_7BIT_MASK);
-            message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
-        }
-        return [message];
+        // colorsBackupは設定更新時は常にクリアする
+        strip.colorsBackup = null;
+        // 更新したstripは配列の最後に再配置する
+        this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
+        this.neoPixel.push(strip);
     }
 
     /**
@@ -858,10 +875,10 @@ class AkaDakoBoard extends EventEmitter {
      * LED does not change the actual color until neoPixelShow() was sent.
      * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
-     * @param {Array<numbers>} color - color value to be set [r, g, b]
+     * @param {(color: [number, number, number] | null, index: number, colors: [number, number, number][]) => [number, number, number] | null} colorMapFn - color calculation function, if null then skip setting color
      * @param {number} index - index of LED to be set, -1 for all LEDs
-     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
+<<<<<<< Updated upstream
     neoPixelSetColor (pin, color, index=0) {
         const messages = [];
         // pinが未初期化の場合はデフォルトのLED数で初期化する
@@ -878,51 +895,17 @@ class AkaDakoBoard extends EventEmitter {
         }
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         strip.pendingShow = true;
+=======
+    neoPixelSetColor (pin, colorMapFn, index=null) {
+        const strip = this.neoPixelGetStrip(pin);
+        if(index === null) {
+            strip.pendingColors = strip.pendingColors.map(colorMapFn);
+        } else {
+            strip.pendingColors[index] = colorMapFn(color, index);
+        }
+        // colorsBackupは設定更新時は常にクリアする
+>>>>>>> Stashed changes
         strip.colorsBackup = null;
-        // 色を設定するメッセージを作成
-        strip.colors = strip.colors || Array(strip.length);
-        strip.colors[index] = color;
-        const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
-        const message = new Array(8);
-        message[0] = (PIXEL_COMMAND);
-        message[1] = (PIXEL_SET_PIXEL);
-        message[2] = (address & FIRMATA_7BIT_MASK);
-        message[3] = ((address >> 7) & FIRMATA_7BIT_MASK);
-        message[4] = (colorValue & FIRMATA_7BIT_MASK);
-        message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
-        message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
-        message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        messages.push(message);
-        return messages;
-    }
-
-    /**
-     * Set color to all LED on the current NeoPixel module.
-     * LED does not change the actual color until neoPixelShow() was sent.
-     * This method will configure a new module with default length if it hasn't done yet.
-     * @param {number} pin - pin number of the module
-     * @param {(color: [number, number, number] | null, index: number, oldColors: [number, number, number][]) => [number, number, number] | null} colorMapFn - color calculation function, if null then skip setting color
-     * @returns {Array<Array<number>>} sysexCommand に渡す messages
-     */
-    neoPixelFillColor(pin, colorMapFn) {
-        const messages = [];
-        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        const length = strip ? strip.length : this.defaultNeoPixelLength;
-        const oldColors = (strip && strip.colors) || Array(length);
-        if(oldColors.length < length) {
-            oldColors[length - 1] = null;
-        }
-        if(length < oldColors.length) {
-            oldColors.splice(length);
-        }
-        const newColors = [...oldColors].map(colorMapFn);
-        for (let index = 0; index < length; index++) {
-            const color = newColors[index];
-            if(color != null) {
-                messages.push(...this.neoPixelSetColor(pin, color, index));
-            }
-        }
-        return messages;
     }
 
     /**
@@ -930,76 +913,83 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} pin - pin number of the module
      * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    neoPixelClear (pin) {
-        return this.neoPixelClearAll(pin);
+    neoPixelClear (pin=null) {
+        const pinColors = [];
+        if(pin == null) {
+            for(const strip of this.neoPixel) {
+                pinColors.push([strip.pin, new Array(strip.length).fill([0, 0, 0])]);
+            }
+        } else {
+            const strip = this.neoPixelGetStrip(pin);
+            pinColors.push([strip.pin, new Array(strip.length).fill([0, 0, 0])]);
+        }
+        return this.neoPixelShow(pinColors);
     }
 
     /**
-     * Clear all strips.
-     * @param {?number} pin - pin number of the module
-     * @returns {Array<Array<number>>} sysexCommand に渡す messages
+     * @param {Array<Object<{pin: number, colors: Array<Array<number>>, backup: boolean}>>} pinColors
+     * @returns {Promise<void>}
      */
-    neoPixelClearAll (pin=null) {
+    neoPixelShow(pinColors=[]) {
         const messages = [];
-        let strips = this.neoPixel;
-        if(pin != null) {
-            strips = strips.filter(aStrip => aStrip.pin === pin);
+        // 未初期化のstripがある場合は初期化する
+        if(this.neoPixel.some(strip => strip.configured === false)) {
+            const message = [];
+            message[0] = PIXEL_COMMAND;
+            message[1] = PIXEL_CONFIG;
+            for (const strip of this.neoPixel) {
+                message.push((COLOR_ORDER.GRB << 5) | strip.pin);
+                message.push(strip.length & FIRMATA_7BIT_MASK);
+                message.push((strip.length >> 7) & FIRMATA_7BIT_MASK);
+                strip.configured = true;
+            }
+            messages.push(message);
         }
-        const colorsBackups = [];
-        for(const strip of strips) {
-            // LEDに全て黒を設定する前に、現在の色の状態一覧をcolorsBackupに退避する
-            if(typeof strip.colors !== 'undefined') {
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if(strip.colors.every(rgb => Array.isArray(rgb) && rgb.every(c => c === 0))) {
-                    // 元が全て黒なら元もcolorsBackupを引き継いで退避する
-                    colorsBackups.push([strip.pin, (strip.colorsBackup || []).slice()]);
-                } else {
-                    // 元が全て黒でない場合はcolorsBackupに退避する
-                    colorsBackups.push([strip.pin, strip.colors.slice()]);
+        // 各stripのベースアドレスを計算する
+        const baseAddressMap = {};
+        for(let baseAddress = 0, i = 0; i < this.neoPixel.length; i++) {
+            const strip = this.neoPixel[i];
+            baseAddressMap[strip.pin] = baseAddress;
+            baseAddress += strip.pendingColors.length;
+        }
+        const colorMessages = [];
+        // 色設定メッセージを作成する
+        for(const [pin, newColors] of pinColors) {
+            const strip = this.neoPixelGetStrip(pin);
+            let changed = false;
+            for(const [idx, curColor] of strip.appliedColors) {
+                const newColor = newColors[idx];
+                if(newColor.every((c, i) => c === curColor[i])) {
+                    continue;
                 }
+                const address = baseAddressMap[pin] + idx;
+                const color24bitNum = neoPixelColorValue(newColor);
+                const message = [];
+                message[0] = (PIXEL_COMMAND);
+                message[1] = (PIXEL_SET_PIXEL);
+                message[2] = (address & FIRMATA_7BIT_MASK);
+                message[3] = ((address >> 7) & FIRMATA_7BIT_MASK);
+                message[4] = (color24bitNum & FIRMATA_7BIT_MASK);
+                message[5] = ((color24bitNum >> 7) & FIRMATA_7BIT_MASK);
+                message[6] = ((color24bitNum >> 14) & FIRMATA_7BIT_MASK);
+                message[7] = ((color24bitNum >> 21) & FIRMATA_7BIT_MASK);
+                colorMessages.push(message);
+                changed = true;
             }
-            // colorsBackupを退避した上でnullにする
-            strip.colorsBackup = null;
-            messages.push(...this.neoPixelFillColor(strip.pin, () => [0, 0, 0]));
-        }
-        messages.push(...this.neoPixelShow(pin));
-        // 退避していた colorsBackup を復元する
-        for(const [pin, colorsBackup] of colorsBackups) {
-            const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-            strip.colorsBackup = colorsBackup;
-        }
-        return messages;
-    }
-
-    /**
-     * Update color of LEDs on the all of NeoPixel modules.
-     *
-     * @param {?number} pin - pin number of the module
-     * @returns {Array<Array<number>>} sysexCommand に渡す messages
-     */
-    neoPixelShow (pin=null) {
-        const messages = [];
-        // 直前に行ったLED操作が neoPixelClearAll だった場合のみ colorsBackup を復元する。
-        // これは「【LEDを消す】の直後に【LEDを光らせる】を実行した時は元の色をを再現したい」という要件に応えるための特別な実装である。
-        // LEDを消したあとにそれ以外のLED操作を行った場合は復元されない必要があるので、neoPixelClearAll 以外のLED操作メソッドでは常に colorsBackup をクリアする必要があることに注意。
-        for(const strip of this.neoPixel) {
-            // PIXEL_SHOWコマンドには特定PIN指定という仕組みはないが、
-            // 「カラーLED[PIN]を消す」ブロック経由で内部的に neoPixelShow が呼び出された際に指定外のPINのLEDが意図せず復元されるのを避ける為、
-            // pin指定があった場合はそのpin以外では色の復元処理をスキップする。
-            if(pin != null && strip.pin !== pin) {
-                continue;
-            }
-            if(strip.colorsBackup != null ) {
-                const backupColors = strip.colorsBackup.slice();
-                messages.push(...this.neoPixelFillColor(strip.pin, (_, idx) => backupColors[idx]));
+            if(changed) {
+                strip.appliedColors = strip.newColor.slice();
             }
         }
-        // 色設定を反映するメッセージを作成
-        const message = new Array(2);
-        message[0] = PIXEL_COMMAND;
-        message[1] = PIXEL_SHOW;
-        messages.push(message);
-        return messages;
+        if(colorMessages.length > 0) {
+            messages.push(...colorMessages);
+            messages.push([
+                PIXEL_COMMAND,
+                PIXEL_SHOW,
+            ]);
+        }
+        if(messages.length > 0) {
+            return this.neoPixelThrottledOperation(messages);
+        }
     }
 
     /**
@@ -1114,6 +1104,45 @@ class AkaDakoBoard extends EventEmitter {
                 this.firmata.sysexCommand(message)
             }
         })
+    }
+
+    /**
+     * convert bytes to firmate 7bit bytes
+     * @param {number} num
+     * @param {number} numByteSize
+     * @returns {Array<number>}
+     */
+    convertToFirmate7bitBytes(num, numByteSize) {
+        if(numByteSize === 1) {
+            return [
+                num & 0x7f,
+                (num >> 7) & 0x7f
+            ]
+        }
+        if(numByteSize === 2) {
+            return [
+                num & 0x7f,
+                (num >> 7) & 0x7f,
+                (num >> 14) & 0x7f,
+                (num >> 21) & 0x7f,
+            ]
+        }
+        if(numByteSize === 3) {
+            return [
+                num & 0x7f,
+                (num >> 7) & 0x7f,
+                (num >> 14) & 0x7f,
+            ]
+        }
+        if(numByteSize === 4) {
+            return [
+                num & 0x7f,
+                (num >> 7) & 0x7f,
+                (num >> 14) & 0x7f,
+                (num >> 21) & 0x7f,
+            ]
+        }
+        throw new Error(`Invalid number of bytes: ${numByteSize}`);
     }
 }
 
