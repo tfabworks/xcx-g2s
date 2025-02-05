@@ -824,22 +824,16 @@ class AkaDakoBoard extends EventEmitter {
         const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         if(oldStrip != null) {
             // 更新
-            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            if(oldStrip.length === length) {
-                this.neoPixel.push(Object.assign(oldStrip, {length: length, colorsBackup: null}));
-            } else {
-                // 新しい設定が既存の設定と異なる場合は既存の colors をクリアする
-                this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
-            }
+            oldStrip.length = length;
+            oldStrip.colors = new Array(length).fill([0,0,0]).slice(0, length);
+            oldStrip.colorsBackup = null;
         } else {
             // 新規
-            this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
             this.neoPixel.push({
                 pin: pin,
                 length: length,
-                colors: Array(length),
+                colors: Array(length).fill([0,0,0]),
                 colorsBackup: null,
-                pendingShow: true
             });
         }
         const message = [];
@@ -883,15 +877,11 @@ class AkaDakoBoard extends EventEmitter {
         strip.colors = strip.colors || Array(strip.length);
         strip.colors[index] = color;
         const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
-        const message = new Array(8);
-        message[0] = (PIXEL_COMMAND);
-        message[1] = (PIXEL_SET_PIXEL);
-        message[2] = (address & FIRMATA_7BIT_MASK);
-        message[3] = ((address >> 7) & FIRMATA_7BIT_MASK);
-        message[4] = (colorValue & FIRMATA_7BIT_MASK);
-        message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
-        message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
-        message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
+        const message = []
+        message.push(PIXEL_COMMAND);
+        message.push(PIXEL_SET_PIXEL);
+        message.push(...convertToFirmata7bitBytes(address, 8)); // (0 <= address <2^14) → 2byte
+        message.push(...convertToFirmata7bitBytes(colorValue, 24)); // uint8*3 → 4byte
         messages.push(message);
         return messages;
     }
@@ -908,7 +898,8 @@ class AkaDakoBoard extends EventEmitter {
         const messages = [];
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         const length = strip ? strip.length : this.defaultNeoPixelLength;
-        const oldColors = (strip && strip.colors) || Array(length);
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
+        const oldColors = (strip && strip.colors) || Array(length).fill(null);
         if(oldColors.length < length) {
             oldColors[length - 1] = null;
         }
@@ -949,7 +940,6 @@ class AkaDakoBoard extends EventEmitter {
         for(const strip of strips) {
             // LEDに全て黒を設定する前に、現在の色の状態一覧をcolorsBackupに退避する
             if(typeof strip.colors !== 'undefined') {
-                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if(strip.colors.every(rgb => Array.isArray(rgb) && rgb.every(c => c === 0))) {
                     // 元が全て黒なら元もcolorsBackupを引き継いで退避する
                     colorsBackups.push([strip.pin, (strip.colorsBackup || []).slice()]);
@@ -994,10 +984,21 @@ class AkaDakoBoard extends EventEmitter {
                 messages.push(...this.neoPixelFillColor(strip.pin, (_, idx) => backupColors[idx]));
             }
         }
+        // PIXEL_SHOWの前にPIXEL_CONFIGを常に送ってみる
+        const configMessage = [
+            PIXEL_COMMAND,
+            PIXEL_CONFIG,
+        ];
+        for(const strip of this.neoPixel) {
+            configMessage.push((COLOR_ORDER.GRB << 5) | strip.pin);
+            configMessage.push(...convertToFirmata7bitBytes(strip.length, 8));
+        }
+        messages.push(configMessage);
         // 色設定を反映するメッセージを作成
-        const message = new Array(2);
-        message[0] = PIXEL_COMMAND;
-        message[1] = PIXEL_SHOW;
+        const message = [
+            PIXEL_COMMAND,
+            PIXEL_SHOW,
+        ];
         messages.push(message);
         return messages;
     }
@@ -1108,13 +1109,134 @@ class AkaDakoBoard extends EventEmitter {
                 numArrayArray.push([messages])
             }
         }
+        // PIXEL_SHOW 以外はすぐ実行せずバッファに溜めておく
+        if(typeof this.neoPixelMessageBuffer === 'undefined') {
+            this.neoPixelMessageBuffer = [];
+        }
+        // PIXEL_SHOW毎の単位でmessagesを分割する
+        const messageBlocks = [];
+        let currentBlock = this.neoPixelMessageBuffer;
+        for(const message of numArrayArray) {
+            if(message[1] === PIXEL_CONFIG) {
+                // CONFIGは最後の奴を覚えておいて再利用する
+                this.neoPixelLastConfig = message;
+                continue;
+            }
+            if(message[1] === PIXEL_SHOW) {
+                messageBlocks.push(currentBlock);
+                currentBlock = [];
+            }
+            // SET_PIXELのみがブロックに貯まる
+            currentBlock.push(message);
+        }
+        this.neoPixelMessageBuffer = currentBlock;
+
+        const normalizedMessages = [];
+        for(const messageBlock of messageBlocks) {
+            const setPixelMessagesMap = new Map();
+            for(const message of messageBlock) {
+                if(message[1] === PIXEL_SET_PIXEL) {
+                    const address = convertFromFirmata7bitBytes([message[2], message[3]]);
+                    setPixelMessagesMap.set(address, message);
+                }
+            }
+            const setPixelMessages = Array.from(setPixelMessagesMap.values()).sort((a, b) => convertFromFirmata7bitBytes([a[2], a[3]]) - convertFromFirmata7bitBytes([b[2], b[3]]));
+            if(setPixelMessages.length === 0) {
+                continue;
+            }
+            normalizedMessages.push([
+                this.neoPixelLastConfig,
+                [PIXEL_COMMAND, PIXEL_SHOW],
+                ...setPixelMessages,
+                [PIXEL_COMMAND, PIXEL_SHOW],
+            ]);
+        }
+
         await this.neoPixelThrottledQueue(() => {
-            for(const message of numArrayArray) {
-                console.log("neoPixelThrottledQueue", message);
+            for(const message of normalizedMessages) {
+                console.log("sysexCommand", message, parseNeoPixelMessage(message));
                 this.firmata.sysexCommand(message)
             }
         })
     }
+}
+
+function parseNeoPixelMessage(message) {
+    const msgTypes = new Map();
+    msgTypes.set(PIXEL_COMMAND, 'PIXEL_COMMAND');
+    msgTypes.set(PIXEL_SET_PIXEL, 'PIXEL_SET_PIXEL');
+    msgTypes.set(PIXEL_CONFIG, 'PIXEL_CONFIG');
+    msgTypes.set(PIXEL_SHOW, 'PIXEL_SHOW');
+    if(msgTypes.get(message[0]) !== 'PIXEL_COMMAND') {
+        return null;
+    }
+    const msg = {type: msgTypes.get(message[1])};
+    switch(message[1]) {
+        case PIXEL_CONFIG:
+            msg.configs = [];
+            for(let i = 2; i < message.length; i=i+3) {
+                const config = {
+                    colorMode: (message[i] >>> 5) & 0x03,
+                    pin: message[i] & 0x1F,
+                    length: convertFromFirmata7bitBytes([message[i+1], message[i+2]])
+                };
+                msg.configs.push(config)
+            }
+            break;
+        case PIXEL_SHOW:
+            break;
+        case PIXEL_SET_PIXEL:
+            msg.address = convertFromFirmata7bitBytes([message[2], message[3]])
+            msg.color = convertFromFirmata7bitBytes([message[4], message[5], message[6], message[7]]).toString(16).padStart(6, '0')
+            break;
+    }
+    return msg;
+}
+
+/**
+ * FirmataへsysexCommandで送るメッセージは7bitしか扱えないので、
+ * それより大きな数値を扱う場合はその数値を7bitずつに分割して配列に格納する。
+ * numがuint8ならtoSize=2, numがuint16ならtoSize=3, numがuint8*3ならtoSize=4、numがuint32ならtoSize=5
+ * @param {number} num - positive integer to convert
+ * @param {number} numBitSize - numのbit数 (7, 8, 24, 32など)
+ * @returns {number[]} array of 7-bit bytes
+ */
+function convertToFirmata7bitBytes(num, numBitSize) {
+    if (!Number.isInteger(num) || num < 0) {
+        throw new Error('Input number must be zero or positive integer');
+    }
+    if (!Number.isInteger(numBitSize) || numBitSize < 1) {
+        throw new Error('numBitSize must be positive integer');
+    }
+    // 下位ビットから7bitずつ取り出して配列に格納する
+    const outSize = Math.ceil(numBitSize / 7);
+    const result = new Array(outSize).fill(0);
+    let workNum = num;
+    for (let i = 0; i < outSize; i++) {
+        result[i] = workNum & 0x7F;
+        workNum = workNum >> 7;
+    }
+    // Check if number fits in specified size
+    if (workNum > 0) {
+        throw new Error(`num is too large for ${numBitSize}bit`);
+    }
+    return result;
+}
+
+/**
+ * FirmataのsysexCommand用に7bitずつに分割された数値の配列を元の数値に戻す。
+ * @param {number[]} numArray - 7bitずつに分割された数値の配列
+ * @returns {number} 元の数値
+ */
+function convertFromFirmata7bitBytes(numArray) {
+    let result = 0;
+    let uint7 = numArray.pop();
+    while(uint7 != null) {
+        result = result << 7;
+        result = result + (uint7 & 0x7F);
+        uint7 = numArray.pop();
+    }
+    return result;
 }
 
 export default AkaDakoBoard;

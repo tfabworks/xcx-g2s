@@ -3983,6 +3983,7 @@ function getCurrentBlockText(extensionInstance, args, util) {
 
 // 現在実行中の自身のブロック情報を取得する
 function getCurrentBlockInfo(extensionInstance, args, util) {
+    window.g2s = extensionInstance;
     window.g2s_util = util;
     const extInfo = extensionInstance.getInfo();
     const blockId = util.thread.peekStack();
