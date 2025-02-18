@@ -2188,6 +2188,7 @@ class ExtensionBlocks {
      * @return {?Promise<string>} a Promise that resolves when connected or undefined if this process was yield.
      */
     connectToShareServer (args, util) {
+        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.shareServerGetting) {
             util.yield(); // re-try this call after a while.
             return; // Do not return Promise to re-try.
@@ -2217,6 +2218,7 @@ class ExtensionBlocks {
      * @return {?Promise} a Promise that resolves when sending done or undefined if this process was yield.
      */
     sendSharedData (args, util) {
+        if (!this.isConnected()) return Promise.resolve('AkaDako was not connected');
         if (this.dataSharingWasCanceled) return Promise.resolve('Data sharing was canceled by user.');
         if (!this.isShareServerConnected()) return Promise.resolve('Share server was not connected.');
         if (this.shareDataSending || this.shareServerGetting) {
@@ -2295,6 +2297,7 @@ class ExtensionBlocks {
      * @return {boolean} - true if the data received.
      */
     whenSharedDataReceived (args) {
+        if (!this.isConnected()) return false;
         if (!this.isShareServerConnected()) return false;
         if (!this.updateLastSharedDataTimer) {
             this.updateLastSharedDataTimer = setTimeout(() => {
@@ -2319,17 +2322,18 @@ class ExtensionBlocks {
      * @returns {Promise<void>}
      */
     async sendIrRemote (args, ...argsRest) {
-        const connectorInput = Cast.toNumber(args.CONNECTOR);
         const n = Cast.toNumber(args.N);
         if (n < 1 || 9 < n) {
             throw new Error(`Invalid button number: ${n}. Valid numbers are 1-9`);
         };
         // CONNECTORの値がメニューに存在しない場合はデフォルト(セレクターの最初の選択肢)の値を使用する
-        const connectorValues = this.getIrRemoteMenuConnector().map(item => item.value);
+        const connectorInput = Cast.toNumber(args.CONNECTOR);
+        const connectorValues = this.getIrRemoteMenuConnector().map(item => Cast.toNumber(item.value));
         const CONNECTOR = connectorValues.includes(connectorInput) ? connectorInput : connectorValues[0];
         // 「内蔵」を選択した場合は現在は何もしない
         if (CONNECTOR === 999) {
-            return
+            await this.board.firmata.sysexCommand([0x03, n]);
+            return;
         }
         // デューティー比5%未満でコマンド入力待機の状態となるので。初期化のために1を送る。続いてのデューティー比の変化でコマンドが決定される仕様です。
         // デューティー比の10の桁の数がコマンド番号になります。10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% の9種類のコマンドが識別できることを確認しています。
@@ -3649,7 +3653,7 @@ class ExtensionBlocks {
             },
             {
                 text: onboard,
-                value: 999
+                value: '999'
             }
         ];
     }
