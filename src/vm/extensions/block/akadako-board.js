@@ -190,7 +190,7 @@ class AkaDakoBoard extends EventEmitter {
 
         /**
          * Parameters of the NeoPixel strips.
-         * @type {Array<object>}
+         * @type {Array<{pin: number, length: number, colors: Array, colorsBackup: Array|null, pendingShow: boolean}>}
          */
         this.neoPixel = [];
 
@@ -817,17 +817,30 @@ class AkaDakoBoard extends EventEmitter {
      * Configure a NeoPixel module which have several LEDs.
      * @param {number} pin - pin number of the module
      * @param {number} length - amount of LEDs
-     * @returns {Promise} a Promise which resolves when the message was sent
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
     neoPixelConfigStrip (pin, length) {
         this.pins[pin].mode = PIXEL_COMMAND;
         const oldStrip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         if(oldStrip != null) {
+            // 更新
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push(Object.assign(oldStrip, {length: length}));
+            if(oldStrip.length === length) {
+                this.neoPixel.push(Object.assign(oldStrip, {length: length, colorsBackup: null}));
+            } else {
+                // 新しい設定が既存の設定と異なる場合は既存の colors をクリアする
+                this.neoPixel.push({pin: pin, length: length, colors: Array(length), colorsBackup: null});
+            }
         } else {
+            // 新規
             this.neoPixel = this.neoPixel.filter(aStrip => aStrip.pin !== pin);
-            this.neoPixel.push({pin: pin, length: length});
+            this.neoPixel.push({
+                pin: pin,
+                length: length,
+                colors: Array(length),
+                colorsBackup: null,
+                pendingShow: true
+            });
         }
         const message = [];
         message[0] = PIXEL_COMMAND;
@@ -837,7 +850,7 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         }
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        return [message];
     }
 
     /**
@@ -847,25 +860,26 @@ class AkaDakoBoard extends EventEmitter {
      * @param {number} pin - pin number of the module
      * @param {Array<numbers>} color - color value to be set [r, g, b]
      * @param {number} index - index of LED to be set, -1 for all LEDs
-     * @returns {Promise} a Promise which resolves when the message was sent
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    async neoPixelSetColor (pin, color, index=0) {
-        let address = 0;
-        let prevStrip = true;
-        for (const aStrip of this.neoPixel) {
-            if (aStrip.pin === pin) {
-                address += Math.max(0, index % aStrip.length);
-                prevStrip = false;
-            }
-            if (prevStrip) {
-                address += aStrip.length;
-            }
+    neoPixelSetColor (pin, color, index=0) {
+        const messages = [];
+        // pinが未初期化の場合はデフォルトのLED数で初期化する
+        if (this.neoPixel.find(strip => strip.pin === pin) == null) {
+            messages.push(...this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength));
         }
-        if (prevStrip) {
-            // A module at the pin has not configured yet.
-            await this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
+        let address = 0;
+        for (const strip of this.neoPixel) {
+            if (strip.pin === pin) {
+                address += Math.max(0, index % strip.length);
+                break;
+            }
+            address += strip.length;
         }
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+        strip.pendingShow = true;
+        strip.colorsBackup = null;
+        // 色を設定するメッセージを作成
         strip.colors = strip.colors || Array(strip.length);
         strip.colors[index] = color;
         const colorValue = neoPixelColorValue(color, neoPixelGammaTable);
@@ -878,7 +892,8 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        messages.push(message);
+        return messages;
     }
 
     /**
@@ -887,9 +902,10 @@ class AkaDakoBoard extends EventEmitter {
      * This method will configure a new module with default length if it hasn't done yet.
      * @param {number} pin - pin number of the module
      * @param {(color: [number, number, number] | null, index: number, oldColors: [number, number, number][]) => [number, number, number] | null} colorMapFn - color calculation function, if null then skip setting color
-     * @returns {Promise} a Promise which resolves when the message was sent
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    async neoPixelFillColor(pin, colorMapFn) {
+    neoPixelFillColor(pin, colorMapFn) {
+        const messages = [];
         const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
         const length = strip ? strip.length : this.defaultNeoPixelLength;
         const oldColors = (strip && strip.colors) || Array(length);
@@ -903,61 +919,87 @@ class AkaDakoBoard extends EventEmitter {
         for (let index = 0; index < length; index++) {
             const color = newColors[index];
             if(color != null) {
-                await this.neoPixelSetColor(pin, color, index);
+                messages.push(...this.neoPixelSetColor(pin, color, index));
             }
         }
+        return messages;
     }
 
     /**
      * Turn off the all LEDs on the NeoPixel module on the pin.
      * @param {number} pin - pin number of the module
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    async neoPixelClear (pin) {
-        await this.neoPixelFillColor(pin, () => [0, 0, 0]);
-        await this.neoPixelShow();
+    neoPixelClear (pin) {
+        return this.neoPixelClearAll(pin);
     }
 
     /**
      * Clear all strips.
-     * @returns {Promise} a Promise which resolves when the message was sent
+     * @param {?number} pin - pin number of the module
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    async neoPixelClearAll () {
-        for(const aStrip of this.neoPixel) {
-            await this.neoPixelFillColor(aStrip.pin, () => [0, 0, 0]);
+    neoPixelClearAll (pin=null) {
+        const messages = [];
+        let strips = this.neoPixel;
+        if(pin != null) {
+            strips = strips.filter(aStrip => aStrip.pin === pin);
         }
-        await this.neoPixelShow();
+        const colorsBackups = [];
+        for(const strip of strips) {
+            // LEDに全て黒を設定する前に、現在の色の状態一覧をcolorsBackupに退避する
+            if(typeof strip.colors !== 'undefined') {
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                if(strip.colors.every(rgb => Array.isArray(rgb) && rgb.every(c => c === 0))) {
+                    // 元が全て黒なら元もcolorsBackupを引き継いで退避する
+                    colorsBackups.push([strip.pin, (strip.colorsBackup || []).slice()]);
+                } else {
+                    // 元が全て黒でない場合はcolorsBackupに退避する
+                    colorsBackups.push([strip.pin, strip.colors.slice()]);
+                }
+            }
+            // colorsBackupを退避した上でnullにする
+            strip.colorsBackup = null;
+            messages.push(...this.neoPixelFillColor(strip.pin, () => [0, 0, 0]));
+        }
+        messages.push(...this.neoPixelShow(pin));
+        // 退避していた colorsBackup を復元する
+        for(const [pin, colorsBackup] of colorsBackups) {
+            const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
+            strip.colorsBackup = colorsBackup;
+        }
+        return messages;
     }
+
     /**
      * Update color of LEDs on the all of NeoPixel modules.
-     * @returns {Promise} a Promise which resolves when the message was sent
+     *
+     * @param {?number} pin - pin number of the module
+     * @returns {Array<Array<number>>} sysexCommand に渡す messages
      */
-    neoPixelShow () {
+    neoPixelShow (pin=null) {
+        const messages = [];
+        // 直前に行ったLED操作が neoPixelClearAll だった場合のみ colorsBackup を復元する。
+        // これは「【LEDを消す】の直後に【LEDを光らせる】を実行した時は元の色をを再現したい」という要件に応えるための特別な実装である。
+        // LEDを消したあとにそれ以外のLED操作を行った場合は復元されない必要があるので、neoPixelClearAll 以外のLED操作メソッドでは常に colorsBackup をクリアする必要があることに注意。
+        for(const strip of this.neoPixel) {
+            // PIXEL_SHOWコマンドには特定PIN指定という仕組みはないが、
+            // 「カラーLED[PIN]を消す」ブロック経由で内部的に neoPixelShow が呼び出された際に指定外のPINのLEDが意図せず復元されるのを避ける為、
+            // pin指定があった場合はそのpin以外では色の復元処理をスキップする。
+            if(pin != null && strip.pin !== pin) {
+                continue;
+            }
+            if(strip.colorsBackup != null ) {
+                const backupColors = strip.colorsBackup.slice();
+                messages.push(...this.neoPixelFillColor(strip.pin, (_, idx) => backupColors[idx]));
+            }
+        }
+        // 色設定を反映するメッセージを作成
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
-    }
-
-
-    /**
-     * Get colors of the js memory for NeoPixel.
-     * @param {number} pin - pin number of the module
-     * @returns {Array<number>} colors of the NeoPixel
-     */
-    neoPixelGetColors(pin) {
-        const strip = this.neoPixel.find(aStrip => aStrip.pin === pin);
-        if(strip == null) return;
-        if(strip.colors == null) {
-            strip.colors = Array(strip.length);
-        };
-        if(strip.length < strip.colors.length) {
-            strip.colors = strip.colors.slice(0, strip.length);
-        }
-
-        if(typeof this.neoPixelColorsBuffer === 'undefined') {
-            this.neoPixelColorsBuffer = new Array(len);
-        }
-        return this.neoPixelColorsBuffer;
+        messages.push(message);
+        return messages;
     }
 
     /**
@@ -1050,6 +1092,28 @@ class AkaDakoBoard extends EventEmitter {
      */
     get RESOLUTION () {
         return this.firmata.RESOLUTION;
+    }
+
+    /**
+     * neoPixel系の命令は複数の一連の messages を纏めた順番で割り込まれること無く sysexCommand に送る必要がある。
+     * @param {Array<Array<number> | number>} messages - messages to be sent
+     * @returns {Promise} a Promise which resolves when the message was sent
+     */
+    async neoPixelThrottledOperation(messages) {
+        const numArrayArray = []
+        for(const numOrNumArray of messages) {
+            if(Array.isArray(numOrNumArray)) {
+                numArrayArray.push(numOrNumArray)
+            } else {
+                numArrayArray.push([messages])
+            }
+        }
+        await this.neoPixelThrottledQueue(() => {
+            for(const message of numArrayArray) {
+                console.log("neoPixelThrottledQueue", message);
+                this.firmata.sysexCommand(message)
+            }
+        })
     }
 }
 
