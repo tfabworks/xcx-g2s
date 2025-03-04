@@ -43,7 +43,8 @@ const entry = {
     setFormatMessage: formatter => {
         formatMessage = formatter;
     },
-    translationMap: translations
+    translationMap: translations,
+    tags: ['device', 'network']
 };
 
 export {entry}; // loadable-extension needs this line.
