@@ -1,6 +1,6 @@
 {
   "name": "xcx-g2s",
-  "version": "1.2.18",
+  "version": "1.2.19",
   "scripts": {
     "build": "node scripts/build.js",
     "start": "npm run start-xcratch",
@@ -21,6 +21,7 @@
     "@serialport/stream": "^9.2.4",
     "chroma-js": "^3.1.2",
     "firmata-io": "https://gitpkg.vercel.app/yokobond/firmata.js/packages/firmata-io?xcx-g2s",
+    "long": "~5.2.0",
     "throttled-queue": "^2.1.4",
     "web-serial-binding": "github:jaz303/web-serial-binding"
   }
