@@ -50,6 +50,7 @@ const entry = {
     bluetoothRequired: false,
     internetConnectionRequired: false,
     helpLink: 'https://akadako.com/',
+    tags: ['device', 'network'],
     translationMap: translations
 };
 
