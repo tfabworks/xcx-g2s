@@ -100,7 +100,8 @@
     "g2s.sendIrRemote.CONNECTOR.onboard": "Tool",
     "g2s.askGenerativeAI": "generative AI(β) ask [PROMPT] [TARGET]",
     "g2s.askGenerativeAIDefault": "What is this? (Within 100 words)",
-    "g2s.askGenerativeAITargetStage": "about stage"
+    "g2s.askGenerativeAITargetStage": "about stage",
+    "g2s.askGenerativeAICannotConnect": "Cannot connect Generative AI"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -203,7 +204,8 @@
     "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵",
     "g2s.askGenerativeAI": "生成AI(β) [TARGET] [PROMPT]と聞く",
     "g2s.askGenerativeAIDefault": "100文字以内で説明して",
-    "g2s.askGenerativeAITargetStage": "ステージについて"
+    "g2s.askGenerativeAITargetStage": "ステージについて",
+    "g2s.askGenerativeAICannotConnect": "生成AIに接続できません"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -306,6 +308,7 @@
     "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう",
     "g2s.askGenerativeAI": "せいせいAI(β) [TARGET] [PROMPT]ときく",
     "g2s.askGenerativeAIDefault": "100もじいないでせつめいして",
-    "g2s.askGenerativeAITargetStage": "ステージについて"
+    "g2s.askGenerativeAITargetStage": "ステージについて",
+    "g2s.askGenerativeAICannotConnect": "せいせいAIにせつぞくできません"
   }
 }

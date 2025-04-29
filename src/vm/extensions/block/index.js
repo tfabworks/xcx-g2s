@@ -2383,10 +2383,15 @@ class ExtensionBlocks {
                 .then(response => response.json())
                 .then(body => body.content ? body.content : body.error)
                 .catch(e => {
-                    console.error('生成AIにアクセスできませんでした', e);
-                    return '生成AIにアクセスできませんでした';
+                    const msg = formatMessage({
+                        id: 'g2s.askGenerativeAICannotConnect',
+                        default: 'Cannot connect Generative AI',
+                        description: 'Cannot connect Generative AI'
+                    });
+                    console.error(msg, e);
+                    return msg;
                 })
-      );
+        );
     }
 
     /**
