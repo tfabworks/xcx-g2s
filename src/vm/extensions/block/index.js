@@ -2367,7 +2367,7 @@ class ExtensionBlocks {
 
     async askGenerativeAI (args) {
         let content = [];
-        if (Cast.toString(args.PROMPT) == 'stage') {
+        if (Cast.toString(args.TARGET) == 'stage') {
             let image_data = await new Promise(resolve => {
                 this.runtime.renderer.requestSnapshot(imageDataURL => {
                     resolve(imageDataURL);
