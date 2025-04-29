@@ -97,7 +97,10 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "transmit Infrared-Ray-Remote [CONNECTOR] button [N]",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool",
+    "g2s.askGenerativeAI": "generative AI(β) ask [PROMPT] [TARGET]",
+    "g2s.askGenerativeAIDefault": "What is this? (Within 100 words)",
+    "g2s.askGenerativeAITargetStage": "about stage"
   },
   "ja": {
     "g2s.name": "AkaDako",
@@ -197,7 +200,10 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]ボタン[N]を送信する",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵",
+    "g2s.askGenerativeAI": "生成AI(β) [TARGET] [PROMPT]と聞く",
+    "g2s.askGenerativeAIDefault": "100文字以内で説明して",
+    "g2s.askGenerativeAITargetStage": "ステージについて"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
@@ -297,6 +303,9 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]ぼたん[N]をそうしんする",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう",
+    "g2s.askGenerativeAI": "せいせいAI(β) [TARGET] [PROMPT]ときく",
+    "g2s.askGenerativeAIDefault": "100もじいないでせつめいして",
+    "g2s.askGenerativeAITargetStage": "ステージについて"
   }
 }

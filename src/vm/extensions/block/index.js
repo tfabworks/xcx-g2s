@@ -401,6 +401,12 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
+         * URL for sending data to sharing server.
+         * @type {string}
+         */
+        this.generativeAIURL = 'https://ai.akadako.com/ai';
+
+        /**
          * URL of the data sharing server.
          * @type {string}
          */
@@ -2343,6 +2349,46 @@ class ExtensionBlocks {
         await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n, MIN_INTERVAL}); // ボタン1=10%, ボタン2=20%, ...
     }
 
+    async askGenerativeAI (args) {
+        let content = [];
+        if (Cast.toString(args.PROMPT) == 'stage') {
+            let image_data = await new Promise(resolve => {
+                this.runtime.renderer.requestSnapshot(imageDataURL => {
+                    resolve(imageDataURL);
+                });
+            });
+            content.push({
+                "image": {
+                    "format": "png",
+                    'source': {'bytes': image_data.substring("data:image/png;base64,".length)}
+                }
+            });
+        }
+        content.push({"text": Cast.toString(args.PROMPT)});
+        return this.fetchGenerativeAI({"content": content});
+    }
+
+    async fetchGenerativeAI (body) {
+        let url = window.DEBUG_GENERATIVE_AI_URL ? window.DEBUG_GENERATIVE_AI_URL : this.generativeAIURL;
+        return await(
+            fetch(url, {
+                mode: 'cors',
+                method: 'POST',
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            })
+                .then(response => response.json())
+                .then(body => body.content ? body.content : body.error)
+                .catch(e => {
+                    console.error('生成AIにアクセスできませんでした', e);
+                    return '生成AIにアクセスできませんでした';
+                })
+      );
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -3103,6 +3149,33 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'askGenerativeAI',
+                    blockType: BlockType.REPORTER,
+                    hideFromPalette: false,
+                    blockAllThreads: false,
+                    text: formatMessage({
+                        id: 'g2s.askGenerativeAI',
+                        default: 'generative AI ask [PROMPT] [TARGET]',
+                        description: 'Ask Generative AI'
+                    }),
+                    func: 'askGenerativeAI',
+                    arguments: {
+                        TARGET: {
+                            type: ArgumentType.STRING,
+                            menu: 'askGenerativeAITargetMenu'
+                        },
+                        PROMPT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: formatMessage({
+                                id: 'g2s.askGenerativeAIDefault',
+                                default: 'What is this?',
+                                description: 'default question'
+                            })
+                        }
+                    }
+                },
+                '---',
+                {
                     opcode: 'sendIrRemote',
                     text: formatMessage({
                         id: 'g2s.sendIrRemote',
@@ -3482,6 +3555,17 @@ class ExtensionBlocks {
                 irRemoteMenuN: {
                     acceptReporters: true,
                     items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+                },
+                askGenerativeAITargetMenu: {
+                    acceptReporters: false,
+                    items: [{
+                        text: formatMessage({
+                            id: 'g2s.askGenerativeAITargetStage',
+                            default: 'about stage',
+                            description: 'ask generative AI target about stage'
+                        }),
+                        value: 'stage'
+                    }]
                 }
             }
         };
