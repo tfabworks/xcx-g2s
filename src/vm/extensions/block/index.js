@@ -110,6 +110,22 @@ const EXTENSION_ID = 'g2s';
 let extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
 
 /**
+ * States the video sensing activity can be set to.
+ * @readonly
+ * @enum {string}
+ */
+const VideoState = {
+    /** Video turned off. */
+    OFF: 'off',
+
+    /** Video turned on with default y axis mirroring. */
+    ON: 'on',
+
+    /** Video turned on without default y axis mirroring. */
+    ON_FLIPPED: 'on-flipped'
+};
+
+/**
  * Scratch 3.0 blocks for example of Xcratch.
  */
 class ExtensionBlocks {
@@ -2395,6 +2411,24 @@ class ExtensionBlocks {
     }
 
     /**
+     * A scratch command block handle that configures the video state from
+     * passed arguments.
+     * @param {object} args - the block arguments
+     * @param {VideoState} args.VIDEO_STATE - the video state to set the device to
+     */
+    g2sVideoToggle (args) {
+        const state = args.VIDEO_STATE;
+        this.globalVideoState = state;
+        if (state === VideoState.OFF) {
+            this.runtime.ioDevices.video.disableVideo();
+        } else {
+            this.runtime.ioDevices.video.enableVideo();
+            // Mirror if state is ON. Do not mirror if state is ON_FLIPPED.
+            this.runtime.ioDevices.video.mirror = state === VideoState.ON;
+        }
+    }
+
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
@@ -3179,6 +3213,21 @@ class ExtensionBlocks {
                         }
                     }
                 },
+                {
+                    opcode: 'g2sVideoToggle',
+                    text: formatMessage({
+                        id: 'videoSensing.videoToggle',
+                        default: 'turn video [VIDEO_STATE]',
+                        description: 'Controls display of the video preview layer'
+                    }),
+                    arguments: {
+                        VIDEO_STATE: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'VIDEO_STATE',
+                            defaultValue: VideoState.ON
+                        }
+                    }
+                },
                 '---',
                 {
                     opcode: 'sendIrRemote',
@@ -3571,6 +3620,41 @@ class ExtensionBlocks {
                         }),
                         value: 'stage'
                     }]
+                },
+                VIDEO_STATE: {
+                    acceptReporters: true,
+                    items: [
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.off',
+                                default: 'off',
+                                description: 'Option for the "turn video [STATE]" block'
+                            }),
+                            value: VideoState.OFF
+                        },
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.on',
+                                default: 'on',
+                                description: 'Option for the "turn video [STATE]" block'
+                            }),
+                            value: VideoState.ON
+                        },
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.onFlipped',
+                                default: 'on flipped',
+                                description: 'Option for the "turn video [STATE]" block that causes the video to be flipped' +
+                                    ' horizontally (reversed as in a mirror)'
+                            }),
+                            value: VideoState.ON_FLIPPED
+                        }
+                    ].map((entry, index) => {
+                        const obj = {};
+                        obj.text = entry.name;
+                        obj.value = entry.value || String(index + 1);
+                        return obj;
+                    })
                 }
             }
         };
