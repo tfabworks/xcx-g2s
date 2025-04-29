@@ -2385,6 +2385,14 @@ class ExtensionBlocks {
     }
 
     async fetchGenerativeAI (body) {
+        if (!this.isConnected()) {
+            return Promise.resolve(formatMessage({
+                id: 'g2s.askGenerativeAIBoardNotConnected',
+                default: 'The board is not connected',
+                description: 'The board is not connected'
+            }));
+        }
+
         let url = window.DEBUG_GENERATIVE_AI_URL ? window.DEBUG_GENERATIVE_AI_URL : this.generativeAIURL;
         return await(
             fetch(url, {
