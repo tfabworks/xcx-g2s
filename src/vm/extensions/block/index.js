@@ -417,10 +417,16 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
-         * URL for sending data to sharing server.
+         * URL for sending data to AI server.
          * @type {string}
          */
         this.generativeAIURL = 'https://ai.akadako.com/ai';
+
+        /**
+         * board signed uid
+         * @type {object}
+         */
+        this.generativeAIBoardInfo = null;
 
         /**
          * URL of the data sharing server.
@@ -2392,6 +2398,35 @@ class ExtensionBlocks {
                 description: 'The board is not connected'
             }));
         }
+
+        if (this.generativeAIBoardInfo == null) {
+            const unixTime = BigInt(Math.floor(Date.now() / 1000));
+            const buffer = new ArrayBuffer(8);
+            const view = new DataView(buffer);
+            view.setBigUint64(0, unixTime, false);
+            const challenge = [];
+            for (let i = 0; i < 8; i++) {
+                challenge.push(view.getUint8(i));
+            }
+            const uid = await this.board.boardSignedUid(challenge, 3000)
+                  .then(uid => {
+                      return uid;
+                  })
+                  .catch(reason => {
+                      console.log(`boardUid() was rejected by ${reason}`);
+                      return [];
+                  });
+            const uint8 = new Uint8Array(challenge.concat(uid));
+            let binary = '';
+            for (let i = 0; i < uint8.length; i++) {
+                binary += String.fromCharCode(uint8[i]);
+            }
+            this.generativeAIBoardInfo = {
+                version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
+                uid: btoa(binary)
+            }
+        }
+        body['board'] = this.generativeAIBoardInfo;
 
         let url = window.DEBUG_GENERATIVE_AI_URL ? window.DEBUG_GENERATIVE_AI_URL : this.generativeAIURL;
         return await(
