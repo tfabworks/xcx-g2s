@@ -2427,6 +2427,11 @@ class ExtensionBlocks {
             }
         }
         body['board'] = this.generativeAIBoardInfo;
+        body['locale'] = formatMessage({
+            id: 'g2s.askGenerativeAILocale',
+            default: 'en',
+            description: 'error message locale'
+        });
 
         let url = window.DEBUG_GENERATIVE_AI_URL ? window.DEBUG_GENERATIVE_AI_URL : this.generativeAIURL;
         return await(
