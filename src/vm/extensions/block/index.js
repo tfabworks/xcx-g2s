@@ -2399,7 +2399,7 @@ class ExtensionBlocks {
             }));
         }
 
-        if (this.generativeAIBoardInfo == null) {
+        if (this.generativeAIBoardInfo == null || this.generativeAIBoardInfo.expired) {
             const unixTime = BigInt(Math.floor(Date.now() / 1000));
             const buffer = new ArrayBuffer(8);
             const view = new DataView(buffer);
@@ -2422,11 +2422,15 @@ class ExtensionBlocks {
                 binary += String.fromCharCode(uint8[i]);
             }
             this.generativeAIBoardInfo = {
-                version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
-                uid: btoa(binary)
-            }
+                expired: false,
+                board: {
+                    version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
+                    uid: btoa(binary)
+                }
+            };
+            setTimeout(() => {this.generativeAIBoardInfo.expired = true}, 10 * 60 * 1000);
         }
-        body['board'] = this.generativeAIBoardInfo;
+        body['board'] = this.generativeAIBoardInfo.board;
         body['locale'] = formatMessage({
             id: 'g2s.askGenerativeAILocale',
             default: 'en',
