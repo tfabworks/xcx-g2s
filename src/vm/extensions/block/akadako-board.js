@@ -117,6 +117,18 @@ const decode7bitBytes = encoded => {
     return decoded;
 }
 
+/**
+ * Check signed uid support version
+ *
+ * @param {object} version object
+ * @returns {boolean} support
+ */
+const isSignedUidSupportVersion = version =>
+      !(version.type == 0 ||
+        version.type == 1 ||
+        (version.type == 2 && version.major < 3) ||
+        (version.type == 3 && version.major < 3));
+
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
 
@@ -641,10 +653,7 @@ class AkaDakoBoard extends EventEmitter {
      */
     boardSignedUid (challenge, timeout) {
         return this.boardVersion().then(version => {
-            if (this.version.type == 0 ||
-                this.version.type == 1 ||
-                (this.version.type == 2 && this.version.major < 3) ||
-                (this.version.type == 3 && this.version.major < 3)) {
+            if (!isSignedUidSupportVersion(this.version)) {
                 return Promise.resolve([]);
             } else {
                 let query = [BOARD_UID_QUERY].concat(encode7bitBytes(challenge));
@@ -661,6 +670,36 @@ class AkaDakoBoard extends EventEmitter {
                         return Promise.reject(reason);
                     });
             }
+        });
+    }
+
+    /**
+     * Query the uid information of the connected board and return uid data.
+     *
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<Array<number>>} A Promise which resolves uid info.
+     */
+    boardUid (timeout) {
+        return this.boardVersion().then(version => {
+            let query = [BOARD_UID_QUERY].concat(
+                isSignedUidSupportVersion(this.version) ?
+                    encode7bitBytes([0,0,0,0,0,0,0,0]) : []
+            );
+            const firmata = this.firmata;
+            timeout = timeout ? timeout : this.boardUidWaitingTime;
+            const event = `board-uid-reply`;
+            const request = new Promise(resolve => {
+                firmata.once(event, data => resolve(decode7bitBytes(data)));
+                firmata.sysexCommand(query);
+            });
+            return Promise.race([request, timeoutReject(timeout)])
+                .then(data => {
+                    return data.slice(0, 12);
+                })
+                .catch(reason => {
+                    firmata.removeAllListeners(event);
+                    return Promise.reject(reason);
+                });
         });
     }
 

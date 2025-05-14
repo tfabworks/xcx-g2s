@@ -671,6 +671,22 @@ class ExtensionBlocks {
     }
 
     /**
+     * Return the uid information of the connected board.
+     * @returns {string} uid info
+     */
+    boardUid () {
+        if (!this.isConnected()) return '';
+        return this.board.boardUid()
+            .then(uid => {
+                return uid.map(num => num.toString(16).padStart(2, '0')).join('');
+            })
+            .catch(reason => {
+                console.log(`boardUid() was rejected by ${reason}`);
+                return Promise.resolve('');
+            });
+    }
+
+    /**
      * Whether the current level of the connector is HIGH as digital input.
      * @param {object} args - the block's arguments.
      * @param {number} args.CONNECTOR - pin number of the connector
@@ -3580,6 +3596,18 @@ class ExtensionBlocks {
                         id: 'g2s.boardVersion',
                         default: 'board version',
                         description: 'version of the board'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'boardUid',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.boardUid',
+                        default: 'board uid',
+                        description: 'uid of the board'
                     }),
                     arguments: {
                     }
