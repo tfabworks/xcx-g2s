@@ -420,7 +420,7 @@ class ExtensionBlocks {
          * URL for sending data to AI server.
          * @type {string}
          */
-        this.generativeAIURL = 'https://ai.akadako.com/ai';
+        this.generativeAIURL = 'https://xcratch.699.jp/agai/ai';
 
         /**
          * board signed uid
