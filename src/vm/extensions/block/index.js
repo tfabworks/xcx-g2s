@@ -2465,7 +2465,7 @@ class ExtensionBlocks {
                 body: JSON.stringify(body)
             })
                 .then(response => response.json())
-                .then(body => body.content ? body.content : body.error)
+                .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
                 .catch(e => {
                     const msg = formatMessage({
                         id: 'g2s.askGenerativeAICannotConnect',
