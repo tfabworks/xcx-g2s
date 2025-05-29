@@ -110,6 +110,22 @@ const EXTENSION_ID = 'g2s';
 let extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
 
 /**
+ * States the video sensing activity can be set to.
+ * @readonly
+ * @enum {string}
+ */
+const VideoState = {
+    /** Video turned off. */
+    OFF: 'off',
+
+    /** Video turned on with default y axis mirroring. */
+    ON: 'on',
+
+    /** Video turned on without default y axis mirroring. */
+    ON_FLIPPED: 'on-flipped'
+};
+
+/**
  * Scratch 3.0 blocks for example of Xcratch.
  */
 class ExtensionBlocks {
@@ -401,6 +417,18 @@ class ExtensionBlocks {
         this.neoPixelBusy = false;
 
         /**
+         * URL for sending data to AI server.
+         * @type {string}
+         */
+        this.generativeAIURL = 'https://xcratch.699.jp/agai/ai';
+
+        /**
+         * board signed uid
+         * @type {object}
+         */
+        this.generativeAIBoardInfo = null;
+
+        /**
          * URL of the data sharing server.
          * @type {string}
          */
@@ -639,6 +667,22 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`boardVersion() was rejected by ${reason}`);
                 return Promise.reject(reason);
+            });
+    }
+
+    /**
+     * Return the uid information of the connected board.
+     * @returns {string} uid info
+     */
+    boardUid () {
+        if (!this.isConnected()) return '';
+        return this.board.boardUid()
+            .then(uid => {
+                return uid.map(num => num.toString(16).padStart(2, '0')).join('');
+            })
+            .catch(reason => {
+                console.log(`boardUid() was rejected by ${reason}`);
+                return Promise.resolve('');
             });
     }
 
@@ -2343,6 +2387,115 @@ class ExtensionBlocks {
         await this.analogLevelSet({CONNECTOR, LEVEL: 10 * n, MIN_INTERVAL}); // ボタン1=10%, ボタン2=20%, ...
     }
 
+    async askGenerativeAI (args) {
+        let content = [];
+        if (Cast.toString(args.TARGET) == 'stage') {
+            let image_data = await new Promise(resolve => {
+                this.runtime.renderer.requestSnapshot(imageDataURL => {
+                    resolve(imageDataURL);
+                });
+            });
+            content.push({
+                "image": {
+                    "format": "png",
+                    'source': {'bytes': image_data.substring("data:image/png;base64,".length)}
+                }
+            });
+        }
+        content.push({"text": Cast.toString(args.PROMPT)});
+        return this.fetchGenerativeAI({"content": content});
+    }
+
+    async fetchGenerativeAI (body) {
+        if (!this.isConnected()) {
+            return Promise.resolve(formatMessage({
+                id: 'g2s.askGenerativeAIBoardNotConnected',
+                default: 'The board is not connected',
+                description: 'The board is not connected'
+            }));
+        }
+
+        if (this.generativeAIBoardInfo == null || this.generativeAIBoardInfo.expired) {
+            const unixTime = BigInt(Math.floor(Date.now() / 1000));
+            const buffer = new ArrayBuffer(8);
+            const view = new DataView(buffer);
+            view.setBigUint64(0, unixTime, false);
+            const challenge = [];
+            for (let i = 0; i < 8; i++) {
+                challenge.push(view.getUint8(i));
+            }
+            const uid = await this.board.boardSignedUid(challenge, 3000)
+                  .then(uid => {
+                      return uid;
+                  })
+                  .catch(reason => {
+                      console.log(`boardUid() was rejected by ${reason}`);
+                      return [];
+                  });
+            const uint8 = new Uint8Array(challenge.concat(uid));
+            let binary = '';
+            for (let i = 0; i < uint8.length; i++) {
+                binary += String.fromCharCode(uint8[i]);
+            }
+            this.generativeAIBoardInfo = {
+                expired: false,
+                board: {
+                    version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
+                    uid: btoa(binary)
+                }
+            };
+            setTimeout(() => {this.generativeAIBoardInfo.expired = true}, 10 * 60 * 1000);
+        }
+        body['board'] = this.generativeAIBoardInfo.board;
+        body['locale'] = formatMessage({
+            id: 'g2s.askGenerativeAILocale',
+            default: 'en',
+            description: 'error message locale'
+        });
+
+        let url = window.DEBUG_GENERATIVE_AI_URL ? window.DEBUG_GENERATIVE_AI_URL : this.generativeAIURL;
+        return await(
+            fetch(url, {
+                mode: 'cors',
+                method: 'POST',
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            })
+                .then(response => response.json())
+                .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
+                .catch(e => {
+                    const msg = formatMessage({
+                        id: 'g2s.askGenerativeAICannotConnect',
+                        default: 'Cannot connect Generative AI',
+                        description: 'Cannot connect Generative AI'
+                    });
+                    console.error(msg, e);
+                    return msg;
+                })
+        );
+    }
+
+    /**
+     * A scratch command block handle that configures the video state from
+     * passed arguments.
+     * @param {object} args - the block arguments
+     * @param {VideoState} args.VIDEO_STATE - the video state to set the device to
+     */
+    g2sVideoToggle (args) {
+        const state = args.VIDEO_STATE;
+        this.globalVideoState = state;
+        if (state === VideoState.OFF) {
+            this.runtime.ioDevices.video.disableVideo();
+        } else {
+            this.runtime.ioDevices.video.enableVideo();
+            // Mirror if state is ON. Do not mirror if state is ON_FLIPPED.
+            this.runtime.ioDevices.video.mirror = state === VideoState.ON;
+        }
+    }
+
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -3103,6 +3256,48 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
+                    opcode: 'askGenerativeAI',
+                    blockType: BlockType.REPORTER,
+                    hideFromPalette: false,
+                    blockAllThreads: false,
+                    text: formatMessage({
+                        id: 'g2s.askGenerativeAI',
+                        default: 'generative AI ask [PROMPT] [TARGET]',
+                        description: 'Ask Generative AI'
+                    }),
+                    func: 'askGenerativeAI',
+                    arguments: {
+                        TARGET: {
+                            type: ArgumentType.STRING,
+                            menu: 'askGenerativeAITargetMenu'
+                        },
+                        PROMPT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: formatMessage({
+                                id: 'g2s.askGenerativeAIDefault',
+                                default: 'What is this?',
+                                description: 'default question'
+                            })
+                        }
+                    }
+                },
+                {
+                    opcode: 'g2sVideoToggle',
+                    text: formatMessage({
+                        id: 'videoSensing.videoToggle',
+                        default: 'turn video [VIDEO_STATE]',
+                        description: 'Controls display of the video preview layer'
+                    }),
+                    arguments: {
+                        VIDEO_STATE: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'VIDEO_STATE',
+                            defaultValue: VideoState.ON
+                        }
+                    }
+                },
+                '---',
+                {
                     opcode: 'sendIrRemote',
                     text: formatMessage({
                         id: 'g2s.sendIrRemote',
@@ -3404,6 +3599,18 @@ class ExtensionBlocks {
                     }),
                     arguments: {
                     }
+                },
+                {
+                    opcode: 'boardUid',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.boardUid',
+                        default: 'board uid',
+                        description: 'uid of the board'
+                    }),
+                    arguments: {
+                    }
                 }
             ],
             menus: {
@@ -3482,6 +3689,52 @@ class ExtensionBlocks {
                 irRemoteMenuN: {
                     acceptReporters: true,
                     items: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+                },
+                askGenerativeAITargetMenu: {
+                    acceptReporters: false,
+                    items: [{
+                        text: formatMessage({
+                            id: 'g2s.askGenerativeAITargetStage',
+                            default: 'about stage',
+                            description: 'ask generative AI target about stage'
+                        }),
+                        value: 'stage'
+                    }]
+                },
+                VIDEO_STATE: {
+                    acceptReporters: true,
+                    items: [
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.off',
+                                default: 'off',
+                                description: 'Option for the "turn video [STATE]" block'
+                            }),
+                            value: VideoState.OFF
+                        },
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.on',
+                                default: 'on',
+                                description: 'Option for the "turn video [STATE]" block'
+                            }),
+                            value: VideoState.ON
+                        },
+                        {
+                            name: formatMessage({
+                                id: 'videoSensing.onFlipped',
+                                default: 'on flipped',
+                                description: 'Option for the "turn video [STATE]" block that causes the video to be flipped' +
+                                    ' horizontally (reversed as in a mirror)'
+                            }),
+                            value: VideoState.ON_FLIPPED
+                        }
+                    ].map((entry, index) => {
+                        const obj = {};
+                        obj.text = entry.name;
+                        obj.value = entry.value || String(index + 1);
+                        return obj;
+                    })
                 }
             }
         };

@@ -4,6 +4,7 @@
     "g2s.connectBoard": "connect board",
     "g2s.disconnectBoard": "disconnect board",
     "g2s.boardVersion": "board version",
+    "g2s.boardUid": "board uid",
     "g2s.isConnected": "board is connected",
     "g2s.boardState.connected": "connected",
     "g2s.boardState.disconnected": "disconnected",
@@ -97,13 +98,20 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "transmit Infrared-Ray-Remote [CONNECTOR] button [N]",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "Tool",
+    "g2s.askGenerativeAI": "generative AI(β) ask [PROMPT] [TARGET]",
+    "g2s.askGenerativeAILocale": "en",
+    "g2s.askGenerativeAIDefault": "What is this? (Within 100 words)",
+    "g2s.askGenerativeAITargetStage": "about stage",
+    "g2s.askGenerativeAICannotConnect": "Cannot connect Generative AI",
+    "g2s.askGenerativeAIBoardNotConnected": "The board is not connected"
   },
   "ja": {
     "g2s.name": "AkaDako",
     "g2s.connectBoard": "ボードを接続する",
     "g2s.disconnectBoard": "ボードを切断する",
     "g2s.boardVersion": "ボードのバージョン",
+    "g2s.boardUid": "ボードのUID",
     "g2s.isConnected": "ボードに接続している",
     "g2s.boardState.connected": "接続された",
     "g2s.boardState.disconnected": "切断された",
@@ -197,13 +205,20 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "赤外線リモコン[CONNECTOR]ボタン[N]を送信する",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "内蔵",
+    "g2s.askGenerativeAI": "生成AI(β)に[TARGET][PROMPT]と聞く",
+    "g2s.askGenerativeAILocale": "ja",
+    "g2s.askGenerativeAIDefault": "100文字以内で説明して",
+    "g2s.askGenerativeAITargetStage": "ステージについて",
+    "g2s.askGenerativeAICannotConnect": "生成AIに接続できません",
+    "g2s.askGenerativeAIBoardNotConnected": "ボードが接続されていないため利用することができません"
   },
   "ja-Hira": {
     "g2s.name": "AkaDako",
     "g2s.connectBoard": "ボードをせつぞくする",
     "g2s.disconnectBoard": "ボードをせつだんする",
     "g2s.boardVersion": "ボードのバージョン",
+    "g2s.boardUid": "ボードのUID",
     "g2s.isConnected": "ボードにせつぞくている",
     "g2s.boardState.connected": "せつぞくされた",
     "g2s.boardState.disconnected": "せつだんされた",
@@ -297,6 +312,12 @@
     "g2s.bitOperation": "bit [LEFT] [OP] [RIGHT]",
     "g2s.bitNot": "bit NOT [VALUE]",
     "g2s.sendIrRemote": "せきがいせんりもこん[CONNECTOR]ぼたん[N]をそうしんする",
-    "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう"
+    "g2s.sendIrRemote.CONNECTOR.onboard": "ないぞう",
+    "g2s.askGenerativeAI": "せいせいAI(β)に[TARGET][PROMPT]ときく",
+    "g2s.askGenerativeAILocale": "ja-Hira",
+    "g2s.askGenerativeAIDefault": "100もじいないでせつめいして",
+    "g2s.askGenerativeAITargetStage": "ステージについて",
+    "g2s.askGenerativeAICannotConnect": "せいせいAIにせつぞくできません",
+    "g2s.askGenerativeAIBoardNotConnected": "ボードがせつぞくされていないためりようすることができません"
   }
 }

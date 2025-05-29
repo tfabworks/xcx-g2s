@@ -19,6 +19,8 @@ const Firmata = bindTransport.Firmata;
 
 const BOARD_VERSION_QUERY = 0x0F;
 
+const BOARD_UID_QUERY = 0x0E;
+
 const ULTRASONIC_DISTANCE_QUERY = 0x01;
 
 const WATER_TEMPERATURE_QUERY = 0x02;
@@ -45,6 +47,87 @@ const decodeInt16FromTwo7bitBytes = bytes => {
     const result = dataView.getInt16(0, true);
     return result;
 };
+
+/**
+ * Encode bytes to 7bit encoded bytes array.
+ * reference: https://github.com/atsushi-morita/sysex7-packer
+ *
+ * @param {Array<number>} bytes array
+ * @returns {Array<number>} encoded bytes array
+ */
+const encode7bitBytes = bytes => {
+    const transmitBits = 7;
+    const transmitMask = (1 << transmitBits) - 1;
+
+    let encoded = [];
+    let bytesSent = 0;
+    let outstandingBits = 0;
+
+    let outstandingBitCache = bytes[0];
+
+    let bytec = bytes.length;
+    for(let i = 0; i < bytec; i++) {
+        let transmitByte = (outstandingBitCache | ((bytes[i] << outstandingBits) & 0xFF)) & 0xFF;
+        encoded.push(transmitByte & transmitMask);
+        bytesSent += 1;
+        let shiftVal = transmitBits - outstandingBits;
+        outstandingBitCache = (bytes[i] >> shiftVal) & 0xFF;
+        outstandingBits += (8 - transmitBits);
+
+        while (outstandingBits >= transmitBits) {
+            transmitByte = outstandingBitCache & 0xFF;
+            encoded.push(transmitByte & transmitMask);
+            bytesSent += 1;
+            outstandingBitCache = (outstandingBitCache >> transmitBits) & 0xFF;
+            outstandingBits -= transmitBits;
+        }
+    }
+
+    if (outstandingBits != 0) {
+        const finalByte = ((1 << outstandingBits) - 1) & outstandingBitCache;
+        encoded.push(finalByte);
+        bytesSent += 1;
+    }
+
+    return encoded;
+}
+
+/**
+ * Decode bytes from 7bit encoded bytes array.
+ * reference: https://github.com/atsushi-morita/sysex7-packer
+ *
+ * @param {Array<number>} encoded bytes array
+ * @returns {Array<number>} decoded bytes array
+ */
+const decode7bitBytes = encoded => {
+    let bitBuffer = 0;
+    let bitCount = 0;
+    let decoded = [];
+    for(let i = 0; i < encoded.length; i++) {
+        let b = encoded[i];
+        bitBuffer |= (b << bitCount);
+        bitCount += 7;
+        while (bitCount >= 8) {
+            let decodedByte = bitBuffer & 0xFF;
+            decoded.push(decodedByte);
+            bitBuffer >>= 8
+            bitCount -= 8
+        }
+    }
+    return decoded;
+}
+
+/**
+ * Check signed uid support version
+ *
+ * @param {object} version object
+ * @returns {boolean} support
+ */
+const isSignedUidSupportVersion = version =>
+      !(version.type == 0 ||
+        version.type == 1 ||
+        (version.type == 2 && version.major < 3) ||
+        (version.type == 3 && version.major < 3));
 
 // eslint-disable-next-line prefer-const
 export let DEBUG = false;
@@ -177,6 +260,12 @@ class AkaDakoBoard extends EventEmitter {
         this.boardVersionWaitingTime = 200;
 
         /**
+         * Waiting time for response of query board uid in milliseconds.
+         * @type {number}
+         */
+        this.boardUidWaitingTime = 200;
+
+        /**
          * Waiting time for response of water temperature sensor reading in milliseconds.
          * @type {number}
          */
@@ -258,6 +347,10 @@ class AkaDakoBoard extends EventEmitter {
         firmata.clearSysexResponse(BOARD_VERSION_QUERY);
         firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
             firmata.emit(`board-version-reply`, data);
+        });
+        firmata.clearSysexResponse(BOARD_UID_QUERY);
+        firmata.sysexResponse(BOARD_UID_QUERY, data => {
+            firmata.emit(`board-uid-reply`, data);
         });
         this.firmata = firmata;
     }
@@ -549,6 +642,65 @@ class AkaDakoBoard extends EventEmitter {
                 firmata.removeAllListeners(event);
                 return Promise.reject(reason);
             });
+    }
+
+    /**
+     * Query the signed uid information of the connected board and return uid data.
+     *
+     * @param {Array<number>} challenge - challenge bytes
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<Array<number>>} A Promise which resolves signed uid info.
+     */
+    boardSignedUid (challenge, timeout) {
+        return this.boardVersion().then(version => {
+            if (!isSignedUidSupportVersion(this.version)) {
+                return Promise.resolve([]);
+            } else {
+                let query = [BOARD_UID_QUERY].concat(encode7bitBytes(challenge));
+                const firmata = this.firmata;
+                timeout = timeout ? timeout : this.boardUidWaitingTime;
+                const event = `board-uid-reply`;
+                const request = new Promise(resolve => {
+                    firmata.once(event, data => resolve(decode7bitBytes(data)));
+                    firmata.sysexCommand(query);
+                });
+                return Promise.race([request, timeoutReject(timeout)])
+                    .catch(reason => {
+                        firmata.removeAllListeners(event);
+                        return Promise.reject(reason);
+                    });
+            }
+        });
+    }
+
+    /**
+     * Query the uid information of the connected board and return uid data.
+     *
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<Array<number>>} A Promise which resolves uid info.
+     */
+    boardUid (timeout) {
+        return this.boardVersion().then(version => {
+            let query = [BOARD_UID_QUERY].concat(
+                isSignedUidSupportVersion(this.version) ?
+                    encode7bitBytes([0,0,0,0,0,0,0,0]) : []
+            );
+            const firmata = this.firmata;
+            timeout = timeout ? timeout : this.boardUidWaitingTime;
+            const event = `board-uid-reply`;
+            const request = new Promise(resolve => {
+                firmata.once(event, data => resolve(decode7bitBytes(data)));
+                firmata.sysexCommand(query);
+            });
+            return Promise.race([request, timeoutReject(timeout)])
+                .then(data => {
+                    return data.slice(0, 12);
+                })
+                .catch(reason => {
+                    firmata.removeAllListeners(event);
+                    return Promise.reject(reason);
+                });
+        });
     }
 
     /**
