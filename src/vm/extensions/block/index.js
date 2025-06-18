@@ -429,6 +429,18 @@ class ExtensionBlocks {
         this.generativeAIBoardInfo = null;
 
         /**
+         * URL for sending data to AkaDako Connect server.
+         * @type {string}
+         */
+        this.akaDakoConnectURL = 'https://connect.akadako.com/api/blocks';
+
+        /**
+         * cached board info
+         * @type {object}
+         */
+        this.cachedBoardInfo = null;
+
+        /**
          * URL of the data sharing server.
          * @type {string}
          */
@@ -2478,6 +2490,93 @@ class ExtensionBlocks {
         );
     }
 
+    async connectSpreadsheetAppend(args) { return await this.connectFetch('connectSpreadsheetAppend', args); }
+    async connectSpreadsheetWrite(args) { return await this.connectFetch('connectSpreadsheetWrite', args); }
+    async connectSpreadsheetRead(args) { return await this.connectFetch('connectSpreadsheetRead', args); }
+    async connectSendLine(args) { return await this.connectFetch('connectSendLine', args); }
+    async connectSendMail(args) { return await this.connectFetch('connectSendMail', args); }
+
+    async getCachedBoardInfo() {
+        if (!this.isConnected()) {
+            throw new Error(formatMessage({
+                id: 'g2s.askGenerativeAIBoardNotConnected',
+                default: 'The board is not connected',
+                description: 'The board is not connected'
+            }));
+        }
+        if (this.cachedBoardInfo == null || this.cachedBoardInfo.expired) {
+            const unixTime = BigInt(Math.floor(Date.now() / 1000));
+            const buffer = new ArrayBuffer(8);
+            const view = new DataView(buffer);
+            view.setBigUint64(0, unixTime, false);
+            const challenge = [];
+            for (let i = 0; i < 8; i++) {
+                challenge.push(view.getUint8(i));
+            }
+            const uid = await this.board.boardSignedUid(challenge, 3000)
+                  .then(uid => {
+                      return uid;
+                  })
+                  .catch(reason => {
+                      console.log(`boardUid() was rejected by ${reason}`);
+                      return [];
+                  });
+            const uint8 = new Uint8Array(challenge.concat(uid));
+            let binary = '';
+            for (let i = 0; i < uint8.length; i++) {
+                binary += String.fromCharCode(uint8[i]);
+            }
+            this.cachedBoardInfo = {
+                expired: false,
+                board: {
+                    version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
+                    uid: btoa(binary)
+                }
+            };
+            setTimeout(() => {this.cachedBoardInfo.expired = true}, 10 * 60 * 1000);
+        }
+        return this.cachedBoardInfo.board;
+    }
+
+    async connectFetch(name, args) {
+        try {
+            let body = {
+                board: await this.getCachedBoardInfo(),
+                locale: formatMessage({
+                    id: 'g2s.askGenerativeAILocale',
+                    default: 'en',
+                    description: 'error message locale'
+                }),
+                block: name,
+                args
+            };
+            let url = window.DEBUG_AKADAKO_CONNECT_URL ? window.DEBUG_AKADAKO_CONNECT_URL : this.akaDakoConnectURL;
+            return await(
+                fetch(url, {
+                    mode: 'cors',
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                })
+                    .then(response => response.json())
+                    .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
+                    .catch(e => {
+                        const msg = formatMessage({
+                            id: 'g2s.connectCannotConnectServer',
+                            default: 'Cannot connect AkaDako Connect server',
+                            description: 'Cannot connect AkaDako Connect server'
+                        });
+                        console.error(msg, e);
+                        return msg;
+                    })
+            );
+        } catch(e) {
+            return e.message;
+        }
+    }
+
     /**
      * A scratch command block handle that configures the video state from
      * passed arguments.
@@ -3293,6 +3392,114 @@ class ExtensionBlocks {
                             type: ArgumentType.NUMBER,
                             menu: 'VIDEO_STATE',
                             defaultValue: VideoState.ON
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'connectSpreadsheetAppend',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectSpreadsheetAppend',
+                        default: 'spreadsheet append [VALUE] to URL [URL]',
+                        description: 'Append value to spreadsheet'
+                    }),
+                    arguments: {
+                        URL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        }
+                    }
+                },
+                {
+                    opcode: 'connectSpreadsheetWrite',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectSpreadsheetWrite',
+                        default: 'spreadsheet write [VALUE] to URL [URL] at column [COLUMN], row [ROW]',
+                        description: 'Write value to spreadsheet'
+                    }),
+                    arguments: {
+                        URL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        COLUMN: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'A'
+                        },
+                        ROW: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '1'
+                        }
+                    }
+                },
+                {
+                    opcode: 'connectSpreadsheetRead',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'g2s.connectSpreadsheetRead',
+                        default: 'spreadsheet value at column [COLUMN], row [ROW] in URL [URL]',
+                        description: 'Read value in spreadsheet'
+                    }),
+                    arguments: {
+                        URL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        COLUMN: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'A'
+                        },
+                        ROW: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '1'
+                        }
+                    }
+                },
+                {
+                    opcode: 'connectSendLine',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectSendLine',
+                        default: 'LINE send [MESSAGE] to token [DESTINATION]',
+                        description: 'send message by LINE'
+                    }),
+                    arguments: {
+                        DESTINATION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        MESSAGE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        }
+                    }
+                },
+                {
+                    opcode: 'connectSendMail',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.connectSendMail',
+                        default: 'email send [MESSAGE] to address [DESTINATION]',
+                        description: 'send message by email'
+                    }),
+                    arguments: {
+                        DESTINATION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
+                        },
+                        MESSAGE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ' '
                         }
                     }
                 },
