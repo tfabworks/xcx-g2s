@@ -2490,11 +2490,11 @@ class ExtensionBlocks {
         );
     }
 
-    async connectSpreadsheetAppend(args) { return await this.connectFetch('connectSpreadsheetAppend', args); }
-    async connectSpreadsheetWrite(args) { return await this.connectFetch('connectSpreadsheetWrite', args); }
-    async connectSpreadsheetRead(args) { return await this.connectFetch('connectSpreadsheetRead', args); }
-    async connectSendLine(args) { return await this.connectFetch('connectSendLine', args); }
-    async connectSendMail(args) { return await this.connectFetch('connectSendMail', args); }
+    async connectSpreadsheetAppend(args) { return await this.connectFetch('SpreadsheetAppend', args); }
+    async connectSpreadsheetWrite(args) { return await this.connectFetch('SpreadsheetWrite', args); }
+    async connectSpreadsheetRead(args) { return await this.connectFetch('SpreadsheetRead', args); }
+    async connectSendLine(args) { return await this.connectFetch('SendLine', args); }
+    async connectSendMail(args) { return await this.connectFetch('SendMail', args); }
 
     async getCachedBoardInfo() {
         if (!this.isConnected()) {
@@ -2538,7 +2538,7 @@ class ExtensionBlocks {
         return this.cachedBoardInfo.board;
     }
 
-    async connectFetch(name, args) {
+    async connectFetch(opcode, args) {
         try {
             let body = {
                 board: await this.getCachedBoardInfo(),
@@ -2547,7 +2547,7 @@ class ExtensionBlocks {
                     default: 'en',
                     description: 'error message locale'
                 }),
-                block: name,
+                opcode,
                 args
             };
             let url = window.DEBUG_AKADAKO_CONNECT_URL ? window.DEBUG_AKADAKO_CONNECT_URL : this.akaDakoConnectURL;
@@ -2561,7 +2561,8 @@ class ExtensionBlocks {
                     body: JSON.stringify(body)
                 })
                     .then(response => response.json())
-                    .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
+                    .then(body => (typeof body["Ok"] !== 'undefined' && body["Ok"] !== null) ? body["Ok"]
+                          : ((typeof body["Err"] !== 'undefined' && body["Err"] !== null) ? body["Err"] : ''))
                     .catch(e => {
                         const msg = formatMessage({
                             id: 'g2s.connectCannotConnectServer',
