@@ -2547,8 +2547,13 @@ class ExtensionBlocks {
                     default: 'en',
                     description: 'error message locale'
                 }),
-                opcode,
-                args
+                block: {
+                    [opcode]: Object.fromEntries(
+                        Object.entries(args)
+                            .filter(([key, value]) => typeof value !== 'undefined')
+                            .map(([key, value]) => [key.toLowerCase(), String(value)])
+                    )
+                }
             };
             let url = window.DEBUG_AKADAKO_CONNECT_URL ? window.DEBUG_AKADAKO_CONNECT_URL : this.akaDakoConnectURL;
             return await(
