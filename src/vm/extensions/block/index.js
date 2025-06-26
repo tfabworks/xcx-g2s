@@ -3361,48 +3361,6 @@ class ExtensionBlocks {
                 },
                 '---',
                 {
-                    opcode: 'askGenerativeAI',
-                    blockType: BlockType.REPORTER,
-                    hideFromPalette: false,
-                    blockAllThreads: false,
-                    text: formatMessage({
-                        id: 'g2s.askGenerativeAI',
-                        default: 'generative AI ask [PROMPT] [TARGET]',
-                        description: 'Ask Generative AI'
-                    }),
-                    func: 'askGenerativeAI',
-                    arguments: {
-                        TARGET: {
-                            type: ArgumentType.STRING,
-                            menu: 'askGenerativeAITargetMenu'
-                        },
-                        PROMPT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: formatMessage({
-                                id: 'g2s.askGenerativeAIDefault',
-                                default: 'What is this?',
-                                description: 'default question'
-                            })
-                        }
-                    }
-                },
-                {
-                    opcode: 'g2sVideoToggle',
-                    text: formatMessage({
-                        id: 'videoSensing.videoToggle',
-                        default: 'turn video [VIDEO_STATE]',
-                        description: 'Controls display of the video preview layer'
-                    }),
-                    arguments: {
-                        VIDEO_STATE: {
-                            type: ArgumentType.NUMBER,
-                            menu: 'VIDEO_STATE',
-                            defaultValue: VideoState.ON
-                        }
-                    }
-                },
-                '---',
-                {
                     opcode: 'connectSpreadsheetAppend',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -3471,6 +3429,7 @@ class ExtensionBlocks {
                         }
                     }
                 },
+                '---',
                 {
                     opcode: 'connectSendLine',
                     blockType: BlockType.COMMAND,
@@ -3506,6 +3465,48 @@ class ExtensionBlocks {
                         MESSAGE: {
                             type: ArgumentType.STRING,
                             defaultValue: ' '
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'askGenerativeAI',
+                    blockType: BlockType.REPORTER,
+                    hideFromPalette: false,
+                    blockAllThreads: false,
+                    text: formatMessage({
+                        id: 'g2s.askGenerativeAI',
+                        default: 'generative AI ask [PROMPT] [TARGET]',
+                        description: 'Ask Generative AI'
+                    }),
+                    func: 'askGenerativeAI',
+                    arguments: {
+                        TARGET: {
+                            type: ArgumentType.STRING,
+                            menu: 'askGenerativeAITargetMenu'
+                        },
+                        PROMPT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: formatMessage({
+                                id: 'g2s.askGenerativeAIDefault',
+                                default: 'What is this?',
+                                description: 'default question'
+                            })
+                        }
+                    }
+                },
+                {
+                    opcode: 'g2sVideoToggle',
+                    text: formatMessage({
+                        id: 'videoSensing.videoToggle',
+                        default: 'turn video [VIDEO_STATE]',
+                        description: 'Controls display of the video preview layer'
+                    }),
+                    arguments: {
+                        VIDEO_STATE: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'VIDEO_STATE',
+                            defaultValue: VideoState.ON
                         }
                     }
                 },
