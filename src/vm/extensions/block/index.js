@@ -432,7 +432,7 @@ class ExtensionBlocks {
          * URL for sending data to AkaDako Connect server.
          * @type {string}
          */
-        this.akaDakoConnectURL = 'https://connect.akadako.com/api/blocks';
+        this.akaDakoConnectURL = 'https://connect.699.jp/api/blocks';
 
         /**
          * cached board info
