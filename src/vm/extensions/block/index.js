@@ -423,12 +423,6 @@ class ExtensionBlocks {
         this.generativeAIURL = 'https://xcratch.699.jp/agai/ai';
 
         /**
-         * board signed uid
-         * @type {object}
-         */
-        this.generativeAIBoardInfo = null;
-
-        /**
          * URL for sending data to AkaDako Connect server.
          * @type {string}
          */
@@ -679,22 +673,6 @@ class ExtensionBlocks {
             .catch(reason => {
                 console.log(`boardVersion() was rejected by ${reason}`);
                 return Promise.reject(reason);
-            });
-    }
-
-    /**
-     * Return the uid information of the connected board.
-     * @returns {string} uid info
-     */
-    boardUid () {
-        if (!this.isConnected()) return '';
-        return this.board.boardUid()
-            .then(uid => {
-                return uid.map(num => num.toString(16).padStart(2, '0')).join('');
-            })
-            .catch(reason => {
-                console.log(`boardUid() was rejected by ${reason}`);
-                return Promise.resolve('');
             });
     }
 
@@ -2427,38 +2405,7 @@ class ExtensionBlocks {
             }));
         }
 
-        if (this.generativeAIBoardInfo == null || this.generativeAIBoardInfo.expired) {
-            const unixTime = BigInt(Math.floor(Date.now() / 1000));
-            const buffer = new ArrayBuffer(8);
-            const view = new DataView(buffer);
-            view.setBigUint64(0, unixTime, false);
-            const challenge = [];
-            for (let i = 0; i < 8; i++) {
-                challenge.push(view.getUint8(i));
-            }
-            const uid = await this.board.boardSignedUid(challenge, 3000)
-                  .then(uid => {
-                      return uid;
-                  })
-                  .catch(reason => {
-                      console.log(`boardUid() was rejected by ${reason}`);
-                      return [];
-                  });
-            const uint8 = new Uint8Array(challenge.concat(uid));
-            let binary = '';
-            for (let i = 0; i < uint8.length; i++) {
-                binary += String.fromCharCode(uint8[i]);
-            }
-            this.generativeAIBoardInfo = {
-                expired: false,
-                board: {
-                    version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
-                    uid: btoa(binary)
-                }
-            };
-            setTimeout(() => {this.generativeAIBoardInfo.expired = true}, 10 * 60 * 1000);
-        }
-        body['board'] = this.generativeAIBoardInfo.board;
+        body['board'] = await this.getCachedBoardInfo();
         body['locale'] = formatMessage({
             id: 'g2s.askGenerativeAILocale',
             default: 'en',
@@ -2505,32 +2452,10 @@ class ExtensionBlocks {
             }));
         }
         if (this.cachedBoardInfo == null || this.cachedBoardInfo.expired) {
-            const unixTime = BigInt(Math.floor(Date.now() / 1000));
-            const buffer = new ArrayBuffer(8);
-            const view = new DataView(buffer);
-            view.setBigUint64(0, unixTime, false);
-            const challenge = [];
-            for (let i = 0; i < 8; i++) {
-                challenge.push(view.getUint8(i));
-            }
-            const uid = await this.board.boardSignedUid(challenge, 3000)
-                  .then(uid => {
-                      return uid;
-                  })
-                  .catch(reason => {
-                      console.log(`boardUid() was rejected by ${reason}`);
-                      return [];
-                  });
-            const uint8 = new Uint8Array(challenge.concat(uid));
-            let binary = '';
-            for (let i = 0; i < uint8.length; i++) {
-                binary += String.fromCharCode(uint8[i]);
-            }
             this.cachedBoardInfo = {
                 expired: false,
                 board: {
-                    version: `${this.board.version.type}.${this.board.version.major}.${this.board.version.minor}`,
-                    uid: btoa(binary)
+                  version: await this.boardVersion()
                 }
             };
             setTimeout(() => {this.cachedBoardInfo.expired = true}, 10 * 60 * 1000);
@@ -3810,18 +3735,6 @@ class ExtensionBlocks {
                         id: 'g2s.boardVersion',
                         default: 'board version',
                         description: 'version of the board'
-                    }),
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'boardUid',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: true,
-                    text: formatMessage({
-                        id: 'g2s.boardUid',
-                        default: 'board uid',
-                        description: 'uid of the board'
                     }),
                     arguments: {
                     }
