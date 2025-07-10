@@ -426,7 +426,13 @@ class ExtensionBlocks {
          * URL for sending data to AkaDako Connect server.
          * @type {string}
          */
-        this.akaDakoConnectURL = 'https://connect.699.jp/api/blocks';
+        this.akaDakoConnectURL = 'https://xcratch.699.jp/connect/api/blocks';
+
+        /**
+         * Cookie name for sending data to AkaDako Connect server.
+         * @type {string}
+         */
+        this.akaDakoConnectLimitCookieName = EXTENSION_ID + '_connect_limit';
 
         /**
          * cached board info
@@ -2481,9 +2487,16 @@ class ExtensionBlocks {
                 }
             };
             let url = window.DEBUG_AKADAKO_CONNECT_URL ? window.DEBUG_AKADAKO_CONNECT_URL : this.akaDakoConnectURL;
+            if (!document.cookie.includes(`${this.akaDakoConnectLimitCookieName}=`)) {
+                let token = [...Array(20)]
+                    .map(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                         .charAt(Math.floor(Math.random()*62))).join("");
+                document.cookie =`${this.akaDakoConnectLimitCookieName}=${token}; Path=/; max-age=63072000; Secure`;
+            }
             return await(
                 fetch(url, {
                     mode: 'cors',
+                    credentials: "include",
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json"
