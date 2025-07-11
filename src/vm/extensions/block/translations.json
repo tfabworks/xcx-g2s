@@ -105,11 +105,11 @@
     "g2s.askGenerativeAITargetStage": "about stage",
     "g2s.askGenerativeAICannotConnect": "Cannot connect Generative AI",
     "g2s.askGenerativeAIBoardNotConnected": "The board is not connected",
-    "g2s.connectSpreadsheetAppend": "spreadsheet append [VALUE] to URL [URL]",
-    "g2s.connectSpreadsheetWrite": "spreadsheet write [VALUE] to URL [URL] at column [COLUMN], row [ROW]",
-    "g2s.connectSpreadsheetRead": "spreadsheet value at column [COLUMN], row [ROW] in URL [URL]",
-    "g2s.connectSendLine": "LINE send [MESSAGE] to token [DESTINATION]",
-    "g2s.connectSendMail": "email send [MESSAGE] to address [DESTINATION]",
+    "g2s.connectSpreadsheetAppend": "spreadsheet(β) append [VALUE] to URL [URL]",
+    "g2s.connectSpreadsheetWrite": "spreadsheet(β) write [VALUE] to URL [URL] at column [COLUMN], row [ROW]",
+    "g2s.connectSpreadsheetRead": "spreadsheet(β) value at column [COLUMN], row [ROW] in URL [URL]",
+    "g2s.connectSendLine": "LINE(β) send [MESSAGE] to token [DESTINATION]",
+    "g2s.connectSendMail": "email(β) send [MESSAGE] to address [DESTINATION]",
     "g2s.connectCannotConnectServer": "Cannot connect AkaDako Connect server"
   },
   "ja": {
@@ -218,11 +218,11 @@
     "g2s.askGenerativeAITargetStage": "ステージについて",
     "g2s.askGenerativeAICannotConnect": "生成AIに接続できません",
     "g2s.askGenerativeAIBoardNotConnected": "ボードが接続されていないため利用することができません",
-    "g2s.connectSpreadsheetAppend": "スプレッドシート URL[URL]に[VALUE]を記録",
-    "g2s.connectSpreadsheetWrite": "スプレッドシート URL[URL]の[COLUMN]列[ROW]行に[VALUE]を書き込む",
-    "g2s.connectSpreadsheetRead": "スプレッドシート URL[URL]の[COLUMN]列[ROW]行の値",
-    "g2s.connectSendLine": "LINE トークン[DESTINATION]に[MESSAGE]を送る",
-    "g2s.connectSendMail": "メール アドレス[DESTINATION]に[MESSAGE]を送る",
+    "g2s.connectSpreadsheetAppend": "スプレッドシート(β) URL[URL]に[VALUE]を記録",
+    "g2s.connectSpreadsheetWrite": "スプレッドシート(β) URL[URL]の[COLUMN]列[ROW]行に[VALUE]を書き込む",
+    "g2s.connectSpreadsheetRead": "スプレッドシート(β) URL[URL]の[COLUMN]列[ROW]行の値",
+    "g2s.connectSendLine": "LINE(β) トークン[DESTINATION]に[MESSAGE]を送る",
+    "g2s.connectSendMail": "メール(β) アドレス[DESTINATION]に[MESSAGE]を送る",
     "g2s.connectCannotConnectServer": "AkaDako Connectのサーバーに接続できませんでした"
   },
   "ja-Hira": {
@@ -331,11 +331,11 @@
     "g2s.askGenerativeAITargetStage": "ステージについて",
     "g2s.askGenerativeAICannotConnect": "せいせいAIにせつぞくできません",
     "g2s.askGenerativeAIBoardNotConnected": "ボードがせつぞくされていないためりようすることができません",
-    "g2s.connectSpreadsheetAppend": "スプレッドシート URL[URL]に[VALUE]をきろく",
-    "g2s.connectSpreadsheetWrite": "スプレッドシート URL[URL]の[COLUMN]れつ[ROW]ぎょうに[VALUE]をかきこむ",
-    "g2s.connectSpreadsheetRead": "スプレッドシート URL[URL]の[COLUMN]れつ[ROW]ぎょうのあたい",
-    "g2s.connectSendLine": "LINE トークン[DESTINATION]に[MESSAGE]をおくる",
-    "g2s.connectSendMail": "メール アドレス[DESTINATION]に[MESSAGE]をおくる",
+    "g2s.connectSpreadsheetAppend": "スプレッドシート(β) URL[URL]に[VALUE]をきろく",
+    "g2s.connectSpreadsheetWrite": "スプレッドシート(β) URL[URL]の[COLUMN]れつ[ROW]ぎょうに[VALUE]をかきこむ",
+    "g2s.connectSpreadsheetRead": "スプレッドシート(β) URL[URL]の[COLUMN]れつ[ROW]ぎょうのあたい",
+    "g2s.connectSendLine": "LINE(β) トークン[DESTINATION]に[MESSAGE]をおくる",
+    "g2s.connectSendMail": "メール(β) アドレス[DESTINATION]に[MESSAGE]をおくる",
     "g2s.connectCannotConnectServer": "AkaDako Connectのサーバーにせつぞくできませんでした"
   }
 }
