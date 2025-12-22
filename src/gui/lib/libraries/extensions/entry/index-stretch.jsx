@@ -7,20 +7,21 @@ import {FormattedMessage} from 'react-intl';
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
-const version = 'v1.2.0';
+import version from './version';
+
 const translations =
 {
     'en': {
         'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Connect Grove sensors and actuators. (${version})`
+        'g2s.entry.description': `Connect Grove sensors and actuators. (v${version})`
     },
     'ja': {
         'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (${version})`
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (v${version})`
     },
     'ja-Hira': {
         'g2s.entry.name': 'AkaDako',
-        'g2s.entry.description': `Groveのセンサー・アクチュエーターをせつぞくする。 (${version})`
+        'g2s.entry.description': `Groveのセンサー・アクチュエーターを接続する。 (v${version})`
     }
 };
 
@@ -49,6 +50,7 @@ const entry = {
     bluetoothRequired: false,
     internetConnectionRequired: false,
     helpLink: 'https://akadako.com/',
+    tags: ['device', 'network'],
     translationMap: translations
 };
 

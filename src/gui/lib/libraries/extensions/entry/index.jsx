@@ -5,8 +5,7 @@
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.png';
 import translations from './translations.json';
-
-const version = 'v1.2.0';
+import version from './version';
 
 /**
  * Formatter to translate the messages in this extension.
@@ -22,7 +21,7 @@ const entry = {
             defaultMessage: 'AkaDako',
             description: 'Name for the "AkaDako" extension',
             id: 'g2s.entry.name'
-        })} (${version})`;
+        })} (v${version})`;
     },
     extensionId: 'g2s',
     extensionURL: 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs',
@@ -44,7 +43,8 @@ const entry = {
     setFormatMessage: formatter => {
         formatMessage = formatter;
     },
-    translationMap: translations
+    translationMap: translations,
+    tags: ['device', 'network']
 };
 
 export {entry}; // loadable-extension needs this line.

@@ -1,6 +1,14 @@
 node_modules/
 
-src/vm/*
-!src/vm/extensions/
+/src/vm/*
+!/src/vm/extensions/
+/src/lib
 
-build/
+/dist/*-[0-9]_[0-9]_[0-9].*
+/dist/*-[0-9]_[0-9]_[0-9][0-9].*
+/dist/*-[0-9]_[0-9][0-9]_[0-9][0-9].*
+/build/
+
+/.envrc
+/scratch-gui.strech3
+/scratch-gui.xcratch
