@@ -4026,6 +4026,14 @@ class ExtensionBlocks {
                     description: 'label for vibration motor on STEAM Tool in PWM connector menu for g2s'
                 }),
                 value: '3'
+            },
+			{
+                text: formatMessage({
+                    id: 'g2s.digitalLevelSetConnectorMenu.relayOnSteamBox',
+                    default: 'relay on Tool',
+                    description: 'label for relay on STEAM Tool in digital level set connector menu for g2s'
+                }),
+                value: '4'
             }
         ];
     }
