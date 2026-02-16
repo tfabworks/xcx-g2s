@@ -2002,6 +2002,7 @@ class ExtensionBlocks {
         this.shareDataSending = false;
         this.sharedData = {};
         this.prevSharedData = {};
+        this.labelTimestamps = {};
         this.shareServerBackoffAttempt = 0;
         if (this.shareServer) {
             const server = this.shareServer;
@@ -2339,18 +2340,23 @@ class ExtensionBlocks {
     whenSharedDataReceived (args) {
         if (!this.isConnected()) return false;
         if (!this.isShareServerConnected()) return false;
-        if (!this.updateLastSharedDataTimer) {
-            this.updateLastSharedDataTimer = setTimeout(() => {
-                this.updatePrevSharedData();
-                this.updateLastSharedDataTimer = null;
-            }, this.runtime.currentStepTime);
-        }
+        
         const label = normalizeID(Cast.toString(args.LABEL));
         if (!this.sharedData[label]) return false;
-        const lastTimestamp = this.sharedData[label].timestamp;
-        if (!this.prevSharedData[label]) return true;
-        const prevTimestamp = this.prevSharedData[label].timestamp;
-        return lastTimestamp !== prevTimestamp;
+        
+        // ラベル単位でのタイムスタンプ管理（パフォーマンス最適化）
+        if (!this.labelTimestamps) this.labelTimestamps = {};
+        
+        const currentTimestamp = this.sharedData[label].timestamp;
+        const lastKnownTimestamp = this.labelTimestamps[label];
+        
+        // 初回データまたはタイムスタンプが異なる場合
+        if (lastKnownTimestamp === undefined || lastKnownTimestamp !== currentTimestamp) {
+            this.labelTimestamps[label] = currentTimestamp;
+            return true;
+        }
+        
+        return false;
     }
 
     /**
