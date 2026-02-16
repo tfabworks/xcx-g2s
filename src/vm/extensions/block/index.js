@@ -2006,6 +2006,7 @@ class ExtensionBlocks {
         this.shareDataSending = false;
         this.sharedData = {};
         this.prevSharedData = {};
+        this.labelTimestamps = {};
         this.shareServerBackoffAttempt = 0;
         if (this.shareServer) {
             const server = this.shareServer;
