@@ -138,6 +138,10 @@ class MidiDakoTransport extends EventEmitter {
             // changed cause WebMIDI reserved status is not allowed [0xF4]
             return [0xA0, data[1], data[2]];
         }
+        if (data[0] === 0xF5) { // set DigitalPinValue
+            // changed cause WebMIDI reserved status is not allowed [0xF5]
+            return [0xB0, data[1], data[2]];
+        }
         if (data[0] === 0xF0 && data[1] === 0x79) { // query firmware
             // do nothing cause the board freeze
             return [];
