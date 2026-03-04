@@ -2436,7 +2436,26 @@ class ExtensionBlocks {
                 body: JSON.stringify(body)
             })
                 .then(response => response.json())
-                .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
+                .then(body => {
+                    if (body.content !== null) {
+                        return body.content;
+                    } else if (typeof body.error == 'string') {
+                        return body.error;
+                    } else if (body.error === null) {
+                        return '';
+                    } else if (typeof body.error == 'object' &&
+                               typeof body.error.type !== 'undefined' &&
+                               typeof body.error.content !== 'undefined') {
+                        if (body.error.type === 'text/html') {
+                            this.openErrorDialog(body.error.content);
+                            return '';
+                        } else {
+                            return body.error.content;
+                        }
+                    } else {
+                        return '';
+                    }
+                })
                 .catch(e => {
                     const msg = formatMessage({
                         id: 'g2s.askGenerativeAICannotConnect',
@@ -2447,6 +2466,60 @@ class ExtensionBlocks {
                     return msg;
                 })
         );
+    }
+
+    openErrorDialog (contentHtml) {
+        if (this.errorDialogOpened) {
+            // prevent to open multiple dialogs
+            return Promise.resolve(null);
+        }
+        this.errorDialogOpened = true;
+        const errorDialog = document.createElement('dialog');
+        errorDialog.style.padding = '0px';
+        errorDialog.style.position = 'relative';
+
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '✕';
+        closeButton.style.position = 'absolute';
+        closeButton.style.top = '8px';
+        closeButton.style.right = '8px';
+        closeButton.style.border = 'none';
+        closeButton.style.background = 'none';
+        closeButton.style.fontSize = '24px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.border = 'none';
+        closeButton.style.outline = 'none';
+        closeButton.style.display = 'flex';
+        closeButton.style.justifyContent = 'center';
+        closeButton.style.alignItems = 'center';
+        errorDialog.appendChild(closeButton);
+
+        const dialogFace = document.createElement('div');
+        dialogFace.style.padding = '32px';
+        dialogFace.innerHTML = contentHtml;
+        errorDialog.appendChild(dialogFace);
+
+
+        return new Promise(resolve => {
+            const close = () => {
+                resolve(false);
+            }
+            closeButton.onclick = close;
+            errorDialog.addEventListener('keydown', e => {
+                if (e.code === 'Escape') {
+                    close();
+                }
+            });
+
+            document.body.appendChild(errorDialog);
+            errorDialog.showModal();
+            closeButton.focus();
+        })
+            .finally(() => {
+                document.body.removeChild(errorDialog);
+                this.errorDialogOpened = false;
+            });
     }
 
     async connectSpreadsheetAppend(args) { return await this.connectFetch('SpreadsheetAppend', args); }
@@ -2510,8 +2583,26 @@ class ExtensionBlocks {
                     body: JSON.stringify(body)
                 })
                     .then(response => response.json())
-                    .then(body => (typeof body["Ok"] !== 'undefined' && body["Ok"] !== null) ? body["Ok"]
-                          : ((typeof body["Err"] !== 'undefined' && body["Err"] !== null) ? body["Err"] : ''))
+                    .then(body => {
+                        if (typeof body["Ok"] !== 'undefined' && body["Ok"] !== null) {
+                            return body["Ok"];
+                        } else if(typeof body["Err"] === 'string') {
+                            return body["Err"];
+                        } else if(body["Err"] === null) {
+                            return '';
+                        } else if(typeof body["Err"] === 'object' &&
+                                  typeof body["Err"]["type"] !== 'undefined' &&
+                                  typeof body["Err"]["content"] !== 'undefined') {
+                            if (body["Err"]["type"] === 'text/html') {
+                                this.openErrorDialog(body["Err"]["content"]);
+                                return '';
+                            } else {
+                                return body["Err"]["content"];
+                            }
+                        } else {
+                            return '';
+                        }
+                    })
                     .catch(e => {
                         const msg = formatMessage({
                             id: 'g2s.connectCannotConnectServer',
