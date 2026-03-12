@@ -653,7 +653,7 @@ class AkaDakoBoard extends EventEmitter {
         if (this.version) return `${this.version.type}.${this.version.major}.${this.version.minor}`;
         timeout = timeout ? timeout : this.boardVersionWaitingTime;
         if (!this.protocol) {
-            this.protocol = await this._detectProtocol(timeout);
+            this.protocol = await this._detectProtocol();
         }
         if (this.protocol === 'slink') {
             return this._boardVersionSlink(timeout);
