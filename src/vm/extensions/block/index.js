@@ -3387,7 +3387,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetAppend',
-                        default: 'spreadsheet(β) append [VALUE] to URL [URL]',
+                        default: 'spreadsheet append [VALUE] to URL [URL]',
                         description: 'Append value to spreadsheet'
                     }),
                     arguments: {
@@ -3406,7 +3406,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetWrite',
-                        default: 'spreadsheet(β) write [VALUE] to URL [URL] at column [COLUMN], row [ROW]',
+                        default: 'spreadsheet write [VALUE] to URL [URL] at column [COLUMN], row [ROW]',
                         description: 'Write value to spreadsheet'
                     }),
                     arguments: {
@@ -3433,7 +3433,7 @@ class ExtensionBlocks {
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetRead',
-                        default: 'spreadsheet(β) value at column [COLUMN], row [ROW] in URL [URL]',
+                        default: 'spreadsheet value at column [COLUMN], row [ROW] in URL [URL]',
                         description: 'Read value in spreadsheet'
                     }),
                     arguments: {
@@ -3457,7 +3457,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSendLine',
-                        default: 'LINE(β) send [MESSAGE] to token [DESTINATION]',
+                        default: 'LINE send [MESSAGE] to token [DESTINATION]',
                         description: 'send message by LINE'
                     }),
                     arguments: {
@@ -3476,7 +3476,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSendMail',
-                        default: 'email(β) send [MESSAGE] to address [DESTINATION]',
+                        default: 'email send [MESSAGE] to address [DESTINATION]',
                         description: 'send message by email'
                     }),
                     arguments: {
