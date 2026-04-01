@@ -429,12 +429,6 @@ class ExtensionBlocks {
         this.akaDakoConnectURL = 'https://xcratch.699.jp/connect/api/blocks';
 
         /**
-         * Cookie name for sending data to AkaDako Connect server.
-         * @type {string}
-         */
-        this.akaDakoConnectLimitCookieName = EXTENSION_ID + '_connect_limit';
-
-        /**
          * cached board info
          * @type {object}
          */
@@ -2436,7 +2430,26 @@ class ExtensionBlocks {
                 body: JSON.stringify(body)
             })
                 .then(response => response.json())
-                .then(body => body.content !== null ? body.content : (body.error !== null ? body.error : ''))
+                .then(body => {
+                    if (body.content !== null) {
+                        return body.content;
+                    } else if (typeof body.error == 'string') {
+                        return body.error;
+                    } else if (body.error === null) {
+                        return '';
+                    } else if (typeof body.error == 'object' &&
+                               typeof body.error.type !== 'undefined' &&
+                               typeof body.error.content !== 'undefined') {
+                        if (body.error.type === 'text/html') {
+                            this.openErrorDialog(body.error.content);
+                            return '';
+                        } else {
+                            return body.error.content;
+                        }
+                    } else {
+                        return '';
+                    }
+                })
                 .catch(e => {
                     const msg = formatMessage({
                         id: 'g2s.askGenerativeAICannotConnect',
@@ -2447,6 +2460,60 @@ class ExtensionBlocks {
                     return msg;
                 })
         );
+    }
+
+    openErrorDialog (contentHtml) {
+        if (this.errorDialogOpened) {
+            // prevent to open multiple dialogs
+            return Promise.resolve(null);
+        }
+        this.errorDialogOpened = true;
+        const errorDialog = document.createElement('dialog');
+        errorDialog.style.padding = '0px';
+        errorDialog.style.position = 'relative';
+
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '✕';
+        closeButton.style.position = 'absolute';
+        closeButton.style.top = '8px';
+        closeButton.style.right = '8px';
+        closeButton.style.border = 'none';
+        closeButton.style.background = 'none';
+        closeButton.style.fontSize = '24px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.border = 'none';
+        closeButton.style.outline = 'none';
+        closeButton.style.display = 'flex';
+        closeButton.style.justifyContent = 'center';
+        closeButton.style.alignItems = 'center';
+        errorDialog.appendChild(closeButton);
+
+        const dialogFace = document.createElement('div');
+        dialogFace.style.padding = '32px';
+        dialogFace.innerHTML = contentHtml;
+        errorDialog.appendChild(dialogFace);
+
+
+        return new Promise(resolve => {
+            const close = () => {
+                resolve(false);
+            }
+            closeButton.onclick = close;
+            errorDialog.addEventListener('keydown', e => {
+                if (e.code === 'Escape') {
+                    close();
+                }
+            });
+
+            document.body.appendChild(errorDialog);
+            errorDialog.showModal();
+            closeButton.focus();
+        })
+            .finally(() => {
+                document.body.removeChild(errorDialog);
+                this.errorDialogOpened = false;
+            });
     }
 
     async connectSpreadsheetAppend(args) { return await this.connectFetch('SpreadsheetAppend', args); }
@@ -2493,16 +2560,9 @@ class ExtensionBlocks {
                 }
             };
             let url = window.DEBUG_AKADAKO_CONNECT_URL ? window.DEBUG_AKADAKO_CONNECT_URL : this.akaDakoConnectURL;
-            if (!document.cookie.includes(`${this.akaDakoConnectLimitCookieName}=`)) {
-                let token = [...Array(20)]
-                    .map(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-                         .charAt(Math.floor(Math.random()*62))).join("");
-                document.cookie =`${this.akaDakoConnectLimitCookieName}=${token}; Path=/; max-age=63072000; Secure`;
-            }
             return await(
                 fetch(url, {
                     mode: 'cors',
-                    credentials: "include",
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json"
@@ -2510,8 +2570,26 @@ class ExtensionBlocks {
                     body: JSON.stringify(body)
                 })
                     .then(response => response.json())
-                    .then(body => (typeof body["Ok"] !== 'undefined' && body["Ok"] !== null) ? body["Ok"]
-                          : ((typeof body["Err"] !== 'undefined' && body["Err"] !== null) ? body["Err"] : ''))
+                    .then(body => {
+                        if (typeof body["Ok"] !== 'undefined' && body["Ok"] !== null) {
+                            return body["Ok"];
+                        } else if(typeof body["Err"] === 'string') {
+                            return body["Err"];
+                        } else if(body["Err"] === null) {
+                            return '';
+                        } else if(typeof body["Err"] === 'object' &&
+                                  typeof body["Err"]["type"] !== 'undefined' &&
+                                  typeof body["Err"]["content"] !== 'undefined') {
+                            if (body["Err"]["type"] === 'text/html') {
+                                this.openErrorDialog(body["Err"]["content"]);
+                                return '';
+                            } else {
+                                return body["Err"]["content"];
+                            }
+                        } else {
+                            return '';
+                        }
+                    })
                     .catch(e => {
                         const msg = formatMessage({
                             id: 'g2s.connectCannotConnectServer',
@@ -3309,7 +3387,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetAppend',
-                        default: 'spreadsheet(β) append [VALUE] to URL [URL]',
+                        default: 'spreadsheet append [VALUE] to URL [URL]',
                         description: 'Append value to spreadsheet'
                     }),
                     arguments: {
@@ -3328,7 +3406,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetWrite',
-                        default: 'spreadsheet(β) write [VALUE] to URL [URL] at column [COLUMN], row [ROW]',
+                        default: 'spreadsheet write [VALUE] to URL [URL] at column [COLUMN], row [ROW]',
                         description: 'Write value to spreadsheet'
                     }),
                     arguments: {
@@ -3355,7 +3433,7 @@ class ExtensionBlocks {
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
                         id: 'g2s.connectSpreadsheetRead',
-                        default: 'spreadsheet(β) value at column [COLUMN], row [ROW] in URL [URL]',
+                        default: 'spreadsheet value at column [COLUMN], row [ROW] in URL [URL]',
                         description: 'Read value in spreadsheet'
                     }),
                     arguments: {
@@ -3379,7 +3457,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSendLine',
-                        default: 'LINE(β) send [MESSAGE] to token [DESTINATION]',
+                        default: 'LINE send [MESSAGE] to token [DESTINATION]',
                         description: 'send message by LINE'
                     }),
                     arguments: {
@@ -3398,7 +3476,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.connectSendMail',
-                        default: 'email(β) send [MESSAGE] to address [DESTINATION]',
+                        default: 'email send [MESSAGE] to address [DESTINATION]',
                         description: 'send message by email'
                     }),
                     arguments: {
