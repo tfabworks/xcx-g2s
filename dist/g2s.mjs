@@ -17330,7 +17330,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 }
 
                 _context8.next = 6;
-                return this._detectProtocol(timeout);
+                return this._detectProtocol();
 
               case 6:
                 this.protocol = _context8.sent;

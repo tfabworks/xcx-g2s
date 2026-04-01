@@ -46,7 +46,7 @@ var entry = {
   },
 
   extensionId: 'g2s',
-  extensionURL: 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs',
+  extensionURL: 'https://xcx-g2s.surge.sh/g2s.mjs',
   collaborator: 'TFabWorks',
   iconURL: img$2,
   insetIconURL: img$1,
@@ -15883,6 +15883,12 @@ var MidiDakoTransport = /*#__PURE__*/function (_EventEmitter) {
         return [0xA0, data[1], data[2]];
       }
 
+      if (data[0] === 0xF5) {
+        // set DigitalPinValue
+        // changed cause WebMIDI reserved status is not allowed [0xF5]
+        return [0xB0, data[1], data[2]];
+      }
+
       if (data[0] === 0xF0 && data[1] === 0x79) {
         // query firmware
         // do nothing cause the board freeze
@@ -16311,7 +16317,8 @@ var Firmata = firmata.Firmata;
 var BOARD_VERSION_QUERY = 0x0F;
 var ULTRASONIC_DISTANCE_QUERY = 0x01;
 var WATER_TEMPERATURE_QUERY = 0x02;
-var DEVICE_ENABLE = 0x03;
+var FIRMWARE_NAME_QUERY = 0x0D;
+var SLINK_ID = [0x00, 0x40, 0x08, 0x01];
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -16404,6 +16411,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
     _this.version = null;
     /**
+     * Protocol type of the connected board. 'slink' or 'legacy'.
+     * @type {string|null}
+     */
+
+    _this.protocol = null;
+    /**
      * The Scratch runtime to register event listeners.
      * @type {Runtime}
      * @private
@@ -16434,7 +16447,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
      * @type {number}
      */
 
-    _this.connectingWaitingTime = 1000;
+    _this.connectingWaitingTime = 5000;
     /**
      * shortest interval time between message sending
      * @type {number}
@@ -16540,19 +16553,37 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         _this2.handleDisconnectError(error);
       });
 
+
       firmata.clearSysexResponse(WATER_TEMPERATURE_QUERY);
       firmata.sysexResponse(WATER_TEMPERATURE_QUERY, function (data) {
-        var pin = data[0];
-        firmata.emit("water-temp-reply-".concat(pin), data.slice(1));
+        firmata.emit("water-temp-reply-".concat(data[0]), data.slice(1));
       });
       firmata.clearSysexResponse(ULTRASONIC_DISTANCE_QUERY);
       firmata.sysexResponse(ULTRASONIC_DISTANCE_QUERY, function (data) {
-        var pin = data[0];
-        firmata.emit("ultrasonic-distance-reply-".concat(pin), data.slice(1));
+        firmata.emit("ultrasonic-distance-reply-".concat(data[0]), data.slice(1));
       });
       firmata.clearSysexResponse(BOARD_VERSION_QUERY);
       firmata.sysexResponse(BOARD_VERSION_QUERY, function (data) {
-        firmata.emit("board-version-reply", data);
+        firmata.emit('board-version-reply-legacy', data);
+      }); // S-LINK unified response handler (SysEx type 0x00 = S-LINK entry point)
+      // Coexists with legacy handlers — different SysEx type bytes, no conflict
+
+      firmata.clearSysexResponse(0x00);
+      firmata.sysexResponse(0x00, function (data) {
+        // data = [0x40, 0x08, 0x01, CMD, ...payload]
+        if (data[0] !== 0x40 || data[1] !== 0x08 || data[2] !== 0x01) return;
+        var cmd = data[3];
+        var payload = data.slice(4);
+
+        if (cmd === ULTRASONIC_DISTANCE_QUERY) {
+          firmata.emit("ultrasonic-distance-reply-".concat(payload[0]), payload.slice(1));
+        } else if (cmd === WATER_TEMPERATURE_QUERY) {
+          firmata.emit("water-temp-reply-".concat(payload[0]), payload.slice(1));
+        } else if (cmd === BOARD_VERSION_QUERY) {
+          firmata.emit('board-version-reply-slink', payload);
+        } else if (cmd === FIRMWARE_NAME_QUERY) {
+          firmata.emit('firmware-name-reply', payload);
+        }
       });
       this.firmata = firmata;
     }
@@ -16630,7 +16661,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       var _connectSerial = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(options) {
         var _this3 = this;
 
-        var port, request;
+        var port, _getSettings, pins, analogPins, request;
+
         return regenerator.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -16650,30 +16682,43 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 5:
                 port = _context3.sent;
-                request = new Promise(function (resolve) {
+                _getSettings = getSettings(), pins = _getSettings.pins, analogPins = _getSettings.analogPins;
+                request = new Promise(function (resolve, reject) {
                   var firmata = new Firmata(port, {
-                    reportVersionTimeout: 500
+                    reportVersionTimeout: 500,
+                    skipCapabilities: true,
+                    pins: pins,
+                    analogPins: analogPins
                   }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
                     return regenerator.wrap(function _callee2$(_context2) {
                       while (1) {
                         switch (_context2.prev = _context2.next) {
                           case 0:
+                            _context2.prev = 0;
+
                             _this3.setupFirmata(firmata);
 
-                            _context2.next = 3;
+                            _context2.next = 4;
                             return _this3.boardVersion();
 
-                          case 3:
+                          case 4:
                             _this3.onBoardReady();
 
                             resolve(_this3);
+                            _context2.next = 11;
+                            break;
 
-                          case 5:
+                          case 8:
+                            _context2.prev = 8;
+                            _context2.t0 = _context2["catch"](0);
+                            reject(_context2.t0);
+
+                          case 11:
                           case "end":
                             return _context2.stop();
                         }
                       }
-                    }, _callee2);
+                    }, _callee2, null, [[0, 8]]);
                   })));
                 });
                 return _context3.abrupt("return", Promise.race([request, timeoutReject(this.connectingWaitingTime)]).catch(function (reason) {
@@ -16682,7 +16727,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   return Promise.reject(reason);
                 }));
 
-              case 8:
+              case 9:
               case "end":
                 return _context3.stop();
             }
@@ -16940,7 +16985,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       var _connectMIDI = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee7(filters) {
         var _this4 = this;
 
-        var port, request;
+        var port, _getSettings2, pins, analogPins, request;
+
         return regenerator.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
@@ -16960,11 +17006,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 5:
                 port = _context7.sent;
-                request = new Promise(function (resolve) {
-                  var _getSettings = getSettings(),
-                      pins = _getSettings.pins,
-                      analogPins = _getSettings.analogPins;
-
+                _getSettings2 = getSettings(), pins = _getSettings2.pins, analogPins = _getSettings2.analogPins;
+                request = new Promise(function (resolve, reject) {
                   var firmata = new Firmata(port, {
                     reportVersionTimeout: 500,
                     skipCapabilities: true,
@@ -16975,31 +17018,31 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                       while (1) {
                         switch (_context6.prev = _context6.next) {
                           case 0:
+                            _context6.prev = 0;
+
                             _this4.setupFirmata(firmata);
 
-                            _context6.next = 3;
+                            _context6.next = 4;
                             return _this4.boardVersion();
 
-                          case 3:
-                            firmata.firmware = {
-                              name: String(_this4.version.type),
-                              version: {
-                                major: _this4.version.major,
-                                minor: _this4.version.minor
-                              }
-                            };
-                            firmata.queryAnalogMapping(function () {
-                              _this4.onBoardReady();
+                          case 4:
+                            _this4.onBoardReady();
 
-                              resolve(_this4);
-                            });
+                            resolve(_this4);
+                            _context6.next = 11;
+                            break;
 
-                          case 5:
+                          case 8:
+                            _context6.prev = 8;
+                            _context6.t0 = _context6["catch"](0);
+                            reject(_context6.t0);
+
+                          case 11:
                           case "end":
                             return _context6.stop();
                         }
                       }
-                    }, _callee6);
+                    }, _callee6, null, [[0, 8]]);
                   }))); // make the firmata initialize
                   // firmata version is fixed for MidiDako
 
@@ -17015,7 +17058,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                   return Promise.reject(reason);
                 }));
 
-              case 8:
+              case 9:
               case "end":
                 return _context7.stop();
             }
@@ -17038,21 +17081,42 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: function onBoardReady() {
       var _this5 = this;
 
-      console.log("".concat(this.version.type, ".").concat(String(this.version.major), ".").concat(String(this.version.minor)) + " on: ".concat(JSON.stringify(this.portInfo)));
-      var digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM Tool
-      // Set up to report digital inputs.
+      console.log("[".concat(this.protocol, "] ").concat(this.version.type, ".").concat(String(this.version.major), ".").concat(String(this.version.minor)) + " on: ".concat(JSON.stringify(this.portInfo)));
 
-      digitalPins.forEach(function (pin) {
-        _this5.firmata.pinMode(pin, _this5.firmata.MODES.INPUT);
+      if (this.protocol === 'slink') {
+        // S-LINK pin setup
+        // 0xEn: n = pin number, so analogPins must map channel index = pin number
+        this.firmata.analogPins = [0, 1, 2, 3]; // ch0→pin0, ch1→pin1, ch3→pin3
 
-        _this5.firmata.reportDigitalPin(pin, 1);
-      });
-      this.firmata.analogPins.forEach(function (pin, analogIndex) {
-        _this5.firmata.pinMode(analogIndex, _this5.firmata.MODES.ANALOG);
+        var digitalPins = [9, 10, 11]; // motion sensor, digital A1, A2
 
-        _this5.firmata.reportAnalogPin(analogIndex, 1);
-      });
-      this.firmata.i2cConfig();
+        digitalPins.forEach(function (pin) {
+          _this5.firmata.pinMode(pin, _this5.firmata.MODES.INPUT);
+
+          _this5.firmata.reportDigitalPin(pin, 1);
+        }); // Analog values are auto-sent by S-LINK device — no reportAnalogPin needed
+
+        [0, 1, 3].forEach(function (pin) {
+          _this5.firmata.pinMode(pin, _this5.firmata.MODES.ANALOG);
+        });
+      } else {
+        // Legacy pin setup
+        var _digitalPins = [6, 9, 10, 11]; // Pin config is fixed at least to STEAM Tool
+
+        _digitalPins.forEach(function (pin) {
+          _this5.firmata.pinMode(pin, _this5.firmata.MODES.INPUT);
+
+          _this5.firmata.reportDigitalPin(pin, 1);
+        });
+
+        this.firmata.analogPins.forEach(function (pin, analogIndex) {
+          _this5.firmata.pinMode(analogIndex, _this5.firmata.MODES.ANALOG);
+
+          _this5.firmata.reportAnalogPin(analogIndex, 1);
+        });
+        this.firmata.i2cConfig();
+      }
+
       this.state = 'ready';
       this.emit('ready');
     }
@@ -17084,6 +17148,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
     key: "releaseBoard",
     value: function releaseBoard() {
       this.state = 'disconnect';
+      this.protocol = null;
+      this.version = null;
       this.neoPixel = [];
 
       if (this.firmata) {
@@ -17146,30 +17212,85 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       this.disconnect();
     }
     /**
-     * Query the version information of the connected board and set the version data.
-     *
-     * @param {?number} timeout - waiting time for the response
-     * @returns {Promise<string>} A Promise which resolves version info.
+     * Detect the protocol by sending S-LINK Firmware Name Query.
+     * Old devices do not respond (documented in S-LINK spec), causing timeout → 'legacy'.
+     * @param {number} timeout - waiting time for the response
+     * @returns {Promise<'slink'|'legacy'>}
      */
 
   }, {
-    key: "boardVersion",
-    value: function boardVersion(timeout) {
+    key: "_detectProtocol",
+    value: function _detectProtocol() {
       var _this6 = this;
 
-      if (this.version) return Promise.resolve("".concat(this.version.type, ".").concat(this.version.major, ".").concat(this.version.minor));
+      var timeout = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 400;
+      return new Promise(function (resolve) {
+        var timer = setTimeout(function () {
+          _this6.firmata.removeAllListeners('firmware-name-reply');
+
+          resolve('legacy');
+        }, timeout);
+
+        _this6.firmata.once('firmware-name-reply', function () {
+          clearTimeout(timer);
+          resolve('slink');
+        });
+
+        _this6.firmata.sysexCommand([].concat(SLINK_ID, [FIRMWARE_NAME_QUERY]));
+      });
+    }
+    /**
+     * Query version from S-LINK device (4-byte 7bit-encoded 32bit value).
+     * @param {number} timeout
+     * @returns {Promise<string>}
+     */
+
+  }, {
+    key: "_boardVersionSlink",
+    value: function _boardVersionSlink(timeout) {
+      var _this7 = this;
+
       var firmata = this.firmata;
-      timeout = timeout ? timeout : this.boardVersionWaitingTime;
-      var event = "board-version-reply";
+      var event = 'board-version-reply-slink';
       var request = new Promise(function (resolve) {
         firmata.once(event, function (data) {
-          var value = Firmata.decode([data[0], data[1]]);
-          _this6.version = {
+          var value = data[0] | data[1] << 7 | data[2] << 14 | data[3] << 21;
+          _this7.version = {
             type: value >> 10 & 0x0F,
             major: value >> 6 & 0x0F,
             minor: value & 0x3F
           };
-          resolve("".concat(_this6.version.type, ".").concat(_this6.version.major, ".").concat(_this6.version.minor));
+          resolve("".concat(_this7.version.type, ".").concat(_this7.version.major, ".").concat(_this7.version.minor));
+        });
+        firmata.sysexCommand([].concat(SLINK_ID, [BOARD_VERSION_QUERY]));
+      });
+      return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
+        firmata.removeAllListeners(event);
+        return Promise.reject(reason);
+      });
+    }
+    /**
+     * Query version from legacy device (2-byte 7bit-encoded 14bit value).
+     * @param {number} timeout
+     * @returns {Promise<string>}
+     */
+
+  }, {
+    key: "_boardVersionLegacy",
+    value: function _boardVersionLegacy(timeout) {
+      var _this8 = this;
+
+      var firmata = this.firmata;
+      var event = 'board-version-reply-legacy';
+      var request = new Promise(function (resolve) {
+        firmata.once(event, function (data) {
+          var value = Firmata.decode([data[0], data[1]]);
+          _this8.version = {
+            type: value >> 10 & 0x0F,
+            major: value >> 6 & 0x0F,
+            minor: value & 0x3F
+          };
+          resolve("".concat(_this8.version.type, ".").concat(_this8.version.major, ".").concat(_this8.version.minor));
         });
         firmata.sysexCommand([BOARD_VERSION_QUERY]);
       });
@@ -17179,25 +17300,82 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       });
     }
     /**
-     * Enable a device on the board.
-     *
-     * @param {number} deviceID ID to be enabled.
-     * @returns {Promise} A Promise which resolves when the message was sent.
+     * Detect protocol and query version information of the connected board.
+     * Sets this.protocol ('slink' or 'legacy') and this.version.
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<string>} A Promise which resolves version info.
      */
 
   }, {
-    key: "enableDevice",
-    value: function enableDevice(deviceID) {
-      var _this7 = this;
+    key: "boardVersion",
+    value: function () {
+      var _boardVersion = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(timeout) {
+        return regenerator.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                if (!this.version) {
+                  _context8.next = 2;
+                  break;
+                }
 
-      var message = [DEVICE_ENABLE, deviceID];
-      return new Promise(function (resolve) {
-        _this7.firmata.sysexCommand(message);
+                return _context8.abrupt("return", "".concat(this.version.type, ".").concat(this.version.major, ".").concat(this.version.minor));
 
-        setTimeout(function () {
-          return resolve();
-        }, _this7.sendingInterval);
-      });
+              case 2:
+                timeout = timeout ? timeout : this.boardVersionWaitingTime;
+
+                if (this.protocol) {
+                  _context8.next = 7;
+                  break;
+                }
+
+                _context8.next = 6;
+                return this._detectProtocol();
+
+              case 6:
+                this.protocol = _context8.sent;
+
+              case 7:
+                if (!(this.protocol === 'slink')) {
+                  _context8.next = 9;
+                  break;
+                }
+
+                return _context8.abrupt("return", this._boardVersionSlink(timeout));
+
+              case 9:
+                return _context8.abrupt("return", this._boardVersionLegacy(timeout));
+
+              case 10:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function boardVersion(_x7) {
+        return _boardVersion.apply(this, arguments);
+      }
+
+      return boardVersion;
+    }()
+    /**
+     * Send a SysEx command in the protocol-appropriate format.
+     * @param {number} cmd - Command ID
+     * @param {number[]} data - Data bytes
+     */
+
+  }, {
+    key: "_sysexSend",
+    value: function _sysexSend(cmd) {
+      var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+      if (this.protocol === 'slink') {
+        this.firmata.sysexCommand([].concat(SLINK_ID, [cmd], _toConsumableArray(data)));
+      } else {
+        this.firmata.sysexCommand([cmd].concat(_toConsumableArray(data)));
+      }
     }
     /**
      * Asks the board to set the pin to a certain mode.
@@ -17233,15 +17411,15 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "setInputBias",
     value: function setInputBias(pin, pullUp) {
-      var _this8 = this;
+      var _this9 = this;
 
       this.pins[pin].inputBias = pullUp ? this.MODES.PULLUP : this.MODES.INPUT;
       return new Promise(function (resolve) {
-        _this8.pinMode(pin, _this8.pins[pin].inputBias);
+        _this9.pinMode(pin, _this9.pins[pin].inputBias);
 
         setTimeout(function () {
           return resolve();
-        }, _this8.sendingInterval);
+        }, _this9.sendingInterval);
       });
     }
     /**
@@ -17268,24 +17446,24 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "digitalWrite",
     value: function digitalWrite(pin, value, enqueue) {
-      var _this9 = this;
+      var _this10 = this;
 
       if (this.firmata.pins[pin].value === value) {
         // to avoid chattering of the relay
         return new Promise(function (resolve) {
           setTimeout(function () {
             return resolve();
-          }, _this9.sendingInterval);
+          }, _this10.sendingInterval);
         });
       }
 
       this.firmata.pinMode(pin, this.firmata.MODES.OUTPUT);
       return new Promise(function (resolve) {
-        _this9.firmata.digitalWrite(pin, value, enqueue);
+        _this10.firmata.digitalWrite(pin, value, enqueue);
 
         setTimeout(function () {
           return resolve();
-        }, _this9.sendingInterval);
+        }, _this10.sendingInterval);
       });
     }
     /**
@@ -17298,14 +17476,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "pwmWrite",
     value: function pwmWrite(pin, value) {
-      var _this10 = this;
+      var _this11 = this;
 
       return new Promise(function (resolve) {
-        _this10.firmata.pwmWrite(pin, value);
+        _this11.firmata.pwmWrite(pin, value);
 
         setTimeout(function () {
           return resolve();
-        }, _this10.sendingInterval);
+        }, _this11.sendingInterval);
       });
     }
     /**
@@ -17344,20 +17522,20 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "servoWrite",
     value: function servoWrite() {
-      var _this11 = this;
+      var _this12 = this;
 
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
       return new Promise(function (resolve) {
-        var _this11$firmata;
+        var _this12$firmata;
 
-        (_this11$firmata = _this11.firmata).servoWrite.apply(_this11$firmata, args);
+        (_this12$firmata = _this12.firmata).servoWrite.apply(_this12$firmata, args);
 
         setTimeout(function () {
           return resolve();
-        }, _this11.sendingInterval);
+        }, _this12.sendingInterval);
       });
     }
     /**
@@ -17371,14 +17549,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "i2cWrite",
     value: function i2cWrite(address, register, inBytes) {
-      var _this12 = this;
+      var _this13 = this;
 
       return new Promise(function (resolve) {
-        _this12.firmata.i2cWrite(address, register, inBytes);
+        _this13.firmata.i2cWrite(address, register, inBytes);
 
         setTimeout(function () {
           return resolve();
-        }, _this12.sendingInterval);
+        }, _this13.sendingInterval);
       });
     }
     /**
@@ -17414,14 +17592,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "sendOneWireReset",
     value: function sendOneWireReset(pin) {
-      var _this13 = this;
+      var _this14 = this;
 
       return new Promise(function (resolve) {
-        _this13.firmata.sendOneWireReset(pin);
+        _this14.firmata.sendOneWireReset(pin);
 
         setTimeout(function () {
           return resolve();
-        }, _this13.sendingInterval);
+        }, _this14.sendingInterval);
       });
     }
     /**
@@ -17433,27 +17611,27 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "searchOneWireDevices",
     value: function searchOneWireDevices(pin) {
-      var _this14 = this;
+      var _this15 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this14.firmata.pins[pin].mode !== _this14.firmata.MODES.ONEWIRE) {
-          _this14.firmata.sendOneWireConfig(pin, true);
+        if (_this15.firmata.pins[pin].mode !== _this15.firmata.MODES.ONEWIRE) {
+          _this15.firmata.sendOneWireConfig(pin, true);
 
-          return _this14.firmata.sendOneWireSearch(pin, function (error, founds) {
+          return _this15.firmata.sendOneWireSearch(pin, function (error, founds) {
             if (error) return reject(error);
             if (founds.length < 1) return reject(new Error('no device'));
 
-            _this14.firmata.pinMode(pin, _this14.firmata.MODES.ONEWIRE);
+            _this15.firmata.pinMode(pin, _this15.firmata.MODES.ONEWIRE);
 
-            _this14.oneWireDevices = founds;
+            _this15.oneWireDevices = founds;
 
-            _this14.firmata.sendOneWireDelay(pin, 1);
+            _this15.firmata.sendOneWireDelay(pin, 1);
 
-            resolve(_this14.oneWireDevices);
+            resolve(_this15.oneWireDevices);
           });
         }
 
-        resolve(_this14.oneWireDevices);
+        resolve(_this15.oneWireDevices);
       });
     }
     /**
@@ -17466,10 +17644,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWrite",
     value: function oneWireWrite(pin, data) {
-      var _this15 = this;
+      var _this16 = this;
 
       return this.searchOneWireDevices(pin).then(function (devices) {
-        _this15.firmata.sendOneWireWrite(pin, devices[0], data);
+        _this16.firmata.sendOneWireWrite(pin, devices[0], data);
       });
     }
     /**
@@ -17483,12 +17661,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireRead",
     value: function oneWireRead(pin, length, timeout) {
-      var _this16 = this;
+      var _this17 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this16.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
+          _this17.firmata.sendOneWireRead(pin, devices[0], length, function (readError, data) {
             if (readError) return reject(readError);
             resolve(data);
           });
@@ -17508,12 +17686,12 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "oneWireWriteAndRead",
     value: function oneWireWriteAndRead(pin, data, readLength, timeout) {
-      var _this17 = this;
+      var _this18 = this;
 
       timeout = timeout ? timeout : this.oneWireReadWaitingTime;
       var request = this.searchOneWireDevices(pin).then(function (devices) {
         return new Promise(function (resolve, reject) {
-          _this17.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
+          _this18.firmata.sendOneWireWriteAndRead(pin, devices[0], data, readLength, function (readError, readData) {
             if (readError) return reject(readError);
             resolve(readData);
           });
@@ -17531,7 +17709,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelConfigStrip",
     value: function neoPixelConfigStrip(pin, length) {
-      var _this18 = this;
+      var _this19 = this;
 
       this.pins[pin].mode = nodePixelConstants.PIXEL_COMMAND;
       var oldStrip = this.neoPixel.find(function (aStrip) {
@@ -17555,9 +17733,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
         });
       }
 
-      var message = [];
-      message[0] = nodePixelConstants.PIXEL_COMMAND;
-      message[1] = nodePixelConstants.PIXEL_CONFIG;
+      var payload = [nodePixelConstants.PIXEL_CONFIG];
 
       var _iterator2 = _createForOfIteratorHelper$2(this.neoPixel),
           _step2;
@@ -17565,9 +17741,9 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var aStrip = _step2.value;
-          message.push(nodePixelConstants.COLOR_ORDER.GRB << 5 | aStrip.pin);
-          message.push(aStrip.length & nodePixelConstants.FIRMATA_7BIT_MASK);
-          message.push(aStrip.length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK);
+          payload.push(nodePixelConstants.COLOR_ORDER.GRB << 5 | aStrip.pin);
+          payload.push(aStrip.length & nodePixelConstants.FIRMATA_7BIT_MASK);
+          payload.push(aStrip.length >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK);
         }
       } catch (err) {
         _iterator2.e(err);
@@ -17576,7 +17752,7 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
       }
 
       return this.neoPixelThrottledQueue(function () {
-        _this18.firmata.sysexCommand(message);
+        _this19._sysexSend(nodePixelConstants.PIXEL_COMMAND, payload);
       });
     }
     /**
@@ -17592,8 +17768,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelSetColor",
     value: function () {
-      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee8(pin, color) {
-        var _this19 = this;
+      var _neoPixelSetColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(pin, color) {
+        var _this20 = this;
 
         var index,
             address,
@@ -17603,14 +17779,14 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
             aStrip,
             strip,
             colorValue,
-            message,
-            _args8 = arguments;
+            payload,
+            _args9 = arguments;
 
-        return regenerator.wrap(function _callee8$(_context8) {
+        return regenerator.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                index = _args8.length > 2 && _args8[2] !== undefined ? _args8[2] : 0;
+                index = _args9.length > 2 && _args9[2] !== undefined ? _args9[2] : 0;
                 address = 0;
                 prevStrip = true;
                 _iterator3 = _createForOfIteratorHelper$2(this.neoPixel);
@@ -17635,11 +17811,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 }
 
                 if (!prevStrip) {
-                  _context8.next = 8;
+                  _context9.next = 8;
                   break;
                 }
 
-                _context8.next = 8;
+                _context9.next = 8;
                 return this.neoPixelConfigStrip(pin, this.defaultNeoPixelLength);
 
               case 8:
@@ -17649,28 +17825,20 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
                 strip.colors = strip.colors || Array(strip.length);
                 strip.colors[index] = color;
                 colorValue = neoPixelColorValue(color, neoPixelGammaTable);
-                message = new Array(8);
-                message[0] = nodePixelConstants.PIXEL_COMMAND;
-                message[1] = nodePixelConstants.PIXEL_SET_PIXEL;
-                message[2] = address & nodePixelConstants.FIRMATA_7BIT_MASK;
-                message[3] = address >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                message[4] = colorValue & nodePixelConstants.FIRMATA_7BIT_MASK;
-                message[5] = colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                message[6] = colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                message[7] = colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK;
-                return _context8.abrupt("return", this.neoPixelThrottledQueue(function () {
-                  _this19.firmata.sysexCommand(message);
+                payload = [nodePixelConstants.PIXEL_SET_PIXEL, address & nodePixelConstants.FIRMATA_7BIT_MASK, address >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK, colorValue & nodePixelConstants.FIRMATA_7BIT_MASK, colorValue >> 7 & nodePixelConstants.FIRMATA_7BIT_MASK, colorValue >> 14 & nodePixelConstants.FIRMATA_7BIT_MASK, colorValue >> 21 & nodePixelConstants.FIRMATA_7BIT_MASK];
+                return _context9.abrupt("return", this.neoPixelThrottledQueue(function () {
+                  _this20._sysexSend(nodePixelConstants.PIXEL_COMMAND, payload);
                 }));
 
-              case 22:
+              case 14:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
-      function neoPixelSetColor(_x7, _x8) {
+      function neoPixelSetColor(_x8, _x9) {
         return _neoPixelSetColor.apply(this, arguments);
       }
 
@@ -17688,11 +17856,11 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelFillColor",
     value: function () {
-      var _neoPixelFillColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee9(pin, colorMapFn) {
+      var _neoPixelFillColor = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(pin, colorMapFn) {
         var strip, length, oldColors, newColors, index, color;
-        return regenerator.wrap(function _callee9$(_context9) {
+        return regenerator.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 strip = this.neoPixel.find(function (aStrip) {
                   return aStrip.pin === pin;
@@ -17713,34 +17881,34 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
 
               case 7:
                 if (!(index < length)) {
-                  _context9.next = 15;
+                  _context10.next = 15;
                   break;
                 }
 
                 color = newColors[index];
 
                 if (!(color != null)) {
-                  _context9.next = 12;
+                  _context10.next = 12;
                   break;
                 }
 
-                _context9.next = 12;
+                _context10.next = 12;
                 return this.neoPixelSetColor(pin, color, index);
 
               case 12:
                 index++;
-                _context9.next = 7;
+                _context10.next = 7;
                 break;
 
               case 15:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
 
-      function neoPixelFillColor(_x9, _x10) {
+      function neoPixelFillColor(_x10, _x11) {
         return _neoPixelFillColor.apply(this, arguments);
       }
 
@@ -17754,29 +17922,29 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClear",
     value: function () {
-      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee10(pin) {
-        return regenerator.wrap(function _callee10$(_context10) {
+      var _neoPixelClear = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11(pin) {
+        return regenerator.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                _context10.next = 2;
+                _context11.next = 2;
                 return this.neoPixelFillColor(pin, function () {
                   return [0, 0, 0];
                 });
 
               case 2:
-                _context10.next = 4;
+                _context11.next = 4;
                 return this.neoPixelShow();
 
               case 4:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee11, this);
       }));
 
-      function neoPixelClear(_x11) {
+      function neoPixelClear(_x12) {
         return _neoPixelClear.apply(this, arguments);
       }
 
@@ -17790,61 +17958,61 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelClearAll",
     value: function () {
-      var _neoPixelClearAll = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee11() {
+      var _neoPixelClearAll = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee12() {
         var _iterator4, _step4, aStrip;
 
-        return regenerator.wrap(function _callee11$(_context11) {
+        return regenerator.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 _iterator4 = _createForOfIteratorHelper$2(this.neoPixel);
-                _context11.prev = 1;
+                _context12.prev = 1;
 
                 _iterator4.s();
 
               case 3:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context11.next = 9;
+                  _context12.next = 9;
                   break;
                 }
 
                 aStrip = _step4.value;
-                _context11.next = 7;
+                _context12.next = 7;
                 return this.neoPixelFillColor(aStrip.pin, function () {
                   return [0, 0, 0];
                 });
 
               case 7:
-                _context11.next = 3;
+                _context12.next = 3;
                 break;
 
               case 9:
-                _context11.next = 14;
+                _context12.next = 14;
                 break;
 
               case 11:
-                _context11.prev = 11;
-                _context11.t0 = _context11["catch"](1);
+                _context12.prev = 11;
+                _context12.t0 = _context12["catch"](1);
 
-                _iterator4.e(_context11.t0);
+                _iterator4.e(_context12.t0);
 
               case 14:
-                _context11.prev = 14;
+                _context12.prev = 14;
 
                 _iterator4.f();
 
-                return _context11.finish(14);
+                return _context12.finish(14);
 
               case 17:
-                _context11.next = 19;
+                _context12.next = 19;
                 return this.neoPixelShow();
 
               case 19:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, this, [[1, 11, 14, 17]]);
+        }, _callee12, this, [[1, 11, 14, 17]]);
       }));
 
       function neoPixelClearAll() {
@@ -17861,13 +18029,10 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "neoPixelShow",
     value: function neoPixelShow() {
-      var _this20 = this;
+      var _this21 = this;
 
-      var message = new Array(2);
-      message[0] = nodePixelConstants.PIXEL_COMMAND;
-      message[1] = nodePixelConstants.PIXEL_SHOW;
       return this.neoPixelThrottledQueue(function () {
-        _this20.firmata.sysexCommand(message);
+        _this21._sysexSend(nodePixelConstants.PIXEL_COMMAND, [nodePixelConstants.PIXEL_SHOW]);
       });
     }
     /**
@@ -17908,6 +18073,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "getDistanceByUltrasonic",
     value: function getDistanceByUltrasonic(pin, timeout) {
+      var _this22 = this;
+
       var firmata = this.firmata;
       timeout = timeout ? timeout : this.ultrasonicDistanceWaitingTime;
       firmata.pinMode(pin, firmata.MODES.PING_READ);
@@ -17918,7 +18085,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
           var value = decodeInt16FromTwo7bitBytes(data);
           resolve(value);
         });
-        firmata.sysexCommand([ULTRASONIC_DISTANCE_QUERY, pin]);
+
+        _this22._sysexSend(ULTRASONIC_DISTANCE_QUERY, [pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
         firmata.removeAllListeners(event);
@@ -17935,6 +18103,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "getWaterTemp",
     value: function getWaterTemp(pin, timeout) {
+      var _this23 = this;
+
       var firmata = this.firmata;
       timeout = timeout ? timeout : this.getWaterTempWaitingTime;
       var event = "water-temp-reply-".concat(pin);
@@ -17944,7 +18114,8 @@ var AkaDakoBoard = /*#__PURE__*/function (_EventEmitter) {
           var value = decodeInt16FromTwo7bitBytes(data);
           resolve(value);
         });
-        firmata.sysexCommand([WATER_TEMPERATURE_QUERY, pin]);
+
+        _this23._sysexSend(WATER_TEMPERATURE_QUERY, [pin]);
       });
       return Promise.race([request, timeoutReject(timeout)]).catch(function (reason) {
         firmata.removeAllListeners(event);
@@ -25561,7 +25732,7 @@ var EXTENSION_ID = 'g2s';
  * @type {string}
  */
 
-var extensionURL = 'https://tfabworks.github.io/xcx-g2s/dist/g2s.mjs';
+var extensionURL = 'https://xcx-g2s.surge.sh/g2s.mjs';
 /**
  * States the video sensing activity can be set to.
  * @readonly
