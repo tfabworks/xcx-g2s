@@ -27,6 +27,16 @@ const WATER_TEMPERATURE_QUERY = 0x02;
 
 const DEVICE_ENABLE = 0x03;
 
+const FIRMWARE_NAME_QUERY = 0x0D;
+
+/**
+ * S-LINK v1.1 SysEx header (Manufacturer ID + Protocol Version).
+ * V1.1 wraps every proprietary request/response as F0 00 40 08 01 (CMD) (Data) F7.
+ * V1.0 (legacy) uses F0 (CMD) (Data) F7 without this prefix.
+ * @type {Array<number>}
+ */
+const SLINK_ID = [0x00, 0x40, 0x08, 0x01];
+
 /**
  * Returns a Promise which will reject after the delay time passed.
  * @param {number} delay - waiting time to reject in milliseconds
@@ -198,6 +208,12 @@ class AkaDakoBoard extends EventEmitter {
         this.version = null;
 
         /**
+         * Detected SysEx protocol: 'slink' (v1.1) or 'legacy' (v1.0).
+         * @type {?string}
+         */
+        this.protocol = null;
+
+        /**
          * The Scratch runtime to register event listeners.
          * @type {Runtime}
          * @private
@@ -225,9 +241,10 @@ class AkaDakoBoard extends EventEmitter {
 
         /**
          * Waiting time to connect the board in milliseconds.
+         * Allow for S-LINK protocol detection (400ms) + version query (200ms) plus margin.
          * @type {number}
          */
-        this.connectingWaitingTime = 1000;
+        this.connectingWaitingTime = 5000;
 
         /**
          * shortest interval time between message sending
@@ -334,6 +351,7 @@ class AkaDakoBoard extends EventEmitter {
                 console.log(data);
             });
         }
+        // Legacy protocol (S-LINK v1.0) response handlers: F0 (CMD) (Data) F7
         firmata.clearSysexResponse(WATER_TEMPERATURE_QUERY);
         firmata.sysexResponse(WATER_TEMPERATURE_QUERY, data => {
             const pin = data[0];
@@ -346,11 +364,34 @@ class AkaDakoBoard extends EventEmitter {
         });
         firmata.clearSysexResponse(BOARD_VERSION_QUERY);
         firmata.sysexResponse(BOARD_VERSION_QUERY, data => {
-            firmata.emit(`board-version-reply`, data);
+            firmata.emit(`board-version-reply-legacy`, data);
         });
         firmata.clearSysexResponse(BOARD_UID_QUERY);
         firmata.sysexResponse(BOARD_UID_QUERY, data => {
             firmata.emit(`board-uid-reply`, data);
+        });
+
+        // S-LINK v1.1 response handler.
+        // V1.1 responses are F0 00 40 08 01 (CMD) (Data) F7, dispatched under command 0x00.
+        // The data passed here is [0x40, 0x08, 0x01, CMD, ...payload] (0x00 already consumed).
+        firmata.clearSysexResponse(0x00);
+        firmata.sysexResponse(0x00, data => {
+            if (data[0] !== 0x40 || data[1] !== 0x08 || data[2] !== 0x01) return;
+            const cmd = data[3];
+            const payload = data.slice(4);
+            if (cmd === WATER_TEMPERATURE_QUERY) {
+                const pin = payload[0];
+                firmata.emit(`water-temp-reply-${pin}`, payload.slice(1));
+            } else if (cmd === ULTRASONIC_DISTANCE_QUERY) {
+                const pin = payload[0];
+                firmata.emit(`ultrasonic-distance-reply-${pin}`, payload.slice(1));
+            } else if (cmd === BOARD_VERSION_QUERY) {
+                firmata.emit(`board-version-reply-slink`, payload);
+            } else if (cmd === BOARD_UID_QUERY) {
+                firmata.emit(`board-uid-reply`, payload);
+            } else if (cmd === FIRMWARE_NAME_QUERY) {
+                firmata.emit(`firmware-name-reply`, payload);
+            }
         });
         this.firmata = firmata;
     }
@@ -496,10 +537,11 @@ class AkaDakoBoard extends EventEmitter {
                             minor: this.version.minor
                         }
                     };
-                    firmata.queryAnalogMapping(() => {
-                        this.onBoardReady();
-                        resolve(this);
-                    });
+                    // Do not call queryAnalogMapping: S-LINK hardware does not reply to it
+                    // and the connection would stall. analogPins are supplied via the
+                    // Firmata constructor settings above instead.
+                    this.onBoardReady();
+                    resolve(this);
                 });
                 // make the firmata initialize
                 // firmata version is fixed for MidiDako
@@ -575,6 +617,9 @@ class AkaDakoBoard extends EventEmitter {
 
         this.oneWireDevices = null;
         this.extensionId = null;
+        // Reset so the protocol/version are re-detected on the next connection.
+        this.protocol = null;
+        this.version = null;
         this.emit('disconnect');
         this.emit(AkaDakoBoard.RELEASED);
     }
@@ -614,27 +659,97 @@ class AkaDakoBoard extends EventEmitter {
     }
 
     /**
-     * Query the version information of the connected board and set the version data.
+     * Send a SysEx command using the framing of the detected protocol.
+     * - slink: F0 00 40 08 01 (cmd) (data...) F7
+     * - legacy: F0 (cmd) (data...) F7
+     * Falls back to legacy framing when the protocol has not been detected yet.
      *
-     * @param {?number} timeout - waiting time for the response
+     * @param {number} cmd - command byte
+     * @param {Array<number>} [data] - payload bytes
+     * @returns {undefined}
+     */
+    _sysexSend (cmd, data = []) {
+        if (this.protocol === 'slink') {
+            this.firmata.sysexCommand([...SLINK_ID, cmd, ...data]);
+        } else {
+            this.firmata.sysexCommand([cmd, ...data]);
+        }
+    }
+
+    /**
+     * Detect the SysEx protocol by sending an S-LINK v1.1 firmware name query.
+     * A reply means the board speaks 'slink'; a timeout means 'legacy' (v1.0).
+     *
+     * @param {number} [timeout=400] - waiting time for the response in milliseconds
+     * @returns {Promise<string>} A Promise which resolves 'slink' or 'legacy'.
+     */
+    _detectProtocol (timeout = 400) {
+        const firmata = this.firmata;
+        if (!firmata) return Promise.reject('disconnected');
+        return new Promise(resolve => {
+            const timer = setTimeout(() => {
+                firmata.removeAllListeners(`firmware-name-reply`);
+                resolve('legacy');
+            }, timeout);
+            firmata.once(`firmware-name-reply`, () => {
+                clearTimeout(timer);
+                resolve('slink');
+            });
+            firmata.sysexCommand([...SLINK_ID, FIRMWARE_NAME_QUERY]);
+        });
+    }
+
+    /**
+     * Read the board version using the S-LINK v1.1 response format.
+     * The payload is a 32bit value encoded as four 7bit bytes.
+     *
+     * @param {number} timeout - waiting time for the response in milliseconds
      * @returns {Promise<string>} A Promise which resolves version info.
      */
-    boardVersion (timeout) {
-        if (this.version) return Promise.resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
+    _boardVersionSlink (timeout) {
         const firmata = this.firmata;
-        timeout = timeout ? timeout : this.boardVersionWaitingTime;
-        const event = `board-version-reply`;
+        if (!firmata) return Promise.reject('disconnected');
+        const event = `board-version-reply-slink`;
         const request = new Promise(resolve => {
-            firmata.once(event,
-                data => {
-                    const value = Firmata.decode([data[0], data[1]]);
-                    this.version = {
-                        type: (value >> 10) & 0x0F,
-                        major: (value >> 6) & 0x0F,
-                        minor: value & 0x3F
-                    };
-                    resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
-                });
+            firmata.once(event, data => {
+                const value = data[0] | (data[1] << 7) | (data[2] << 14) | (data[3] << 21);
+                this.version = {
+                    type: (value >> 10) & 0x0F,
+                    major: (value >> 6) & 0x0F,
+                    minor: value & 0x3F
+                };
+                resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
+            });
+            firmata.sysexCommand([...SLINK_ID, BOARD_VERSION_QUERY]);
+        });
+        return Promise.race([request, timeoutReject(timeout)])
+            .catch(reason => {
+                firmata.removeAllListeners(event);
+                return Promise.reject(reason);
+            });
+    }
+
+    /**
+     * Read the board version using the legacy (S-LINK v1.0) response format.
+     * The payload is a 14bit value encoded as two 7bit bytes.
+     *
+     * @param {number} timeout - waiting time for the response in milliseconds
+     * @returns {Promise<string>} A Promise which resolves version info.
+     */
+    _boardVersionLegacy (timeout) {
+        const firmata = this.firmata;
+        if (!firmata) return Promise.reject('disconnected');
+        const event = `board-version-reply-legacy`;
+        const request = new Promise(resolve => {
+            firmata.once(event, data => {
+                const value = Firmata.decode([data[0], data[1]]);
+                this.version = {
+                    type: (value >> 10) & 0x0F,
+                    major: (value >> 6) & 0x0F,
+                    minor: value & 0x3F
+                };
+                resolve(`${this.version.type}.${this.version.major}.${this.version.minor}`);
+            });
             firmata.sysexCommand([BOARD_VERSION_QUERY]);
         });
         return Promise.race([request, timeoutReject(timeout)])
@@ -642,6 +757,27 @@ class AkaDakoBoard extends EventEmitter {
                 firmata.removeAllListeners(event);
                 return Promise.reject(reason);
             });
+    }
+
+    /**
+     * Detect the protocol then query the version information of the connected
+     * board with the matching SysEx format and set the version data.
+     *
+     * @param {?number} timeout - waiting time for the response
+     * @returns {Promise<string>} A Promise which resolves version info.
+     */
+    async boardVersion (timeout) {
+        if (this.version) return `${this.version.type}.${this.version.major}.${this.version.minor}`;
+        timeout = timeout ? timeout : this.boardVersionWaitingTime;
+        if (!this.protocol) {
+            this.protocol = await this._detectProtocol();
+            // Abort if the board was disconnected while detecting the protocol.
+            if (!this.firmata) return Promise.reject('disconnected');
+        }
+        if (this.protocol === 'slink') {
+            return this._boardVersionSlink(timeout);
+        }
+        return this._boardVersionLegacy(timeout);
     }
 
     /**
@@ -656,13 +792,12 @@ class AkaDakoBoard extends EventEmitter {
             if (!isSignedUidSupportVersion(this.version)) {
                 return Promise.resolve([]);
             } else {
-                let query = [BOARD_UID_QUERY].concat(encode7bitBytes(challenge));
                 const firmata = this.firmata;
                 timeout = timeout ? timeout : this.boardUidWaitingTime;
                 const event = `board-uid-reply`;
                 const request = new Promise(resolve => {
                     firmata.once(event, data => resolve(decode7bitBytes(data)));
-                    firmata.sysexCommand(query);
+                    this._sysexSend(BOARD_UID_QUERY, encode7bitBytes(challenge));
                 });
                 return Promise.race([request, timeoutReject(timeout)])
                     .catch(reason => {
@@ -681,16 +816,14 @@ class AkaDakoBoard extends EventEmitter {
      */
     boardUid (timeout) {
         return this.boardVersion().then(version => {
-            let query = [BOARD_UID_QUERY].concat(
-                isSignedUidSupportVersion(this.version) ?
-                    encode7bitBytes([0,0,0,0,0,0,0,0]) : []
-            );
+            const challenge = isSignedUidSupportVersion(this.version) ?
+                encode7bitBytes([0,0,0,0,0,0,0,0]) : [];
             const firmata = this.firmata;
             timeout = timeout ? timeout : this.boardUidWaitingTime;
             const event = `board-uid-reply`;
             const request = new Promise(resolve => {
                 firmata.once(event, data => resolve(decode7bitBytes(data)));
-                firmata.sysexCommand(query);
+                this._sysexSend(BOARD_UID_QUERY, challenge);
             });
             return Promise.race([request, timeoutReject(timeout)])
                 .then(data => {
@@ -710,9 +843,8 @@ class AkaDakoBoard extends EventEmitter {
      * @returns {Promise} A Promise which resolves when the message was sent.
      */
     enableDevice (deviceID) {
-        const message = [DEVICE_ENABLE, deviceID];
         return new Promise(resolve => {
-            this.firmata.sysexCommand(message);
+            this._sysexSend(DEVICE_ENABLE, [deviceID]);
             setTimeout(() => resolve(), this.sendingInterval);
         });
     }
@@ -1130,7 +1262,7 @@ class AkaDakoBoard extends EventEmitter {
                     const value = decodeInt16FromTwo7bitBytes(data);
                     resolve(value);
                 });
-            firmata.sysexCommand([ULTRASONIC_DISTANCE_QUERY, pin]);
+            this._sysexSend(ULTRASONIC_DISTANCE_QUERY, [pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
             .catch(reason => {
@@ -1156,7 +1288,7 @@ class AkaDakoBoard extends EventEmitter {
                     const value = decodeInt16FromTwo7bitBytes(data);
                     resolve(value);
                 });
-            firmata.sysexCommand([WATER_TEMPERATURE_QUERY, pin]);
+            this._sysexSend(WATER_TEMPERATURE_QUERY, [pin]);
         });
         return Promise.race([request, timeoutReject(timeout)])
             .catch(reason => {
