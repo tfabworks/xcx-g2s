@@ -1121,7 +1121,9 @@ class AkaDakoBoard extends EventEmitter {
             message.push(aStrip.length & FIRMATA_7BIT_MASK);
             message.push((aStrip.length >> 7) & FIRMATA_7BIT_MASK);
         }
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        // S-LINK v1.1 では NeoPixel コマンドも SLINK_ID でラップする必要があるため
+        // _sysexSend 経由で送る (message[0] は PIXEL_COMMAND)。
+        return this.neoPixelThrottledQueue(()=>{this._sysexSend(PIXEL_COMMAND, message.slice(1))});
     }
 
     /**
@@ -1162,7 +1164,9 @@ class AkaDakoBoard extends EventEmitter {
         message[5] = ((colorValue >> 7) & FIRMATA_7BIT_MASK);
         message[6] = ((colorValue >> 14) & FIRMATA_7BIT_MASK);
         message[7] = ((colorValue >> 21) & FIRMATA_7BIT_MASK);
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        // S-LINK v1.1 では NeoPixel コマンドも SLINK_ID でラップする必要があるため
+        // _sysexSend 経由で送る (message[0] は PIXEL_COMMAND)。
+        return this.neoPixelThrottledQueue(()=>{this._sysexSend(PIXEL_COMMAND, message.slice(1))});
     }
 
     /**
@@ -1219,7 +1223,9 @@ class AkaDakoBoard extends EventEmitter {
         const message = new Array(2);
         message[0] = PIXEL_COMMAND;
         message[1] = PIXEL_SHOW;
-        return this.neoPixelThrottledQueue(()=>{this.firmata.sysexCommand(message)});
+        // S-LINK v1.1 では NeoPixel コマンドも SLINK_ID でラップする必要があるため
+        // _sysexSend 経由で送る (message[0] は PIXEL_COMMAND)。
+        return this.neoPixelThrottledQueue(()=>{this._sysexSend(PIXEL_COMMAND, message.slice(1))});
     }
 
 
