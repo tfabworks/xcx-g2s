@@ -4014,6 +4014,9 @@ class ExtensionBlocks {
                             description: 'ask generative AI target about stage'
                         }),
                         value: 'stage'
+                    }, {
+                        text: '-',
+                        value: 'none'
                     }]
                 },
                 VIDEO_STATE: {
