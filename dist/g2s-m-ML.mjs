@@ -1707,6 +1707,12 @@ var en = {
 	"g2s.mlTrainLabel3": "train label 3",
 	"g2s.mlLabel": "label",
 	"g2s.mlReset": "reset learning",
+	"g2s.mlSaveData": "save learning data",
+	"g2s.mlLoadData": "load learning data",
+	"g2s.mlLoadDialog.message": "select a learning data file",
+	"g2s.mlLoadDialog.load": "load",
+	"g2s.mlLoadDialog.cancel": "cancel",
+	"g2s.mlLoadInvalidFile": "This file is not learning data for this extension.",
 	"g2s.numberAtIndex": "number of [ARRAY] at [INDEX]",
 	"g2s.spliceNumbers": "[ARRAY] at [INDEX] delete [DELETE] insert [INSERT]",
 	"g2s.lengthOfNumbers": "length of numbers [ARRAY]",
@@ -1828,6 +1834,12 @@ var ja = {
 	"g2s.mlTrainLabel3": "ラベル3を学習する",
 	"g2s.mlLabel": "ラベル",
 	"g2s.mlReset": "学習をリセット",
+	"g2s.mlSaveData": "学習データを保存",
+	"g2s.mlLoadData": "学習データを読み込む",
+	"g2s.mlLoadDialog.message": "学習データファイルを選んでください",
+	"g2s.mlLoadDialog.load": "読み込む",
+	"g2s.mlLoadDialog.cancel": "キャンセル",
+	"g2s.mlLoadInvalidFile": "このファイルはこの拡張機能の学習データではありません。",
 	"g2s.numberAtIndex": "数列[ARRAY]の[INDEX]番目",
 	"g2s.spliceNumbers": "数列[ARRAY]の[INDEX]番目から[DELETE]個削除して[INSERT]を入れる",
 	"g2s.lengthOfNumbers": "数列[ARRAY]の長さ",
@@ -1952,6 +1964,12 @@ var translations = {
 	"g2s.mlTrainLabel3": "ラベル3をがくしゅうする",
 	"g2s.mlLabel": "ラベル",
 	"g2s.mlReset": "がくしゅうをリセット",
+	"g2s.mlSaveData": "がくしゅうデータをほぞん",
+	"g2s.mlLoadData": "がくしゅうデータをよみこむ",
+	"g2s.mlLoadDialog.message": "がくしゅうデータファイルをえらんでください",
+	"g2s.mlLoadDialog.load": "よみこむ",
+	"g2s.mlLoadDialog.cancel": "キャンセル",
+	"g2s.mlLoadInvalidFile": "このファイルはこのかくちょうきのうのがくしゅうデータではありません。",
 	"g2s.numberAtIndex": "すうれつ[ARRAY]の[INDEX]ばんめ",
 	"g2s.spliceNumbers": "すうれつ[ARRAY]の[INDEX]ばんめから[DELETE]こさくじょして[INSERT]をいれる",
 	"g2s.lengthOfNumbers": "すうれつ[ARRAY]のながさ",
@@ -18464,6 +18482,20 @@ var MOBILENET_URL = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2
 
 var KNN_K = 3;
 /**
+ * 学習データファイルのフォーマット識別子
+ * @type {string}
+ */
+
+var DATA_FORMAT$1 = 'xcx-g2s-knn';
+/**
+ * 特徴抽出に使うモデルの識別子。
+ * モデルが変わると特徴量の互換性がなくなるため、学習データファイルに記録して
+ * 読み込み時に検査する。
+ * @type {string}
+ */
+
+var MODEL_ID = 'mobilenet_v2_050_224';
+/**
  * <script> タグでスクリプトをロードする。
  * @param {string} url - スクリプトの URL
  * @returns {Promise} ロード完了で resolve する Promise
@@ -18698,6 +18730,97 @@ var ImageClassifier = /*#__PURE__*/function () {
         this.knn.clearAllClasses();
       }
     }
+    /**
+     * 学習データを JSON 文字列にシリアライズする。
+     * @returns {string} 学習データの JSON 文字列
+     */
+
+  }, {
+    key: "serialize",
+    value: function serialize() {
+      var labels = {};
+
+      if (this.knn) {
+        var dataset = this.knn.getClassifierDataset();
+
+        for (var _i = 0, _Object$keys = Object.keys(dataset); _i < _Object$keys.length; _i++) {
+          var label = _Object$keys[_i];
+          var examples = dataset[label];
+          labels[label] = {
+            shape: examples.shape,
+            data: Array.from(examples.dataSync())
+          };
+        }
+      }
+
+      return JSON.stringify({
+        format: DATA_FORMAT$1,
+        version: 1,
+        model: MODEL_ID,
+        labels: labels
+      });
+    }
+    /**
+     * シリアライズされた学習データを復元する。今の学習内容は破棄される。
+     * @param {object} parsed - JSON.parse 済みの学習データ
+     * @returns {Promise} 復元完了で resolve する Promise
+     */
+
+  }, {
+    key: "restore",
+    value: function () {
+      var _restore = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4(parsed) {
+        var dataset, _i2, _Object$keys2, label, examples;
+
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (!(!parsed || parsed.format !== DATA_FORMAT$1 || !parsed.labels)) {
+                  _context4.next = 2;
+                  break;
+                }
+
+                throw new Error('invalid learning data format');
+
+              case 2:
+                if (!(parsed.model !== MODEL_ID)) {
+                  _context4.next = 4;
+                  break;
+                }
+
+                throw new Error("incompatible model: ".concat(parsed.model));
+
+              case 4:
+                _context4.next = 6;
+                return this.load();
+
+              case 6:
+                dataset = {};
+
+                for (_i2 = 0, _Object$keys2 = Object.keys(parsed.labels); _i2 < _Object$keys2.length; _i2++) {
+                  label = _Object$keys2[_i2];
+                  examples = parsed.labels[label];
+                  dataset[label] = window.tf.tensor2d(examples.data, examples.shape);
+                }
+
+                this.knn.clearAllClasses();
+                this.knn.setClassifierDataset(dataset);
+
+              case 10:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function restore(_x4) {
+        return _restore.apply(this, arguments);
+      }
+
+      return restore;
+    }()
   }]);
 
   return ImageClassifier;
@@ -29895,6 +30018,175 @@ var ExtensionBlocks = /*#__PURE__*/function () {
       this.mlLabelUpdatedTime = 0;
     }
     /**
+     * 学習データを JSON ファイルとして保存 (ダウンロード) する。
+     */
+
+  }, {
+    key: "mlSaveData",
+    value: function mlSaveData() {
+      var classifier = this.imageClassifier;
+
+      if (!classifier || !classifier.hasExamples()) {
+        // 学習データが無いときは何もしない
+        return;
+      }
+
+      var json = classifier.serialize();
+      var blob = new Blob([json], {
+        type: 'application/json'
+      });
+      var url = URL.createObjectURL(blob);
+      var anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = "akadako-ml-".concat(Date.now(), ".json");
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    }
+    /**
+     * ファイル選択ダイアログを開いて学習データを読み込む。
+     * 今の学習内容は読み込んだ内容で置き換えられる。
+     * @returns {Promise} 読み込み完了またはキャンセルで resolve する Promise
+     */
+
+  }, {
+    key: "mlLoadData",
+    value: function () {
+      var _mlLoadData = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee25() {
+        var _this33 = this;
+
+        var inputDialog, dialogFace, label, fileForm, fileInput, cancelButton, confirmButton, file, parsed;
+        return regenerator.wrap(function _callee25$(_context25) {
+          while (1) {
+            switch (_context25.prev = _context25.next) {
+              case 0:
+                if (!this.mlLoadDialogOpened) {
+                  _context25.next = 2;
+                  break;
+                }
+
+                return _context25.abrupt("return");
+
+              case 2:
+                this.mlLoadDialogOpened = true;
+                inputDialog = document.createElement('dialog');
+                inputDialog.style.padding = '0px';
+                dialogFace = document.createElement('div');
+                dialogFace.style.padding = '16px';
+                inputDialog.appendChild(dialogFace);
+                label = document.createTextNode(formatMessage({
+                  id: 'g2s.mlLoadDialog.message',
+                  default: 'select a learning data file',
+                  description: 'label of learning data loading dialog for g2s'
+                }));
+                dialogFace.appendChild(label); // File input
+
+                fileForm = document.createElement('form');
+                fileForm.setAttribute('method', 'dialog');
+                fileForm.style.margin = '8px';
+                fileForm.addEventListener('submit', function (e) {
+                  e.preventDefault();
+                });
+                dialogFace.appendChild(fileForm);
+                fileInput = document.createElement('input');
+                fileInput.setAttribute('type', 'file');
+                fileInput.setAttribute('accept', 'application/json,.json');
+                fileForm.appendChild(fileInput); // Cancel button
+
+                cancelButton = document.createElement('button');
+                cancelButton.textContent = formatMessage({
+                  id: 'g2s.mlLoadDialog.cancel',
+                  default: 'cancel',
+                  description: 'cancel button on learning data loading dialog for g2s'
+                });
+                cancelButton.style.margin = '8px';
+                dialogFace.appendChild(cancelButton); // Load button
+
+                confirmButton = document.createElement('button');
+                confirmButton.textContent = formatMessage({
+                  id: 'g2s.mlLoadDialog.load',
+                  default: 'load',
+                  description: 'load button on learning data loading dialog for g2s'
+                });
+                confirmButton.style.margin = '8px';
+                dialogFace.appendChild(confirmButton);
+                _context25.next = 29;
+                return new Promise(function (resolve) {
+                  confirmButton.onclick = function () {
+                    if (fileInput.files.length === 0) return;
+                    resolve(fileInput.files[0]);
+                  };
+
+                  cancelButton.onclick = function () {
+                    resolve(null);
+                  };
+
+                  inputDialog.addEventListener('keydown', function (e) {
+                    if (e.code === 'Escape') {
+                      resolve(null);
+                    }
+                  });
+                  document.body.appendChild(inputDialog);
+                  inputDialog.showModal();
+                }).finally(function () {
+                  document.body.removeChild(inputDialog);
+                  _this33.mlLoadDialogOpened = false;
+                });
+
+              case 29:
+                file = _context25.sent;
+
+                if (file) {
+                  _context25.next = 32;
+                  break;
+                }
+
+                return _context25.abrupt("return");
+
+              case 32:
+                _context25.prev = 32;
+                _context25.t0 = JSON;
+                _context25.next = 36;
+                return file.text();
+
+              case 36:
+                _context25.t1 = _context25.sent;
+                parsed = _context25.t0.parse.call(_context25.t0, _context25.t1);
+                _context25.next = 40;
+                return this.getImageClassifier().restore(parsed);
+
+              case 40:
+                this.mlLastLabel = '';
+                this.mlLabelUpdatedTime = 0;
+                _context25.next = 48;
+                break;
+
+              case 44:
+                _context25.prev = 44;
+                _context25.t2 = _context25["catch"](32);
+                console.error(_context25.t2);
+                this.openErrorDialog(formatMessage({
+                  id: 'g2s.mlLoadInvalidFile',
+                  default: 'This file is not learning data for this extension.',
+                  description: 'error message for invalid learning data file'
+                }));
+
+              case 48:
+              case "end":
+                return _context25.stop();
+            }
+          }
+        }, _callee25, this, [[32, 44]]);
+      }));
+
+      function mlLoadData() {
+        return _mlLoadData.apply(this, arguments);
+      }
+
+      return mlLoadData;
+    }()
+    /**
      * @returns {object} metadata for this extension and its blocks.
      */
 
@@ -30599,6 +30891,22 @@ var ExtensionBlocks = /*#__PURE__*/function () {
             id: 'g2s.mlReset',
             default: 'reset learning',
             description: 'reset all trained examples'
+          })
+        }, {
+          opcode: 'mlSaveData',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.mlSaveData',
+            default: 'save learning data',
+            description: 'save trained examples as a file'
+          })
+        }, {
+          opcode: 'mlLoadData',
+          blockType: blockType.COMMAND,
+          text: formatMessage({
+            id: 'g2s.mlLoadData',
+            default: 'load learning data',
+            description: 'load trained examples from a file'
           })
         }, '---', {
           opcode: 'connectSpreadsheetAppend',
