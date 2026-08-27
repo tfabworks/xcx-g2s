@@ -2570,9 +2570,52 @@ class ExtensionBlocks {
             });
     }
 
-    async connectSpreadsheetAppend(args) { return await this.connectFetch('SpreadsheetAppend', args); }
-    async connectSpreadsheetWrite(args) { return await this.connectFetch('SpreadsheetWrite', args); }
-    async connectSpreadsheetRead(args) { return await this.connectFetch('SpreadsheetRead', args); }
+    /**
+     * Normalize a Google Spreadsheet URL to the canonical form.
+     * The URL copied on a tablet has a different form from the one on a PC:
+     * it may hold the account index as "/u/0/" or be shared by the Sheets app,
+     * so extract the spreadsheet ID and rebuild the URL which the server can read.
+     * A text which holds no spreadsheet ID is left as it is so that the server
+     * can report the error for it.
+     * @param {string} url - URL or ID of the spreadsheet
+     * @returns {string} - normalized URL
+     */
+    normalizeSpreadsheetURL (url) {
+        const text = String(url).trim();
+        const idPatterns = [
+            /(?:spreadsheets|sheets)\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{15,})/, // .../spreadsheets/d/<ID>/ and .../spreadsheets/u/0/d/<ID>/
+            /[?&]id=([A-Za-z0-9_-]{15,})/, // .../open?id=<ID>
+            /^([A-Za-z0-9_-]{15,})$/ // the ID itself
+        ];
+        let id = null;
+        for (const pattern of idPatterns) {
+            const matched = text.match(pattern);
+            if (matched) {
+                id = matched[1];
+                break;
+            }
+        }
+        if (id === null) return text;
+        // The server needs the gid, so fall back to the first sheet when the text has none
+        // (the URL shared by the Sheets app holds no gid).
+        const matchedGid = text.match(/[?&#]gid=(\d+)/);
+        const gid = matchedGid ? matchedGid[1] : '0';
+        return `https://docs.google.com/spreadsheets/d/${id}/edit?gid=${gid}#gid=${gid}`;
+    }
+
+    /**
+     * Replace the URL in the arguments with the normalized one.
+     * @param {object} args - the block arguments
+     * @returns {object} - arguments whose URL is normalized
+     */
+    normalizeSpreadsheetArgs (args) {
+        if (typeof args.URL === 'undefined') return args;
+        return Object.assign({}, args, {URL: this.normalizeSpreadsheetURL(args.URL)});
+    }
+
+    async connectSpreadsheetAppend(args) { return await this.connectFetch('SpreadsheetAppend', this.normalizeSpreadsheetArgs(args)); }
+    async connectSpreadsheetWrite(args) { return await this.connectFetch('SpreadsheetWrite', this.normalizeSpreadsheetArgs(args)); }
+    async connectSpreadsheetRead(args) { return await this.connectFetch('SpreadsheetRead', this.normalizeSpreadsheetArgs(args)); }
     async connectSendLine(args) { return await this.connectFetch('SendLine', args); }
     async connectSendMail(args) { return await this.connectFetch('SendMail', args); }
 
