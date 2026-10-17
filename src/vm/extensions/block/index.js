@@ -495,6 +495,11 @@ class ExtensionBlocks {
          */
         this.shareServerBackoffAttempt = 0;
 
+        /**
+         * Timer for automatic reconnection to share server.
+         * @type {?number}
+         */
+        this.shareServerReconnectTimer = null;
 
         /**
          * Whether the data sharing was canceled by user.
@@ -2052,6 +2057,7 @@ class ExtensionBlocks {
         this.prevSharedData = {};
         this.labelTimestamps = {};
         this.shareServerBackoffAttempt = 0;
+        this.cancelShareServerReconnect();
         if (this.shareServer) {
             const server = this.shareServer;
             this.shareServer = null;
@@ -2186,6 +2192,7 @@ class ExtensionBlocks {
         const url = this.shareServerURL + encodeURIComponent(this.shareGroupID);
         const connecting = new Promise(resolve => {
             const server = new WebSocket(url);
+            let opened = false;
             server.onmessage = event => {
                 console.debug(`${url}: received ${event.data}`);
                 const received = JSON.parse(event.data);
@@ -2197,11 +2204,29 @@ class ExtensionBlocks {
             };
             server.onclose = () => {
                 console.info(`ShareServer closed ${url}`);
+                if (!opened) {
+                    // Failed to connect.
+                    resolve(null);
+                    return;
+                }
+                if (this.shareServer !== server) {
+                    // Closed intentionally by resetShareServer() or superseded by a newer socket.
+                    return;
+                }
+                // Closed unexpectedly (network trouble, proxy timeout, server restart, etc.)
+                this.scheduleShareServerReconnect();
             };
             server.onopen = () => {
                 console.info(`ShareServer opened ${url}`);
+                opened = true;
+                const previous = this.shareServer;
                 this.shareServer = server;
                 this.shareServerBackoffAttempt = 0;
+                this.cancelShareServerReconnect();
+                if (previous && previous !== server && previous.readyState <= WebSocket.OPEN) {
+                    // Close the old socket which was still alive (e.g. opened after timeout).
+                    previous.close();
+                }
                 resolve(server);
             };
         });
@@ -2218,6 +2243,53 @@ class ExtensionBlocks {
      */
     isShareServerConnected () {
         return !!(this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
+    }
+
+    /**
+     * Cancel the scheduled automatic reconnection to share server.
+     */
+    cancelShareServerReconnect () {
+        if (this.shareServerReconnectTimer !== null) {
+            clearTimeout(this.shareServerReconnectTimer);
+            this.shareServerReconnectTimer = null;
+        }
+    }
+
+    /**
+     * Schedule automatic reconnection to share server using the same group ID.
+     * Backoff with equal jitter is applied. Retries continue until connected or reset.
+     */
+    scheduleShareServerReconnect () {
+        if (this.shareServerReconnectTimer !== null) return; // already scheduled
+        if (!this.shareGroupID || this.dataSharingWasCanceled) return;
+        const jitter = Math.min(
+            this.shareServerBackoffCap,
+            this.shareServerBackoffBase * (2 ** this.shareServerBackoffAttempt));
+        this.shareServerBackoffAttempt++;
+        const delay = (jitter / 2) + (Math.random() * (jitter / 2));
+        this.shareServerReconnectTimer = setTimeout(() => {
+            this.shareServerReconnectTimer = null;
+            if (!this.shareGroupID) return; // reset while waiting
+            if (this.isShareServerConnected()) return; // connected by other way
+            if (this.shareServerGetting) {
+                // Another connection process is running. Check again later.
+                this.scheduleShareServerReconnect();
+                return;
+            }
+            this.shareServerGetting = true;
+            console.info(`ShareServer reconnecting (attempt ${this.shareServerBackoffAttempt})`);
+            this.openSocketForShareServer()
+                .then(server => {
+                    if (!server) this.scheduleShareServerReconnect();
+                })
+                .catch(reason => {
+                    console.info(reason);
+                    this.scheduleShareServerReconnect();
+                })
+                .finally(() => {
+                    this.shareServerGetting = false;
+                });
+        }, delay);
     }
 
     /**
