@@ -4463,7 +4463,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.setDeviceName',
-                        default: 'communication set device name to [NAME]',
+                        default: 'communication set device ID to [NAME]',
                         description: 'set the name of this device in the communication group'
                     }),
                     arguments: {
@@ -4483,7 +4483,7 @@ class ExtensionBlocks {
                     disableMonitor: true,
                     text: formatMessage({
                         id: 'g2s.reportDeviceName',
-                        default: 'communication device name',
+                        default: 'communication device ID',
                         description: 'reporter of the name of this device'
                     }),
                     arguments: {

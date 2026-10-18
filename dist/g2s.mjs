@@ -1706,9 +1706,9 @@ var en = {
 	"g2s.whenSharedDataReceived": "when communication [LABEL] received",
 	"g2s.getSharedDataLabeled": "value of communication [LABEL]",
 	"g2s.sendSharedData": "send communication [LABEL]=[DATA]",
-	"g2s.setDeviceName": "communication set device name to [NAME]",
+	"g2s.setDeviceName": "communication set device ID to [NAME]",
 	"g2s.setDeviceName.defaultName": "cat",
-	"g2s.reportDeviceName": "communication device name",
+	"g2s.reportDeviceName": "communication device ID",
 	"g2s.sendDirectData": "communication send [LABEL]=[DATA] to [TO]",
 	"g2s.sendDirectData.defaultTo": "dog",
 	"g2s.getSharedDataSender": "sender of communication [LABEL]",
@@ -1835,9 +1835,9 @@ var ja = {
 	"g2s.whenSharedDataReceived": "通信[LABEL]を受け取ったとき",
 	"g2s.getSharedDataLabeled": "通信[LABEL]の値",
 	"g2s.sendSharedData": "通信[LABEL]=[DATA]を送る",
-	"g2s.setDeviceName": "通信 端末名を[NAME]にする",
+	"g2s.setDeviceName": "通信 端末IDを[NAME]にする",
 	"g2s.setDeviceName.defaultName": "ねこ",
-	"g2s.reportDeviceName": "通信 端末名",
+	"g2s.reportDeviceName": "通信 端末ID",
 	"g2s.sendDirectData": "通信 [TO]に[LABEL]=[DATA]を送る",
 	"g2s.sendDirectData.defaultTo": "いぬ",
 	"g2s.getSharedDataSender": "通信[LABEL]の送信元",
@@ -1967,9 +1967,9 @@ var translations = {
 	"g2s.whenSharedDataReceived": "つうしん[LABEL]をうけとったとき",
 	"g2s.getSharedDataLabeled": "つうしん[LABEL]のあたい",
 	"g2s.sendSharedData": "つうしん[LABEL]=[DATA]をおくる",
-	"g2s.setDeviceName": "つうしん たんまつめいを[NAME]にする",
+	"g2s.setDeviceName": "つうしん たんまつIDを[NAME]にする",
 	"g2s.setDeviceName.defaultName": "ねこ",
-	"g2s.reportDeviceName": "つうしん たんまつめい",
+	"g2s.reportDeviceName": "つうしん たんまつID",
 	"g2s.sendDirectData": "つうしん [TO]に[LABEL]=[DATA]をおくる",
 	"g2s.sendDirectData.defaultTo": "いぬ",
 	"g2s.getSharedDataSender": "つうしん[LABEL]のそうしんもと",
@@ -31298,7 +31298,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           blockType: blockType.COMMAND,
           text: formatMessage({
             id: 'g2s.setDeviceName',
-            default: 'communication set device name to [NAME]',
+            default: 'communication set device ID to [NAME]',
             description: 'set the name of this device in the communication group'
           }),
           arguments: {
@@ -31317,7 +31317,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
           disableMonitor: true,
           text: formatMessage({
             id: 'g2s.reportDeviceName',
-            default: 'communication device name',
+            default: 'communication device ID',
             description: 'reporter of the name of this device'
           }),
           arguments: {}
