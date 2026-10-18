@@ -4555,7 +4555,8 @@ class ExtensionBlocks {
                     arguments: {
                         IMAGE: {
                             type: ArgumentType.STRING,
-                            defaultValue: ''
+                            // A single space: an empty default drops the field and the slot shows "undefined".
+                            defaultValue: ' '
                         },
                         NAME: {
                             type: ArgumentType.STRING,
