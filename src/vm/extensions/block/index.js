@@ -577,6 +577,104 @@ class ExtensionBlocks {
         this.shareGroupIDRandomLength = 6;
 
         /**
+         * URL of the long-polling endpoint of the data sharing server.
+         * Used as a fallback when WebSocket connections are blocked by the network.
+         * @type {string}
+         */
+        this.pollingURL = 'https://ws.akadako.com/poll/';
+
+        /**
+         * How long the server may hold a polling request before returning an empty response. [seconds]
+         * @type {number}
+         */
+        this.pollingWait = 20;
+
+        /**
+         * Count of consecutive WebSocket connection failures before trying the polling fallback.
+         * @type {number}
+         */
+        this.pollingMinWSFailures = 3;
+
+        /**
+         * Interval of WebSocket retry while polling. Polling stops when WebSocket opens. [milliseconds]
+         * @type {number}
+         */
+        this.pollingWSRetryInterval = 5 * 60 * 1000;
+
+        /**
+         * Base time of backoff for polling errors (429 / 5xx / network error). [milliseconds]
+         * @type {number}
+         */
+        this.pollingBackoffBase = 1000;
+
+        /**
+         * Longest time of backoff for polling errors. [milliseconds]
+         * @type {number}
+         */
+        this.pollingBackoffCap = 30000;
+
+        /**
+         * Retry interval when the polling endpoint is not available (404). [milliseconds]
+         * @type {number}
+         */
+        this.pollingUnavailableRetryTime = 30000;
+
+        /**
+         * Delay before the next request when an empty response returned faster than pollingFastEmptyThreshold.
+         * Protects the server from a tight loop on old servers or proxy errors. [milliseconds]
+         * @type {number}
+         */
+        this.pollingFastEmptyDelay = 2000;
+
+        /**
+         * An empty response faster than this is treated as "returned without waiting". [milliseconds]
+         * @type {number}
+         */
+        this.pollingFastEmptyThreshold = 1000;
+
+        /**
+         * Whether the polling fallback is active instead of WebSocket.
+         * @type {boolean}
+         */
+        this.polling = false;
+
+        /**
+         * Whether a probe request to the polling endpoint is in flight.
+         * @type {boolean}
+         */
+        this.pollingProbing = false;
+
+        /**
+         * Time before which the polling endpoint is not probed again after a failed probe. [epoch milliseconds]
+         * @type {number}
+         */
+        this.pollingProbeNotBefore = 0;
+
+        /**
+         * Timer ID of the WebSocket retry while polling. null when not scheduled.
+         * @type {?number}
+         */
+        this.pollingWSRetryTimer = null;
+
+        /**
+         * Poller of the group channel while polling.
+         * @type {?object}
+         */
+        this.groupPoller = null;
+
+        /**
+         * Poller of the direct channel "<group>~<device>" while polling.
+         * @type {?object}
+         */
+        this.directPoller = null;
+
+        /**
+         * Count of consecutive WebSocket connection failures. Reset when WebSocket opens.
+         * @type {number}
+         */
+        this.shareServerWSFailures = 0;
+
+        /**
          * Whether the data sharing was canceled by user.
          * @type {boolean} true after data sharing was canceled by user
          */
@@ -2132,7 +2230,10 @@ class ExtensionBlocks {
         this.prevSharedData = {};
         this.labelTimestamps = {};
         this.shareServerBackoffAttempt = 0;
+        this.shareServerWSFailures = 0;
+        this.pollingProbeNotBefore = 0;
         this.cancelShareServerReconnect();
+        this.stopPolling();
         if (this.shareServer) {
             const server = this.shareServer;
             this.shareServer = null;
@@ -2351,7 +2452,12 @@ class ExtensionBlocks {
                 const previous = this.shareServer;
                 this.shareServer = server;
                 this.shareServerBackoffAttempt = 0;
+                this.shareServerWSFailures = 0;
                 this.cancelShareServerReconnect();
+                if (this.polling) {
+                    console.info('ShareServer: WebSocket is available again, stop polling');
+                    this.stopPolling();
+                }
                 if (previous && previous !== server && previous.readyState <= WebSocket.OPEN) {
                     // Close the old socket which was still alive (e.g. opened after timeout).
                     previous.close();
@@ -2396,7 +2502,8 @@ class ExtensionBlocks {
      * @returns {boolean} true when it was opened
      */
     isShareServerConnected () {
-        return !!(this.shareServer && (this.shareServer.readyState === WebSocket.OPEN));
+        if (this.shareServer && (this.shareServer.readyState === WebSocket.OPEN)) return true;
+        return !!(this.polling && this.groupPoller && this.groupPoller.connected);
     }
 
     /**
@@ -2410,12 +2517,12 @@ class ExtensionBlocks {
     /**
      * Delay before the next reconnection attempt. Exponential backoff with equal jitter.
      * @param {number} attempt - count of the attempts done so far
+     * @param {number} [base] - base time [milliseconds] (default: shareServerBackoffBase)
+     * @param {number} [cap] - longest time [milliseconds] (default: shareServerBackoffCap)
      * @returns {number} delay [milliseconds]
      */
-    reconnectDelay (attempt) {
-        const jitter = Math.min(
-            this.shareServerBackoffCap,
-            this.shareServerBackoffBase * (2 ** attempt));
+    reconnectDelay (attempt, base = this.shareServerBackoffBase, cap = this.shareServerBackoffCap) {
+        const jitter = Math.min(cap, base * (2 ** attempt));
         return (jitter / 2) + (Math.random() * (jitter / 2));
     }
 
@@ -2424,6 +2531,11 @@ class ExtensionBlocks {
      */
     ensureDirectServer () {
         if (!this.shareGroupID || !this.deviceName || this.dataSharingWasCanceled) return;
+        if (this.polling) {
+            // WebSocket is blocked: poll the direct channel instead.
+            this.ensureDirectPoller();
+            return;
+        }
         if (this.directServer && this.directServer.readyState <= WebSocket.OPEN) return; // connecting or open
         if (this.directServerGetting) return;
         this.cancelDirectServerReconnect();
@@ -2503,6 +2615,10 @@ class ExtensionBlocks {
             const server = this.directServer;
             this.directServer = null;
             server.close();
+        }
+        if (this.directPoller) {
+            this.stopPoller(this.directPoller);
+            this.directPoller = null;
         }
     }
 
@@ -2589,11 +2705,9 @@ class ExtensionBlocks {
     scheduleShareServerReconnect () {
         if (this.shareServerReconnectTimer !== null) return; // already scheduled
         if (!this.shareGroupID || this.dataSharingWasCanceled) return;
-        const jitter = Math.min(
-            this.shareServerBackoffCap,
-            this.shareServerBackoffBase * (2 ** this.shareServerBackoffAttempt));
+        if (this.polling) return; // WebSocket is retried by scheduleWSRetryWhilePolling() instead
+        const delay = this.reconnectDelay(this.shareServerBackoffAttempt);
         this.shareServerBackoffAttempt++;
-        const delay = (jitter / 2) + (Math.random() * (jitter / 2));
         this.shareServerReconnectTimer = setTimeout(() => {
             this.shareServerReconnectTimer = null;
             if (!this.shareGroupID) return; // reset while waiting
@@ -2607,7 +2721,10 @@ class ExtensionBlocks {
             console.info(`ShareServer reconnecting (attempt ${this.shareServerBackoffAttempt})`);
             this.openSocketForShareServer()
                 .then(server => {
-                    if (!server) this.scheduleShareServerReconnect();
+                    if (!server) {
+                        this.handleShareServerConnectFailure();
+                        this.scheduleShareServerReconnect();
+                    }
                 })
                 .catch(reason => {
                     console.info(reason);
@@ -2622,33 +2739,38 @@ class ExtensionBlocks {
     /**
      * Return a connected server for data sharing.
      *
-     * @returns {Promise<?WebSocket>} which resolves a server or null during connection or timeout occurred
+     * @returns {Promise<?object>} which resolves a server (WebSocket or poller) or null during connection or timeout occurred
      */
     getShareServer () {
         if (this.shareServerGetting) {
             return Promise.resolve(null);
         }
         this.shareServerGetting = true;
-        if (this.shareServer) {
-            if (!this.isShareServerConnected()) {
-                // re-connect using the same group ID
-                // Using backoff with equal jitter
-                const jitter = Math.min(
-                    this.shareServerBackoffCap,
-                    this.shareServerBackoffBase * (2 ** this.shareServerBackoffAttempt));
-                this.shareServerBackoffAttempt++;
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve();
-                    }, ((jitter / 2) + (Math.random() * (jitter / 2))));
-                })
-                    .then(() => this.openSocketForShareServer())
-                    .finally(() => {
-                        this.shareServerGetting = false;
-                    });
+        if (this.shareGroupID) {
+            if (this.isShareServerConnected()) {
+                this.shareServerGetting = false;
+                return Promise.resolve(this.shareServer || this.groupPoller);
             }
-            this.shareServerGetting = false;
-            return Promise.resolve(this.shareServer);
+            // re-connect using the same group ID
+            // Using backoff with equal jitter
+            const delay = this.reconnectDelay(this.shareServerBackoffAttempt);
+            this.shareServerBackoffAttempt++;
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, delay);
+            })
+                .then(() => {
+                    if (this.isShareServerConnected()) return this.shareServer || this.groupPoller;
+                    return this.openSocketForShareServer()
+                        .then(server => {
+                            if (!server) this.handleShareServerConnectFailure();
+                            return server;
+                        });
+                })
+                .finally(() => {
+                    this.shareServerGetting = false;
+                });
         }
         return this.openShareGroupIDDialog()
             .then(groupID => {
@@ -2661,11 +2783,281 @@ class ExtensionBlocks {
                     return null;
                 }
                 this.prevShareGroupID = normalizeID(groupID);
-                return this.openSocketForShareServer();
+                return this.openSocketForShareServer()
+                    .then(server => {
+                        if (!server) {
+                            // Keep trying in background so that the first failure is recovered too.
+                            this.handleShareServerConnectFailure();
+                            this.scheduleShareServerReconnect();
+                        }
+                        return server;
+                    });
             })
             .finally(() => {
                 this.shareServerGetting = false;
             });
+    }
+
+    /**
+     * Count a WebSocket connection failure and try the polling fallback after enough failures.
+     */
+    handleShareServerConnectFailure () {
+        this.shareServerWSFailures++;
+        console.info(`ShareServer: WebSocket connection failed (${this.shareServerWSFailures} times)`);
+        if (this.shareServerWSFailures >= this.pollingMinWSFailures) this.tryStartPolling();
+    }
+
+    /**
+     * Request the polling endpoint once.
+     * @param {string} groupId - group ID of the channel
+     * @param {number} since - seq of the last response (0 for the first request)
+     * @param {number} wait - seconds the server may hold the request
+     * @param {AbortController} controller - controller to abort the request
+     * @returns {Promise<{status: number, body: ?object}>} status and parsed body (null when not 2xx)
+     */
+    fetchPoll (groupId, since, wait, controller) {
+        const url = `${this.pollingURL}${encodeURIComponent(groupId)}?since=${since}&wait=${wait}`;
+        const timer = setTimeout(() => controller.abort(), (wait + 10) * 1000);
+        return fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-store',
+            signal: controller.signal
+        })
+            .then(response => {
+                if (!response.ok) return {status: response.status, body: null};
+                return response.json().then(body => ({status: response.status, body: body}));
+            })
+            .finally(() => {
+                clearTimeout(timer);
+            });
+    }
+
+    /**
+     * Probe the polling endpoint and start polling when it is available.
+     * Does nothing while polling, probing, or within pollingUnavailableRetryTime after a failed probe.
+     */
+    tryStartPolling () {
+        if (this.polling || this.pollingProbing) return;
+        if (!this.shareGroupID || this.dataSharingWasCanceled) return;
+        if (Date.now() < this.pollingProbeNotBefore) return;
+        const groupID = this.shareGroupID;
+        this.pollingProbing = true;
+        this.fetchPoll(groupID, 0, 0, new AbortController())
+            .then(result => {
+                if (result.status !== 200 || !result.body) {
+                    console.info(`ShareServer: polling is not available (${result.status})`);
+                    this.pollingProbeNotBefore = Date.now() + this.pollingUnavailableRetryTime;
+                    return;
+                }
+                if (this.polling || this.shareGroupID !== groupID || this.dataSharingWasCanceled) return;
+                if (this.shareServer && this.shareServer.readyState === WebSocket.OPEN) return; // WebSocket won meanwhile
+                this.startPolling(result.body);
+            })
+            .catch(reason => {
+                console.info(reason);
+                this.pollingProbeNotBefore = Date.now() + this.pollingUnavailableRetryTime;
+            })
+            .finally(() => {
+                this.pollingProbing = false;
+            });
+    }
+
+    /**
+     * Start the polling fallback for the group channel (and the direct channel when the device name is set).
+     * @param {?object} firstBody - body of the probe response to apply before the loop starts
+     */
+    startPolling (firstBody) {
+        console.info(`ShareServer: start polling ${this.shareGroupID}`);
+        this.polling = true;
+        this.cancelShareServerReconnect();
+        this.closeDirectServer(); // the direct channel is polled instead of WebSocket
+        this.groupPoller = this.createPoller(this.shareGroupID);
+        if (firstBody) this.handlePollResponse(this.groupPoller, firstBody);
+        this.groupPoller.connected = true;
+        this.runPoller(this.groupPoller);
+        this.ensureDirectPoller();
+        this.scheduleWSRetryWhilePolling();
+    }
+
+    /**
+     * Stop the polling fallback and the WebSocket retry timer.
+     */
+    stopPolling () {
+        this.polling = false;
+        if (this.pollingWSRetryTimer !== null) {
+            clearTimeout(this.pollingWSRetryTimer);
+            this.pollingWSRetryTimer = null;
+        }
+        if (this.groupPoller) {
+            this.stopPoller(this.groupPoller);
+            this.groupPoller = null;
+        }
+        if (this.directPoller) {
+            this.stopPoller(this.directPoller);
+            this.directPoller = null;
+        }
+    }
+
+    /**
+     * Retry WebSocket periodically while polling. Polling stops in onopen when it succeeds.
+     */
+    scheduleWSRetryWhilePolling () {
+        if (this.pollingWSRetryTimer !== null) return;
+        this.pollingWSRetryTimer = setTimeout(() => {
+            this.pollingWSRetryTimer = null;
+            if (!this.polling || !this.shareGroupID || this.dataSharingWasCanceled) return;
+            console.info('ShareServer: retrying WebSocket while polling');
+            this.openSocketForShareServer()
+                .then(server => {
+                    if (!server && this.polling) this.scheduleWSRetryWhilePolling();
+                })
+                .catch(reason => {
+                    console.info(reason);
+                    if (this.polling) this.scheduleWSRetryWhilePolling();
+                });
+        }, this.pollingWSRetryInterval);
+    }
+
+    /**
+     * Start (or restart with a new ID) the poller of the direct channel while polling.
+     */
+    ensureDirectPoller () {
+        if (!this.polling || !this.shareGroupID || !this.deviceName || this.dataSharingWasCanceled) return;
+        const id = this.directServerID();
+        if (this.directPoller && this.directPoller.groupId === id && !this.directPoller.stopped) return;
+        if (this.directPoller) this.stopPoller(this.directPoller);
+        this.directPoller = this.createPoller(id);
+        this.runPoller(this.directPoller);
+    }
+
+    /**
+     * Create the state of a polling loop for a channel.
+     * @param {string} groupId - group ID of the channel
+     * @returns {object} poller state
+     */
+    createPoller (groupId) {
+        return {
+            groupId: groupId,
+            since: 0,
+            connected: false,
+            stopped: false,
+            controller: null,
+            timer: null,
+            backoffAttempt: 0
+        };
+    }
+
+    /**
+     * Stop a polling loop: cancel its timer and abort the request in flight.
+     * @param {object} poller - poller state
+     */
+    stopPoller (poller) {
+        poller.stopped = true;
+        poller.connected = false;
+        if (poller.timer !== null) {
+            clearTimeout(poller.timer);
+            poller.timer = null;
+        }
+        if (poller.controller) {
+            poller.controller.abort();
+            poller.controller = null;
+        }
+    }
+
+    /**
+     * Schedule the next request of a polling loop.
+     * @param {object} poller - poller state
+     * @param {number} delay - delay before the request [milliseconds]
+     */
+    schedulePoller (poller, delay) {
+        if (poller.stopped || poller.timer !== null) return;
+        poller.timer = setTimeout(() => {
+            poller.timer = null;
+            this.runPoller(poller);
+        }, delay);
+    }
+
+    /**
+     * Send one long-polling request and schedule the next one according to the result.
+     * @param {object} poller - poller state
+     */
+    runPoller (poller) {
+        if (poller.stopped) return;
+        const startedAt = Date.now();
+        const controller = new AbortController();
+        poller.controller = controller;
+        const backoff = () => this.reconnectDelay(poller.backoffAttempt++, this.pollingBackoffBase, this.pollingBackoffCap);
+        this.fetchPoll(poller.groupId, poller.since, this.pollingWait, controller)
+            .then(result => {
+                if (poller.stopped) return;
+                if (result.status === 200 && result.body) {
+                    poller.connected = true;
+                    poller.backoffAttempt = 0;
+                    const count = this.handlePollResponse(poller, result.body);
+                    const elapsed = Date.now() - startedAt;
+                    const fastEmpty = (count === 0) && (elapsed < this.pollingFastEmptyThreshold);
+                    this.schedulePoller(poller, fastEmpty ? this.pollingFastEmptyDelay : 0);
+                    return;
+                }
+                if (result.status === 404) {
+                    // Polling is disabled on the server or the proxy is not configured.
+                    poller.connected = false;
+                    console.info(`ShareServer: polling endpoint not found for ${poller.groupId}`);
+                    this.schedulePoller(poller, this.pollingUnavailableRetryTime);
+                    return;
+                }
+                if (result.status === 429) {
+                    // Rate limited: keep the state, wait at least 2 seconds.
+                    this.schedulePoller(poller, Math.max(2000, backoff()));
+                    return;
+                }
+                poller.connected = false;
+                console.info(`ShareServer: polling failed (${result.status}) for ${poller.groupId}`);
+                this.schedulePoller(poller, backoff());
+            })
+            .catch(reason => {
+                if (poller.stopped) return;
+                if (reason && reason.name === 'AbortError') {
+                    // Our own timeout (wait + 10 s): the server or the proxy did not answer in time. Request again.
+                    this.schedulePoller(poller, 0);
+                    return;
+                }
+                console.info(reason);
+                poller.connected = false;
+                this.schedulePoller(poller, backoff());
+            })
+            .finally(() => {
+                if (poller.controller === controller) poller.controller = null;
+            });
+    }
+
+    /**
+     * Apply a polling response to the shared data.
+     * Items of a snapshot (values the server already held) are stored without firing the hat blocks,
+     * like values received before the WebSocket was opened.
+     * @param {object} poller - poller state (its since is updated)
+     * @param {object} body - response body {seq, snapshot, items[{key, value, from?}]}
+     * @returns {number} count of the items applied
+     */
+    handlePollResponse (poller, body) {
+        if (typeof body.seq === 'number') poller.since = body.seq;
+        const items = Array.isArray(body.items) ? body.items : [];
+        const snapshot = body.snapshot === true;
+        if (!this.labelTimestamps) this.labelTimestamps = {};
+        let count = 0;
+        for (const item of items) {
+            if (!item || typeof item.key !== 'string') continue;
+            const entry = {
+                content: item.value,
+                from: (typeof item.from === 'string') ? item.from : '',
+                timestamp: Date.now()
+            };
+            this.sharedData[item.key] = entry;
+            if (snapshot) this.labelTimestamps[item.key] = entry.timestamp; // already held: do not fire hats
+            count++;
+        }
+        return count;
     }
 
     /**
