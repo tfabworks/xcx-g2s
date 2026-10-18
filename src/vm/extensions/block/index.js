@@ -4387,55 +4387,21 @@ class ExtensionBlocks {
                     }
                 },
                 {
-                    opcode: 'isShareServerConnected',
-                    blockType: BlockType.BOOLEAN,
+                    opcode: 'setDeviceName',
+                    blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'g2s.isShareServerConnected',
-                        default: 'communication server is connected',
-                        description: 'whether a board is connected'
+                        id: 'g2s.setDeviceName',
+                        default: 'communication set device ID to [NAME]',
+                        description: 'set the name of this device in the communication group'
                     }),
                     arguments: {
-                    }
-                },
-                {
-                    opcode: 'reportShareGroupID',
-                    text: formatMessage({
-                        id: 'g2s.reportShareGroupID',
-                        default: 'communication group ID',
-                        description: 'reporter of group ID for data sharing'
-                    }),
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: false,
-                    arguments: {
-                    }
-                },
-                {
-                    opcode: 'whenSharedDataReceived',
-                    text: formatMessage({
-                        id: 'g2s.whenSharedDataReceived',
-                        default: 'when data with label [LABEL] received from server',
-                        description: 'when the data which has the label received'
-                    }),
-                    blockType: BlockType.HAT,
-                    arguments: {
-                        LABEL: {
+                        NAME: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'x'
-                        }
-                    }
-                },
-                {
-                    opcode: 'getSharedDataLabeled',
-                    text: formatMessage({
-                        id: 'g2s.getSharedDataLabeled',
-                        default: 'data of label [LABEL]',
-                        description: 'the last data which has the label'
-                    }),
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        LABEL: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'x'
+                            defaultValue: formatMessage({
+                                id: 'g2s.setDeviceName.defaultName',
+                                default: 'cat',
+                                description: 'default device name (not a person\'s name)'
+                            })
                         }
                     }
                 },
@@ -4456,37 +4422,6 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'data'
                         }
-                    }
-                },
-                {
-                    opcode: 'setDeviceName',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'g2s.setDeviceName',
-                        default: 'communication set device ID to [NAME]',
-                        description: 'set the name of this device in the communication group'
-                    }),
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: formatMessage({
-                                id: 'g2s.setDeviceName.defaultName',
-                                default: 'cat',
-                                description: 'default device name (not a person\'s name)'
-                            })
-                        }
-                    }
-                },
-                {
-                    opcode: 'reportDeviceName',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: true,
-                    text: formatMessage({
-                        id: 'g2s.reportDeviceName',
-                        default: 'communication device ID',
-                        description: 'reporter of the name of this device'
-                    }),
-                    arguments: {
                     }
                 },
                 {
@@ -4517,6 +4452,36 @@ class ExtensionBlocks {
                     }
                 },
                 {
+                    opcode: 'getSharedDataLabeled',
+                    text: formatMessage({
+                        id: 'g2s.getSharedDataLabeled',
+                        default: 'data of label [LABEL]',
+                        description: 'the last data which has the label'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'x'
+                        }
+                    }
+                },
+                {
+                    opcode: 'whenSharedDataReceived',
+                    text: formatMessage({
+                        id: 'g2s.whenSharedDataReceived',
+                        default: 'when data with label [LABEL] received from server',
+                        description: 'when the data which has the label received'
+                    }),
+                    blockType: BlockType.HAT,
+                    arguments: {
+                        LABEL: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'x'
+                        }
+                    }
+                },
+                {
                     opcode: 'getSharedDataSender',
                     blockType: BlockType.REPORTER,
                     text: formatMessage({
@@ -4529,6 +4494,41 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'x'
                         }
+                    }
+                },
+                {
+                    opcode: 'reportShareGroupID',
+                    text: formatMessage({
+                        id: 'g2s.reportShareGroupID',
+                        default: 'communication group ID',
+                        description: 'reporter of group ID for data sharing'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'reportDeviceName',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    text: formatMessage({
+                        id: 'g2s.reportDeviceName',
+                        default: 'communication device ID',
+                        description: 'reporter of the name of this device'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'isShareServerConnected',
+                    blockType: BlockType.BOOLEAN,
+                    text: formatMessage({
+                        id: 'g2s.isShareServerConnected',
+                        default: 'communication server is connected',
+                        description: 'whether a board is connected'
+                    }),
+                    arguments: {
                     }
                 },
                 '---',
