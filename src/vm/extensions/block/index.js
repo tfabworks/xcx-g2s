@@ -511,7 +511,7 @@ class ExtensionBlocks {
          * Initial JPEG quality of the stage image for sharing.
          * @type {number}
          */
-        this.stageImageQuality = 0.3;
+        this.stageImageQuality = 0.6;
 
         /**
          * Longest length of the data URL of the stage image for sharing. [characters]
