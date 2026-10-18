@@ -502,6 +502,32 @@ class ExtensionBlocks {
         this.shareServerReconnectTimer = null;
 
         /**
+         * Size of the stage image for sharing. [pixels]
+         * @type {Array<number>}
+         */
+        this.stageImageSize = [480, 360];
+
+        /**
+         * Initial JPEG quality of the stage image for sharing.
+         * @type {number}
+         */
+        this.stageImageQuality = 0.3;
+
+        /**
+         * Longest length of the data URL of the stage image for sharing. [characters]
+         * Quality is lowered until the data URL fits in this length.
+         * @type {number}
+         */
+        this.stageImageMaxLength = 48 * 1024;
+
+        /**
+         * Asset IDs of costumes which were saved by saveImageAsCostume.
+         * Only these costumes can be replaced by the same name.
+         * @type {Set<string>}
+         */
+        this.savedCostumeAssetIds = new Set();
+
+        /**
          * Whether the data sharing was canceled by user.
          * @type {boolean} true after data sharing was canceled by user
          */
@@ -2415,7 +2441,156 @@ class ExtensionBlocks {
                 }, this.shareDataSendingIntervalTime);
             }))
             .catch(reason => {
-                this.shareDataSending = false;
+                console.info(reason);
+                // Keep the interval on failure too, so that a loop does not retry every frame.
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        this.shareDataSending = false;
+                        resolve(reason.toString());
+                    }, this.shareDataSendingIntervalTime);
+                });
+            });
+    }
+
+    /**
+     * Return the stage image as a JPEG data URL.
+     * The image is resized to stageImageSize and encoded with stageImageQuality.
+     * Quality is lowered step by step while the data URL is longer than stageImageMaxLength.
+     * @return {Promise<string>} a Promise that resolves a data URL or empty string when failed.
+     */
+    getStageImage () {
+        const renderer = this.runtime.renderer;
+        if (!renderer || typeof document === 'undefined') return Promise.resolve('');
+        return new Promise(resolve => {
+            renderer.requestSnapshot(dataURL => resolve(dataURL));
+        })
+            .then(pngDataURL => loadImageElement(pngDataURL))
+            .then(img => {
+                const [width, height] = this.stageImageSize;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff'; // JPEG has no alpha channel.
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+                let quality = this.stageImageQuality;
+                let dataURL = canvas.toDataURL('image/jpeg', quality);
+                while (dataURL.length > this.stageImageMaxLength && quality > 0.1) {
+                    quality = Math.round((quality - 0.05) * 100) / 100;
+                    dataURL = canvas.toDataURL('image/jpeg', quality);
+                }
+                if (dataURL.length > this.stageImageMaxLength) {
+                    console.info(`Stage image is too large: ${dataURL.length} > ${this.stageImageMaxLength}`);
+                    return '';
+                }
+                return dataURL;
+            })
+            .catch(reason => {
+                console.info(reason);
+                return '';
+            });
+    }
+
+    /**
+     * Save an image data URL as a costume of the target without changing the current costume.
+     * A costume saved by this block with the same name is replaced.
+     * A costume made by the user with the same name is kept and the new one gets a unique name.
+     * @param {object} args - the block's arguments.
+     * @param {string} args.IMAGE - data URL of the image.
+     * @param {string} args.NAME - name of the costume.
+     * @param {BlockUtility} util - utility object provided by the runtime.
+     * @return {Promise<string>} a Promise that resolves a message when done.
+     */
+    saveImageAsCostume (args, util) {
+        const image = parseImageDataURL(Cast.toString(args.IMAGE));
+        if (!image) return Promise.resolve('Not an image.');
+        const target = util.target;
+        const runtime = this.runtime;
+        const storage = runtime.storage;
+        const renderer = runtime.renderer;
+        if (!target || !storage || !renderer) return Promise.resolve('Costume is not available.');
+        let name = Cast.toString(args.NAME).trim();
+        if (name === '') {
+            name = formatMessage({
+                id: 'g2s.saveImageAsCostume.defaultName',
+                default: 'image',
+                description: 'default costume name for saved image'
+            });
+        }
+        return loadImageElement(image.dataURL)
+            .then(img => {
+                let source = img;
+                let format = image.format;
+                let bytes = image.bytes;
+                if (format !== storage.DataFormat.PNG && format !== storage.DataFormat.JPG) {
+                    // Convert other formats to PNG so that the costume can be saved in a project file.
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    source = canvas;
+                    format = storage.DataFormat.PNG;
+                    bytes = parseImageDataURL(canvas.toDataURL('image/png')).bytes;
+                }
+                const asset = storage.createAsset(
+                    storage.AssetType.ImageBitmap,
+                    format,
+                    bytes,
+                    null,
+                    true // generate md5
+                );
+                const bitmapResolution = 1;
+                const rotationCenter = [img.naturalWidth / 2, img.naturalHeight / 2];
+                const costumes = target.getCostumes();
+                const existingIndex = target.getCostumeIndexByName(name);
+                const existing = existingIndex >= 0 ? costumes[existingIndex] : null;
+                if (existing && this.savedCostumeAssetIds.has(existing.assetId)) {
+                    // Replace the costume which was saved by this block.
+                    renderer.updateBitmapSkin(existing.skinId, source, bitmapResolution, rotationCenter);
+                    this.savedCostumeAssetIds.delete(existing.assetId);
+                    existing.asset = asset;
+                    existing.assetId = asset.assetId;
+                    existing.dataFormat = format;
+                    existing.md5 = `${asset.assetId}.${format}`;
+                    existing.bitmapResolution = bitmapResolution;
+                    existing.rotationCenterX = rotationCenter[0];
+                    existing.rotationCenterY = rotationCenter[1];
+                    existing.size = [img.naturalWidth, img.naturalHeight];
+                    this.savedCostumeAssetIds.add(asset.assetId);
+                    if (target.currentCostume === existingIndex) {
+                        target.setCostume(existingIndex); // refresh the drawable
+                    }
+                    runtime.requestTargetsUpdate(target);
+                    runtime.emitProjectChanged();
+                    return `Costume "${existing.name}" was replaced.`;
+                }
+                // Add a new costume with an unused name.
+                const usedNames = costumes.map(costume => costume.name);
+                let unusedName = name;
+                for (let i = 2; usedNames.includes(unusedName); i++) {
+                    unusedName = `${name}${i}`;
+                }
+                const skinId = renderer.createBitmapSkin(source, bitmapResolution, rotationCenter);
+                const costume = {
+                    name: unusedName,
+                    asset: asset,
+                    assetId: asset.assetId,
+                    dataFormat: format,
+                    md5: `${asset.assetId}.${format}`,
+                    bitmapResolution: bitmapResolution,
+                    rotationCenterX: rotationCenter[0],
+                    rotationCenterY: rotationCenter[1],
+                    skinId: skinId,
+                    size: [img.naturalWidth, img.naturalHeight]
+                };
+                target.addCostume(costume);
+                this.savedCostumeAssetIds.add(asset.assetId);
+                runtime.requestTargetsUpdate(target);
+                runtime.emitProjectChanged();
+                return `Costume "${unusedName}" was saved.`;
+            })
+            .catch(reason => {
                 console.info(reason);
                 return reason.toString();
             });
@@ -3547,6 +3722,41 @@ class ExtensionBlocks {
                         }
                     }
                 },
+                {
+                    opcode: 'getStageImage',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    text: formatMessage({
+                        id: 'g2s.getStageImage',
+                        default: 'image of stage',
+                        description: 'JPEG data URL of the stage'
+                    }),
+                    arguments: {
+                    }
+                },
+                {
+                    opcode: 'saveImageAsCostume',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'g2s.saveImageAsCostume',
+                        default: 'save image [IMAGE] as costume [NAME]',
+                        description: 'save an image data URL as a costume without switching to it'
+                    }),
+                    arguments: {
+                        IMAGE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: formatMessage({
+                                id: 'g2s.saveImageAsCostume.defaultName',
+                                default: 'image',
+                                description: 'default costume name for saved image'
+                            })
+                        }
+                    }
+                },
                 '---',
                 {
                     opcode: 'connectSpreadsheetAppend',
@@ -4660,6 +4870,36 @@ const parseColor = (color, brightness) => {
     }
     return rgb;
 }
+
+/**
+ * Parse an image data URL.
+ * @param {string} text - data URL
+ * @returns {?{format: string, bytes: Uint8Array, dataURL: string}} parsed image or null when the text is not an image data URL
+ */
+const parseImageDataURL = text => {
+    const matched = String(text).trim().match(/^data:image\/([a-z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/i);
+    if (!matched) return null;
+    let format = matched[1].toLowerCase();
+    if (format === 'jpeg') format = 'jpg';
+    const binary = atob(matched[2].replace(/\s/g, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return {format, bytes, dataURL: matched[0].trim()};
+};
+
+/**
+ * Load an image element from a URL.
+ * @param {string} url - URL of the image
+ * @returns {Promise<HTMLImageElement>} a Promise that resolves the loaded image
+ */
+const loadImageElement = url => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load image.'));
+    img.src = url;
+});
 
 /**
  * 通信グループIDやラベルの文字列を正規化する
