@@ -675,6 +675,31 @@ class ExtensionBlocks {
         this.shareServerWSFailures = 0;
 
         /**
+         * Interval of the keepalive messages requested from the server by "?keepalive=" of the socket URL. [seconds]
+         * @type {number}
+         */
+        this.shareServerKeepaliveSeconds = 30;
+
+        /**
+         * Interval of the watchdog which checks silence of the sockets. [milliseconds]
+         * @type {number}
+         */
+        this.shareServerWatchdogInterval = 15000;
+
+        /**
+         * A socket which received nothing for this long is treated as dead and reconnected.
+         * Only applied to sockets which have received a keepalive message at least once. [milliseconds]
+         * @type {number}
+         */
+        this.shareServerSilenceLimit = 75000;
+
+        /**
+         * Timer ID of the watchdog. null when not running.
+         * @type {?number}
+         */
+        this.shareServerWatchdogTimer = null;
+
+        /**
          * Whether the data sharing was canceled by user.
          * @type {boolean} true after data sharing was canceled by user
          */
@@ -2234,6 +2259,7 @@ class ExtensionBlocks {
         this.pollingProbeNotBefore = 0;
         this.cancelShareServerReconnect();
         this.stopPolling();
+        this.stopShareServerWatchdog();
         if (this.shareServer) {
             const server = this.shareServer;
             this.shareServer = null;
@@ -2425,12 +2451,12 @@ class ExtensionBlocks {
      * @returns {Promise<?WebSocket>} a Promise that resolves a server socket or null when timeout occurred
      */
     openSocketForShareServer () {
-        const url = this.shareServerURL + encodeURIComponent(this.shareGroupID);
+        const url = this.shareServerSocketURL(this.shareGroupID);
         const connecting = new Promise(resolve => {
             const server = new WebSocket(url);
             let opened = false;
             server.onmessage = event => {
-                this.handleSharedDataReceived(url, event.data);
+                this.noteSocketActivity(server, this.handleSharedDataReceived(url, event.data));
             };
             server.onclose = () => {
                 console.info(`ShareServer closed ${url}`);
@@ -2449,6 +2475,8 @@ class ExtensionBlocks {
             server.onopen = () => {
                 console.info(`ShareServer opened ${url}`);
                 opened = true;
+                this.noteSocketActivity(server, null);
+                this.startShareServerWatchdog();
                 const previous = this.shareServer;
                 this.shareServer = server;
                 this.shareServerBackoffAttempt = 0;
@@ -2476,8 +2504,10 @@ class ExtensionBlocks {
 
     /**
      * Store data received from the share server (group or direct).
+     * Messages without a string key (e.g. keepalive {"type":"ping"}) are ignored.
      * @param {string} url - URL of the socket which received the data (for logging)
      * @param {string} data - received JSON text {groupId, key, value, from?}
+     * @returns {?object} the parsed message (stored or not), or null when it was not JSON
      */
     handleSharedDataReceived (url, data) {
         console.debug(`${url}: received ${data}`);
@@ -2486,15 +2516,91 @@ class ExtensionBlocks {
             received = JSON.parse(data);
         } catch (error) {
             console.info(error);
-            return;
+            return null;
         }
-        if (!received || typeof received.key !== 'string') return;
+        if (!received || typeof received.key !== 'string') return received;
         this.sharedData[received.key] =
         {
             content: received.value,
             from: (typeof received.from === 'string') ? received.from : '',
             timestamp: Date.now()
         };
+        return received;
+    }
+
+    /**
+     * URL of the subscribing socket for a channel. Asks the server for keepalive messages.
+     * @param {string} id - group ID of the channel
+     * @returns {string} socket URL
+     */
+    shareServerSocketURL (id) {
+        return `${this.shareServerURL}${encodeURIComponent(id)}?keepalive=${this.shareServerKeepaliveSeconds}`;
+    }
+
+    /**
+     * Record that a socket received something (or was opened).
+     * The watchdog is armed for a socket once a keepalive message has arrived on it,
+     * so that a server without keepalive support never causes forced reconnection.
+     * @param {WebSocket} server - the socket
+     * @param {?object} received - parsed message, or null when none
+     */
+    noteSocketActivity (server, received) {
+        server.g2sLastReceivedAt = Date.now();
+        if (received && received.type === 'ping') server.g2sKeepaliveSeen = true;
+    }
+
+    /**
+     * Whether a socket is open but has received nothing for longer than shareServerSilenceLimit.
+     * @param {?WebSocket} server - the socket
+     * @returns {boolean} true when the socket looks dead
+     */
+    isSocketSilent (server) {
+        if (!server || server.readyState !== WebSocket.OPEN) return false;
+        if (server.g2sKeepaliveSeen !== true) return false;
+        return (Date.now() - (server.g2sLastReceivedAt || 0)) > this.shareServerSilenceLimit;
+    }
+
+    /**
+     * Start the watchdog which detects dead sockets (e.g. after Wi-Fi was lost and the browser never fires onclose).
+     */
+    startShareServerWatchdog () {
+        if (this.shareServerWatchdogTimer !== null) return;
+        this.shareServerWatchdogTimer = setTimeout(() => {
+            this.shareServerWatchdogTimer = null;
+            this.checkShareServerSilence();
+            if (this.shareServer || this.directServer) this.startShareServerWatchdog();
+        }, this.shareServerWatchdogInterval);
+    }
+
+    /**
+     * Stop the watchdog.
+     */
+    stopShareServerWatchdog () {
+        if (this.shareServerWatchdogTimer !== null) {
+            clearTimeout(this.shareServerWatchdogTimer);
+            this.shareServerWatchdogTimer = null;
+        }
+    }
+
+    /**
+     * Drop silent sockets and reconnect them. The socket is detached before close()
+     * so that its (possibly very late) onclose is ignored and reconnection starts now.
+     */
+    checkShareServerSilence () {
+        if (this.isSocketSilent(this.shareServer)) {
+            console.info('ShareServer: no message for too long, reconnecting');
+            const server = this.shareServer;
+            this.shareServer = null;
+            server.close();
+            this.scheduleShareServerReconnect();
+        }
+        if (this.isSocketSilent(this.directServer)) {
+            console.info('DirectServer: no message for too long, reconnecting');
+            const server = this.directServer;
+            this.directServer = null;
+            server.close();
+            this.scheduleDirectServerReconnect();
+        }
     }
 
     /**
@@ -2559,12 +2665,12 @@ class ExtensionBlocks {
      */
     openDirectSocket () {
         const id = this.directServerID();
-        const url = this.shareServerURL + encodeURIComponent(id);
+        const url = this.shareServerSocketURL(id);
         const connecting = new Promise(resolve => {
             const server = new WebSocket(url);
             let opened = false;
             server.onmessage = event => {
-                this.handleSharedDataReceived(url, event.data);
+                this.noteSocketActivity(server, this.handleSharedDataReceived(url, event.data));
             };
             server.onclose = () => {
                 console.info(`DirectServer closed ${url}`);
@@ -2588,6 +2694,8 @@ class ExtensionBlocks {
                     resolve(null);
                     return;
                 }
+                this.noteSocketActivity(server, null);
+                this.startShareServerWatchdog();
                 const previous = this.directServer;
                 this.directServer = server;
                 this.directServerBackoffAttempt = 0;
