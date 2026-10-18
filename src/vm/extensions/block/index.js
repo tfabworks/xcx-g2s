@@ -4059,7 +4059,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.setDeviceName',
-                        default: 'set device name to [NAME]',
+                        default: 'communication set device name to [NAME]',
                         description: 'set the name of this device in the communication group'
                     }),
                     arguments: {
@@ -4079,7 +4079,7 @@ class ExtensionBlocks {
                     disableMonitor: true,
                     text: formatMessage({
                         id: 'g2s.reportDeviceName',
-                        default: 'device name',
+                        default: 'communication device name',
                         description: 'reporter of the name of this device'
                     }),
                     arguments: {
@@ -4090,7 +4090,7 @@ class ExtensionBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'g2s.sendDirectData',
-                        default: 'send communication [LABEL]=[DATA] to [TO]',
+                        default: 'communication send [LABEL]=[DATA] to [TO]',
                         description: 'send data with label to the device which has the name'
                     }),
                     arguments: {
