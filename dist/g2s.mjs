@@ -30387,7 +30387,7 @@ var ExtensionBlocks = /*#__PURE__*/function () {
               defaultValue: 'data'
             }
           }
-        }, {
+        }, '---', {
           opcode: 'getStageImage',
           blockType: blockType.REPORTER,
           disableMonitor: true,

@@ -3722,6 +3722,7 @@ class ExtensionBlocks {
                         }
                     }
                 },
+                '---',
                 {
                     opcode: 'getStageImage',
                     blockType: BlockType.REPORTER,
