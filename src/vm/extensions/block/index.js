@@ -4067,8 +4067,8 @@ class ExtensionBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: formatMessage({
                                 id: 'g2s.setDeviceName.defaultName',
-                                default: 'taro',
-                                description: 'default device name'
+                                default: 'cat',
+                                description: 'default device name (not a person\'s name)'
                             })
                         }
                     }
@@ -4076,7 +4076,7 @@ class ExtensionBlocks {
                 {
                     opcode: 'reportDeviceName',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: false,
+                    disableMonitor: true,
                     text: formatMessage({
                         id: 'g2s.reportDeviceName',
                         default: 'device name',
@@ -4097,9 +4097,9 @@ class ExtensionBlocks {
                         TO: {
                             type: ArgumentType.STRING,
                             defaultValue: formatMessage({
-                                id: 'g2s.setDeviceName.defaultName',
-                                default: 'taro',
-                                description: 'default device name'
+                                id: 'g2s.sendDirectData.defaultTo',
+                                default: 'dog',
+                                description: 'default destination device name (not a person\'s name)'
                             })
                         },
                         LABEL: {
