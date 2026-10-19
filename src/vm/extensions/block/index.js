@@ -472,6 +472,13 @@ class ExtensionBlocks {
         this.shareDataSendingIntervalTime = 1000;
 
         /**
+         * Time the sending block takes when its value is an image data URL. [milliseconds]
+         * Only the block (its script) waits this long; other scripts can send after shareDataSendingIntervalTime.
+         * @type {number}
+         */
+        this.imageSendingBlockTime = 3000;
+
+        /**
          * Waiting time for connecting to share server.
          * @type {number} [milliseconds]
          */
@@ -3236,6 +3243,8 @@ class ExtensionBlocks {
 
     /**
      * POST data to the share server. At most one request is sent per shareDataSendingIntervalTime.
+     * When the value is an image data URL, the block itself takes imageSendingBlockTime to finish,
+     * while other scripts may send again after shareDataSendingIntervalTime as usual.
      *
      * @param {string} groupId - group ID of the destination channel
      * @param {string} key - label of the data
@@ -3258,6 +3267,14 @@ class ExtensionBlocks {
         if (this.deviceName) {
             body.from = this.deviceName;
         }
+        const blockTime = isImageDataURL(value) ? this.imageSendingBlockTime : this.shareDataSendingIntervalTime;
+        // Release the sending flag after the interval, and finish the block after blockTime.
+        const finish = result => new Promise(resolve => {
+            setTimeout(() => {
+                this.shareDataSending = false;
+            }, this.shareDataSendingIntervalTime);
+            setTimeout(() => resolve(result), Math.max(blockTime, this.shareDataSendingIntervalTime));
+        });
         return this.getShareServer()
             .then(server => {
                 if (!server) {
@@ -3278,21 +3295,11 @@ class ExtensionBlocks {
                     throw new Error(`Share server returns: ${response.status}`);
                 }
             })
-            .then(() => new Promise(resolve => {
-                setTimeout(() => {
-                    this.shareDataSending = false;
-                    resolve();
-                }, this.shareDataSendingIntervalTime);
-            }))
+            .then(() => finish())
             .catch(reason => {
                 console.info(reason);
                 // Keep the interval on failure too, so that a loop does not retry every frame.
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        this.shareDataSending = false;
-                        resolve(reason.toString());
-                    }, this.shareDataSendingIntervalTime);
-                });
+                return finish(reason.toString());
             });
     }
 
@@ -5795,6 +5802,13 @@ const parseColor = (color, brightness) => {
  * @param {string} text - data URL
  * @returns {?{format: string, bytes: Uint8Array, dataURL: string}} parsed image or null when the text is not an image data URL
  */
+/**
+ * Whether a text looks like an image data URL. Only the head is checked, so a long image is not parsed.
+ * @param {string} text - text to check
+ * @returns {boolean} true when the text starts with "data:image/"
+ */
+const isImageDataURL = text => /^\s*data:image\//i.test(String(text));
+
 const parseImageDataURL = text => {
     const matched = String(text).trim().match(/^data:image\/([a-z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/i);
     if (!matched) return null;
